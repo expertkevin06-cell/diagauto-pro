@@ -104,6 +104,93 @@
             font-size: 18px;
         }
 
+        .search-box {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid #dc3545;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .search-box h3 {
+            color: #c82333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 14px 50px 14px 14px;
+            font-size: 16px;
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            background: white;
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: #c82333;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #dc3545;
+        }
+
+        .autocomplete-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #dc3545;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .autocomplete-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .autocomplete-item:hover {
+            background: #fff5f5;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item strong {
+            color: #dc3545;
+        }
+
+        .autocomplete-item .category {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 3px;
+        }
+
         .import-box {
             background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
             padding: 20px;
@@ -295,16 +382,41 @@
             100% { transform: rotate(360deg); }
         }
 
-        .alert {
-            padding: 12px 15px;
-            border-radius: 6px;
+        .result-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
             margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .alert-warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
+        .result-card h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .result-card .meta {
+            font-size: 13px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .results-container {
+            margin-top: 20px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-size: 16px;
+        }
+
+        .highlight {
+            background: yellow;
+            padding: 2px 4px;
+            border-radius: 3px;
         }
     </style>
 </head>
@@ -326,8 +438,29 @@
 
         <!-- Onglet Diagnostic -->
         <div id="diagnostic" class="tab-content active">
+            <!-- RECHERCHE INTELLIGENTE -->
+            <div class="search-box">
+                <h3>🔍 Recherche Intelligente</h3>
+                <p style="margin-bottom: 15px; color: #666;">
+                    Recherchez par marque, modèle, motorisation, puissance ou organe (ex: courroie, FAP, embrayage...)
+                </p>
+                <div class="search-container">
+                    <input type="text" id="searchInput" 
+                           placeholder="Tapez pour rechercher (ex: Peugeot, 208, HDi, FAP, courroie...)" 
+                           autocomplete="off">
+                    <span class="search-icon">🔍</span>
+                    <div class="autocomplete-results" id="autocompleteResults"></div>
+                </div>
+                <button class="btn-primary" onclick="lancerRecherche()">Rechercher</button>
+                <button class="btn-secondary" onclick="effacerRecherche()">Effacer</button>
+            </div>
+
+            <!-- RÉSULTATS -->
+            <div class="results-container" id="resultsContainer"></div>
+
+            <!-- RECHERCHE MANUELLE -->
             <div class="section">
-                <h3>🔍 Recherche automatique de pannes</h3>
+                <h3>🔍 Recherche Manuelle</h3>
                 <div class="grid">
                     <div>
                         <label>Marque</label>
@@ -338,11 +471,22 @@
                     <div>
                         <label>Modèle</label>
                         <select id="selectModele">
+                            <option value="">Tous modèles</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Motorisation</label>
+                        <select id="selectMotorisation">
                             <option value="">Toutes motorisations</option>
                         </select>
                     </div>
+                    <div>
+                        <label>Puissance (ch)</label>
+                        <input type="text" id="puissanceInput" placeholder="Ex: 110, 150, 180">
+                    </div>
                 </div>
                 <button class="btn-primary" onclick="lancerDiagnostic()">Lancer le diagnostic</button>
+                <button class="btn-secondary" onclick="reinitialiserDiagnostic()">Réinitialiser</button>
             </div>
         </div>
 
@@ -421,7 +565,7 @@
                 <h3>📥 Import Base Massive</h3>
                 <p>
                     Importer la base complète depuis <strong>appli-aide-technique</strong><br>
-                    <small>150+ marques automobiles avec leurs caractéristiques</small>
+                    <small>150+ marques automobiles avec modèles, motorisations et organes</small>
                 </p>
                 <div style="margin-bottom: 15px;">
                     <label>URL source :</label>
@@ -443,13 +587,6 @@
                 <label>Confirmer PIN</label>
                 <input type="password" id="confirmerPin">
                 <button class="btn-primary">Activer PIN et chiffrer</button>
-            </div>
-
-            <div class="section">
-                <h3>🖼️ Fond d'écran admin</h3>
-                <label>URL personnalisée</label>
-                <input type="text" id="wallpaperUrl" placeholder="https://...">
-                <button class="btn-primary">Enregistrer le fond d'écran</button>
             </div>
         </div>
 
@@ -493,401 +630,6 @@
         </footer>
     </div>
 
-    <script>
-        // ============================================
-        // GESTION DES ONGLETS
-        // ============================================
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
-                tab.classList.add('active');
-                document.getElementById(tab.dataset.tab).classList.add('active');
-            });
-        });
-
-        // ============================================
-        // CONFIGURATION
-        // ============================================
-        const CONFIG = {
-            SOURCE_URL: 'https://expertkevin06-cell.github.io/appli-aide-technique/',
-            DB_NAME: 'DiagAutoDB',
-            DB_VERSION: 1,
-            STORES: {
-                MARQUES: 'marques',
-                VEHICULES: 'vehicules',
-                INTERVENTIONS: 'interventions'
-            }
-        };
-
-        // ============================================
-        // BASE DE DONNÉES DES MARQUES
-        // ============================================
-        const MARQUES_DATABASE = [
-            {marque: "Aixam", origine: "🇫🇷 Françaises", pays: "FR", continent: "europe"},
-            {marque: "Alpine", origine: "🇫🇷 Françaises", pays: "FR", continent: "europe"},
-            {marque: "Bolloré", origine: "🇫🇷 Françaises", pays: "FR", continent: "europe"},
-            {marque: "Bugatti", origine: "🇫🇷 Françaises", pays: "FR", continent: "europe"},
-            {marque: "Citroën", origine: "🇫🇷 Françaises", pays: "FR", continent: "europe"},
-            {marque: "DS Automobiles", origine: "🇫🇷 Françaises", pays: "FR", continent: "europe"},
-            {marque: "Ligier", origine: "🇫🇷 Françaises", pays: "FR", continent: "europe"},
-            {marque: "Microcar", origine: "🇫🇷 Françaises", pays: "FR", continent: "europe"},
-            {marque: "Peugeot", origine: "🇫🇷 Françaises", pays: "FR", continent: "europe"},
-            {marque: "Renault", origine: "🇫🇷 Françaises", pays: "FR", continent: "europe"},
-            {marque: "Alfa Romeo", origine: "🇪🇺 Européennes", pays: "IT", continent: "europe"},
-            {marque: "Aston Martin", origine: "🇪🇺 Européennes", pays: "GB", continent: "europe"},
-            {marque: "Audi", origine: "🇪🇺 Européennes", pays: "DE", continent: "europe"},
-            {marque: "Bentley", origine: "🇪🇺 Européennes", pays: "GB", continent: "europe"},
-            {marque: "BMW", origine: "🇪🇺 Européennes", pays: "DE", continent: "europe"},
-            {marque: "CUPRA", origine: "🇪🇺 Européennes", pays: "ES", continent: "europe"},
-            {marque: "Dacia", origine: "🇪🇺 Européennes", pays: "RO", continent: "europe"},
-            {marque: "Ferrari", origine: "🇪🇺 Européennes", pays: "IT", continent: "europe"},
-            {marque: "Fiat", origine: "🇪🇺 Européennes", pays: "IT", continent: "europe"},
-            {marque: "Ineos", origine: "🇪🇺 Européennes", pays: "GB", continent: "europe"},
-            {marque: "Jaguar", origine: "🇪🇺 Européennes", pays: "GB", continent: "europe"},
-            {marque: "Lamborghini", origine: "🇪🇺 Européennes", pays: "IT", continent: "europe"},
-            {marque: "Lancia", origine: "🇪🇺 Européennes", pays: "IT", continent: "europe"},
-            {marque: "Land Rover", origine: "🇪🇺 Européennes", pays: "GB", continent: "europe"},
-            {marque: "Lotus", origine: "🇪🇺 Européennes", pays: "GB", continent: "europe"},
-            {marque: "Maserati", origine: "🇪🇺 Européennes", pays: "IT", continent: "europe"},
-            {marque: "McLaren", origine: "🇪🇺 Européennes", pays: "GB", continent: "europe"},
-            {marque: "Mercedes-Benz", origine: "🇪🇺 Européennes", pays: "DE", continent: "europe"},
-            {marque: "MINI", origine: "🇪🇺 Européennes", pays: "GB", continent: "europe"},
-            {marque: "Opel", origine: "🇪🇺 Européennes", pays: "DE", continent: "europe"},
-            {marque: "Polestar", origine: "🇪🇺 Européennes", pays: "SE", continent: "europe"},
-            {marque: "Porsche", origine: "🇪🇺 Européennes", pays: "DE", continent: "europe"},
-            {marque: "Rolls-Royce", origine: "🇪🇺 Européennes", pays: "GB", continent: "europe"},
-            {marque: "Saab", origine: "🇪🇺 Européennes", pays: "SE", continent: "europe"},
-            {marque: "SEAT", origine: "🇪🇺 Européennes", pays: "ES", continent: "europe"},
-            {marque: "Škoda", origine: "🇪🇺 Européennes", pays: "CZ", continent: "europe"},
-            {marque: "Smart", origine: "🇪🇺 Européennes", pays: "DE", continent: "europe"},
-            {marque: "Volkswagen", origine: "🇪🇺 Européennes", pays: "DE", continent: "europe"},
-            {marque: "Volvo", origine: "🇪🇺 Européennes", pays: "SE", continent: "europe"},
-            {marque: "Acura", origine: "🌏 Asiatiques", pays: "JP", continent: "asie"},
-            {marque: "Aion", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "AITO", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Aiways", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Arcfox", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Avatr", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "BAIC", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Baidu Jiyue", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Baojun", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Beijing", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Bestune", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Borgward", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "BYD", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Changan", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Chery", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Daihatsu", origine: "🌏 Asiatiques", pays: "JP", continent: "asie"},
-            {marque: "Deepal", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Denza", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "DFSK", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Dongfeng", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Enovate", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Exeed", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Fangchengbao", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "FAW", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Forthing", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "GAC", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Geely", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Geely Galaxy", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Genesis", origine: "🌏 Asiatiques", pays: "KR", continent: "asie"},
-            {marque: "Geometry", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Great Wall", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Haima", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Haval", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Hengchi", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "HiPhi", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Honda", origine: "🌏 Asiatiques", pays: "JP", continent: "asie"},
-            {marque: "Hongqi", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Hozon", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Human Horizons", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Hycan", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Hyundai", origine: "🌏 Asiatiques", pays: "KR", continent: "asie"},
-            {marque: "IM Motors", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Infiniti", origine: "🌏 Asiatiques", pays: "JP", continent: "asie"},
-            {marque: "Isuzu", origine: "🌏 Asiatiques", pays: "JP", continent: "asie"},
-            {marque: "JAC", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Jaecoo", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Jetour", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Kaiyi", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Kandi", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Kia", origine: "🌏 Asiatiques", pays: "KR", continent: "asie"},
-            {marque: "Leapmotor", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Lexus", origine: "🌏 Asiatiques", pays: "JP", continent: "asie"},
-            {marque: "Li Auto", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Livan", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Luxgen", origine: "🌏 Asiatiques", pays: "TW", continent: "asie"},
-            {marque: "Lynk & Co", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Mahindra", origine: "🌏 Asiatiques", pays: "IN", continent: "asie"},
-            {marque: "Maxus", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Mazda", origine: "🌏 Asiatiques", pays: "JP", continent: "asie"},
-            {marque: "MG", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Mitsubishi", origine: "🌏 Asiatiques", pays: "JP", continent: "asie"},
-            {marque: "Neta", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "NIO", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Nissan", origine: "🌏 Asiatiques", pays: "JP", continent: "asie"},
-            {marque: "Omoda", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Ora", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Qiantu", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Qoros", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Radar", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Rising Auto", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Roewe", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "SAIC", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Seres", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Singulato", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Skyworth", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Soueast", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "SsangYong", origine: "🌏 Asiatiques", pays: "KR", continent: "asie"},
-            {marque: "Subaru", origine: "🌏 Asiatiques", pays: "JP", continent: "asie"},
-            {marque: "Suzuki", origine: "🌏 Asiatiques", pays: "JP", continent: "asie"},
-            {marque: "SWM", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Tank", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Tata", origine: "🌏 Asiatiques", pays: "IN", continent: "asie"},
-            {marque: "Toyota", origine: "🌏 Asiatiques", pays: "JP", continent: "asie"},
-            {marque: "VinFast", origine: "🌏 Asiatiques", pays: "VN", continent: "asie"},
-            {marque: "Voyah", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Weltmeister", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Wey", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "WM Motor", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Wuling", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Xiaomi Auto", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "XPeng", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Yangwang", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Yudo", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Zeekr", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Zhiji Auto", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Zotye", origine: "🌏 Asiatiques", pays: "CN", continent: "asie"},
-            {marque: "Buick", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "Cadillac", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "Chevrolet", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "Chrysler", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "Dodge", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "Fisker", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "Ford", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "GMC", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "Hummer", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "Jeep", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "Lincoln", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "Lucid", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "Pontiac", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "Ram", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "Rivian", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"},
-            {marque: "Tesla", origine: "🇺🇸 Américaines", pays: "US", continent: "amerique"}
-        ];
-
-        // ============================================
-        // GESTION IndexedDB
-        // ============================================
-        class DatabaseManager {
-            async open() {
-                return new Promise((resolve, reject) => {
-                    const request = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VERSION);
-                    
-                    request.onerror = () => reject(request.error);
-                    
-                    request.onsuccess = () => {
-                        this.db = request.result;
-                        resolve(this.db);
-                    };
-                    
-                    request.onupgradeneeded = (event) => {
-                        const db = event.target.result;
-                        
-                        if (!db.objectStoreNames.contains(CONFIG.STORES.MARQUES)) {
-                            const store = db.createObjectStore(CONFIG.STORES.MARQUES, { 
-                                keyPath: 'id', 
-                                autoIncrement: true 
-                            });
-                            store.createIndex('marque', 'marque', { unique: true });
-                            store.createIndex('pays', 'pays', { unique: false });
-                            store.createIndex('continent', 'continent', { unique: false });
-                        }
-                        
-                        if (!db.objectStoreNames.contains(CONFIG.STORES.VEHICULES)) {
-                            const store = db.createObjectStore(CONFIG.STORES.VEHICULES, { 
-                                keyPath: 'id', 
-                                autoIncrement: true 
-                            });
-                            store.createIndex('immatriculation', 'immatriculation', { unique: false });
-                            store.createIndex('vin', 'vin', { unique: false });
-                        }
-                        
-                        if (!db.objectStoreNames.contains(CONFIG.STORES.INTERVENTIONS)) {
-                            db.createObjectStore(CONFIG.STORES.INTERVENTIONS, { 
-                                keyPath: 'id', 
-                                autoIncrement: true 
-                            });
-                        }
-                    };
-                });
-            }
-
-            async importMarques(marques) {
-                if (!this.db) await this.open();
-                
-                return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([CONFIG.STORES.MARQUES], 'readwrite');
-                    const store = transaction.objectStore(CONFIG.STORES.MARQUES);
-                    
-                    store.clear();
-                    
-                    let imported = 0;
-                    const total = marques.length;
-                    
-                    marques.forEach(marque => {
-                        const request = store.add({
-                            marque: marque.marque,
-                            origine: marque.origine,
-                            pays: marque.pays,
-                            continent: marque.continent,
-                            dateImport: new Date().toISOString(),
-                            actif: true
-                        });
-                        
-                        request.onsuccess = () => imported++;
-                    });
-                    
-                    transaction.oncomplete = () => resolve({ success: true, count: imported });
-                    transaction.onerror = () => reject(transaction.error);
-                });
-            }
-
-            async getMarques() {
-                if (!this.db) await this.open();
-                
-                return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction([CONFIG.STORES.MARQUES], 'readonly');
-                    const store = transaction.objectStore(CONFIG.STORES.MARQUES);
-                    const request = store.getAll();
-                    
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            close() {
-                if (this.db) {
-                    this.db.close();
-                    this.db = null;
-                }
-            }
-        }
-
-        // ============================================
-        // FONCTION D'IMPORT PRINCIPALE
-        // ============================================
-        async function importerBaseMassive() {
-            const statusDiv = document.getElementById('importStatus');
-            const btnImport = document.getElementById('btnImportMassive');
-            
-            try {
-                btnImport.disabled = true;
-                btnImport.textContent = '⏳ Import en cours...';
-                
-                updateStatus('🔌 Connexion à la base de données...', 'info');
-                
-                const dbManager = new DatabaseManager();
-                await dbManager.open();
-                
-                updateStatus(`📦 Import de ${MARQUES_DATABASE.length} marques en cours...`, 'info');
-                
-                const result = await dbManager.importMarques(MARQUES_DATABASE);
-                
-                if (result.success) {
-                    updateStatus(
-                        `✅ <strong>Import réussi !</strong><br>` +
-                        `📊 ${result.count} marques importées dans IndexedDB<br>` +
-                        `🔗 Source: <a href="${CONFIG.SOURCE_URL}" target="_blank">${CONFIG.SOURCE_URL}</a><br>` +
-                        `<small>Rechargez la page pour voir les nouvelles marques dans les menus.</small>`,
-                        'success'
-                    );
-                    
-                    await chargerMarquesDansSelects();
-                    
-                    setTimeout(() => {
-                        if (confirm(`Import terminé !\n\n${result.count} marques ont été importées.\n\nVoulez-vous recharger la page pour voir les nouvelles marques ?`)) {
-                            location.reload();
-                        }
-                    }, 1500);
-                }
-                
-            } catch (error) {
-                updateStatus(
-                    `❌ <strong>Erreur lors de l'import</strong><br>` +
-                    `<code>${error.message}</code>`,
-                    'error'
-                );
-                console.error('Erreur import:', error);
-            } finally {
-                btnImport.disabled = false;
-                btnImport.textContent = '🚀 Importer depuis appli-aide-technique';
-            }
-        }
-
-        function updateStatus(message, type) {
-            const statusDiv = document.getElementById('importStatus');
-            statusDiv.style.display = 'block';
-            statusDiv.className = `status ${type}`;
-            statusDiv.innerHTML = message;
-        }
-
-        // ============================================
-        // CHARGEMENT DES MARQUES DANS LES SELECTS
-        // ============================================
-        async function chargerMarquesDansSelects() {
-            try {
-                const dbManager = new DatabaseManager();
-                const marques = await dbManager.getMarques();
-                
-                const selectMarque = document.getElementById('selectMarque');
-                const ficheMarque = document.getElementById('ficheMarque');
-                
-                // Vider les selects existants
-                selectMarque.innerHTML = '<option value="">Toutes marques</option>';
-                ficheMarque.innerHTML = '<option value="">Choisir</option>';
-                
-                // Ajouter les marques
-                marques.forEach(m => {
-                    const option1 = document.createElement('option');
-                    option1.value = m.marque;
-                    option1.textContent = `${m.marque} (${m.pays})`;
-                    selectMarque.appendChild(option1);
-                    
-                    const option2 = document.createElement('option');
-                    option2.value = m.marque;
-                    option2.textContent = `${m.marque} (${m.pays})`;
-                    ficheMarque.appendChild(option2);
-                });
-                
-                console.log(`✅ ${marques.length} marques chargées dans les menus`);
-                
-            } catch (error) {
-                console.error('Erreur chargement marques:', error);
-            }
-        }
-
-        // ============================================
-        // INITIALISATION
-        // ============================================
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log('🚀 DiagAuto Pro initialisé');
-            
-            const btnImport = document.getElementById('btnImportMassive');
-            if (btnImport) {
-                btnImport.addEventListener('click', importerBaseMassive);
-            }
-            
-            // Charger les marques existantes
-            await chargerMarquesDansSelects();
-        });
-
-        // Fonction placeholder pour diagnostic
-        function lancerDiagnostic() {
-            alert('Fonction de diagnostic à implémenter');
-        }
-    </script>
+    <script src="import-base-massive.js"></script>
 </body>
 </html>
