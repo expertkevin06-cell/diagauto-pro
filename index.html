@@ -1,703 +1,271 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DiagAuto Pro - Diagnostic Automobile Professionnel</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-
-        header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 25px 30px;
-            text-align: center;
-        }
-
-        header h1 {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-
-        header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-
-        .tabs {
-            display: flex;
-            background: #f8f9fa;
-            border-bottom: 2px solid #e9ecef;
-            overflow-x: auto;
-        }
-
-        .tab {
-            padding: 15px 25px;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            font-size: 14px;
-            font-weight: 500;
-            color: #6c757d;
-            transition: all 0.3s;
-            white-space: nowrap;
-        }
-
-        .tab:hover {
-            background: #e9ecef;
-            color: #495057;
-        }
-
-        .tab.active {
-            background: white;
-            color: #667eea;
-            border-bottom: 3px solid #667eea;
-            font-weight: 600;
-        }
-
-        .tab-content {
-            display: none;
-            padding: 30px;
-            animation: fadeIn 0.3s;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            border-left: 4px solid #667eea;
-        }
-
-        .section h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-
-        .search-box {
-            background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
-            padding: 25px;
-            border-radius: 12px;
-            border: 2px solid #dc3545;
-            margin-bottom: 25px;
-            position: relative;
-        }
-
-        .search-box h3 {
-            color: #c82333;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .search-container {
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        #searchInput {
-            width: 100%;
-            padding: 14px 50px 14px 14px;
-            font-size: 16px;
-            border: 2px solid #dc3545;
-            border-radius: 8px;
-            background: white;
-        }
-
-        #searchInput:focus {
-            outline: none;
-            border-color: #c82333;
-            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
-        }
-
-        .search-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 20px;
-            color: #dc3545;
-        }
-
-        .autocomplete-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 2px solid #dc3545;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            max-height: 500px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        .autocomplete-item {
-            padding: 15px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background 0.2s;
-        }
-
-        .autocomplete-item:hover {
-            background: #fff5f5;
-        }
-
-        .autocomplete-item:last-child {
-            border-bottom: none;
-        }
-
-        .autocomplete-item .title {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 5px;
-            font-size: 15px;
-        }
-
-        .autocomplete-item .title strong {
-            color: #dc3545;
-        }
-
-        .autocomplete-item .description {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 5px;
-        }
-
-        .autocomplete-item .tags {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-
-        .autocomplete-item .tag {
-            font-size: 11px;
-            padding: 3px 8px;
-            border-radius: 10px;
-            background: #e9ecef;
-            color: #495057;
-        }
-
-        .tag.marque { background: #d1ecf1; color: #0c5460; }
-        .tag.modele { background: #f8d7da; color: #721c24; }
-        .tag.motorisation { background: #d4edda; color: #155724; }
-        .tag.organe { background: #fff3cd; color: #856404; }
-        .tag.probleme { background: #f8d7da; color: #721c24; }
-
-        .import-box {
-            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
-            padding: 20px;
-            border-radius: 12px;
-            border: 2px solid #007bff;
-            margin-bottom: 20px;
-        }
-
-        .import-box h3 {
-            color: #0056b3;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .import-box p {
-            color: #555;
-            margin-bottom: 15px;
-        }
-
-        button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #218838;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-        }
-
-        .btn-info {
-            background: #17a2b8;
-            color: white;
-        }
-
-        .btn-info:hover {
-            background: #138496;
-        }
-
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        input[type="text"],
-        input[type="password"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-
-        input[type="text"]:focus,
-        input[type="password"]:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .status {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 6px;
-            font-weight: 500;
-        }
-
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .info-card {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
-        }
-
-        .info-card h4 {
-            color: #667eea;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .info-card p {
-            color: #495057;
-            font-size: 14px;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .badge-success {
-            background: #28a745;
-            color: white;
-        }
-
-        .badge-info {
-            background: #17a2b8;
-            color: white;
-        }
-
-        .badge-warning {
-            background: #ffc107;
-            color: #333;
-        }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            background: #f8f9fa;
-            color: #6c757d;
-            font-size: 13px;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .result-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #28a745;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .result-card h4 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
-        .result-card .meta {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 10px;
-        }
-
-        .result-card .description {
-            color: #555;
-            margin-bottom: 10px;
-            line-height: 1.6;
-        }
-
-        .result-card .details {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 10px;
-        }
-
-        .result-card .details h5 {
-            color: #667eea;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .result-card .details ul {
-            margin-left: 20px;
-            color: #555;
-            font-size: 13px;
-        }
-
-        .result-card .details li {
-            margin-bottom: 5px;
-        }
-
-        .results-container {
-            margin-top: 20px;
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 40px;
-            color: #6c757d;
-            font-size: 16px;
-        }
-
-        .highlight {
-            background: yellow;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-
-        .examples {
-            margin-top: 15px;
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
-        }
-
-        .examples h4 {
-            color: #dc3545;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .examples .example-item {
-            display: inline-block;
-            padding: 6px 12px;
-            background: #fff5f5;
-            border: 1px solid #dc3545;
-            border-radius: 15px;
-            margin: 3px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .examples .example-item:hover {
-            background: #dc3545;
-            color: white;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DiagAuto Pro — Mes réponses techniques</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#101a2c; --card:#16233a; --border:#22344f;
+    --txt:#e5eefb; --muted:#8fa3bf; --blue:#3b82f6; --green:#22c55e; --red:#ef4444;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg); color:var(--txt); min-height:100vh; padding:20px;
+  }
+  .wrap{max-width:1150px;margin:0 auto}
+
+  /* ===== HEADER ===== */
+  header{display:flex;align-items:center;gap:15px;flex-wrap:wrap;margin-bottom:20px}
+  .logo{font-size:34px}
+  .titles h1{font-size:22px}
+  .titles p{color:var(--muted);font-size:13px}
+  .hbtns{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .netbadge{border:1px solid var(--green);color:var(--green);border-radius:20px;padding:8px 14px;font-size:13px}
+  .hbtn{background:var(--card);border:1px solid var(--border);color:var(--txt);border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer}
+  .hbtn:hover{border-color:var(--blue)}
+
+  /* ===== ONGLETS APP ===== */
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+  .tab{background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:9px 16px;cursor:pointer;font-size:13px}
+  .tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .tabcontent{display:none}
+  .tabcontent.active{display:block}
+
+  /* ===== PILLS ORIGINE ===== */
+  .pills{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .pill{background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:22px;padding:10px 18px;cursor:pointer;font-size:14px}
+  .pill.active{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:600}
+
+  /* ===== RECHERCHE ===== */
+  .searchwrap{position:relative;margin-bottom:20px}
+  #searchInput{
+    width:100%;padding:18px 20px;font-size:18px;background:var(--panel);
+    border:1px solid var(--border);border-radius:12px;color:var(--txt);
+  }
+  #searchInput:focus{outline:none;border-color:var(--blue)}
+  #searchInput::placeholder{color:#5b6c86}
+  .sugg{
+    position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--card);
+    border:1px solid var(--blue);border-top:none;border-radius:0 0 12px 12px;
+    max-height:380px;overflow-y:auto;display:none;
+  }
+  .sugg-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start}
+  .sugg-item:last-child{border-bottom:none}
+  .sugg-item:hover{background:#1d2c47}
+  .sugg-item .s-ico{font-size:16px}
+  .sugg-item .s-main{font-size:14px;font-weight:600}
+  .sugg-item .s-main b{color:#fbbf24}
+  .sugg-item .s-sub{font-size:12px;color:var(--muted);margin-top:2px}
+
+  .examples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+  .ex{background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:16px;padding:6px 14px;font-size:12px;cursor:pointer}
+  .ex:hover{border-color:var(--blue);color:var(--txt)}
+
+  /* ===== RÉSULTATS ===== */
+  .respanel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px}
+  .reshead{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;font-size:18px;font-weight:700}
+  .reshead .count{color:var(--muted);font-size:14px;font-weight:400}
+  .detect{
+    border-left:4px solid var(--green);background:#122b1e;border-radius:8px;
+    padding:14px 16px;margin-bottom:16px;font-size:15px;
+  }
+  .detect b{color:#fff}
+  .fiche{
+    background:var(--card);border:1px solid var(--border);border-left:4px solid var(--blue);
+    border-radius:10px;padding:16px 18px;margin-bottom:14px;
+  }
+  .f-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .cat{border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700}
+  .cat-Moteur{background:#4c1d95;color:#e9d5ff}
+  .cat-Injection{background:#7c2d12;color:#fed7aa}
+  .cat-Depollution{background:#14532d;color:#bbf7d0}
+  .cat-Echappement{background:#374151;color:#e5e7eb}
+  .cat-Admission{background:#164e63;color:#a5f3fc}
+  .cat-Transmission{background:#1e3a8a;color:#bfdbfe}
+  .cat-Electrique{background:#713f12;color:#fde68a}
+  .cat-Freinage{background:#7f1d1d;color:#fecaca}
+  .cat-Refroidissement{background:#0e7490;color:#cffafe}
+  .cat-Entretien{background:#115e59;color:#99f6e4}
+  .cat-Direction{background:#581c87;color:#f3e8ff}
+  .f-titre{font-size:16px;font-weight:700;flex:1}
+  .f-src{color:var(--muted);font-size:12px;margin-left:auto}
+  .f-line{font-size:14px;margin:6px 0;color:#d7e3f4}
+  .f-line .ico{margin-right:8px}
+  .empty{color:var(--muted);text-align:center;padding:40px 0;font-size:15px}
+
+  /* ===== SECTIONS ADMIN / AUTRES ===== */
+  .section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px}
+  .section h3{margin-bottom:14px;font-size:16px}
+  .importbox{background:#0f2036;border:1px solid var(--blue);border-radius:12px;padding:20px;margin-bottom:18px}
+  .importbox h3{color:#93c5fd;margin-bottom:8px}
+  .importbox p{color:var(--muted);font-size:13px;margin-bottom:12px}
+  input[type=text],input[type=password],select{
+    width:100%;padding:10px;background:var(--card);border:1px solid var(--border);
+    border-radius:8px;color:var(--txt);margin-bottom:10px;font-size:14px;
+  }
+  button.btn{border:none;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;margin:3px}
+  .btn-green{background:var(--green);color:#052e16}
+  .btn-grey{background:#334155;color:#e2e8f0}
+  .btn-red{background:var(--red);color:#fff}
+  .btn-blue{background:var(--blue);color:#fff}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .status{margin-top:12px;padding:12px;border-radius:8px;font-size:14px;display:none}
+  .status.ok{display:block;background:#122b1e;color:#86efac;border:1px solid var(--green)}
+  .status.err{display:block;background:#2b1212;color:#fca5a5;border:1px solid var(--red)}
+  .status.inf{display:block;background:#0c2233;color:#93c5fd;border:1px solid var(--blue)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .icard{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px}
+  .icard h4{font-size:12px;color:var(--muted);margin-bottom:6px}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 0 8px}
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🔧 DiagAuto Pro</h1>
-            <p>Diagnostic Automobile Professionnel - Version 5.0.3</p>
-        </header>
+<div class="wrap">
 
-        <div class="tabs">
-            <button class="tab active" data-tab="diagnostic">🔍 Diagnostic</button>
-            <button class="tab" data-tab="acces">🔐 Accès</button>
-            <button class="tab" data-tab="atelier">🧰 Atelier</button>
-            <button class="tab" data-tab="elm">📡 ELM</button>
-            <button class="tab" data-tab="admin">🛡️ Admin</button>
-            <button class="tab" data-tab="maj">🔄 MAJ</button>
-        </div>
+  <header>
+    <div class="logo">🔧</div>
+    <div class="titles">
+      <h1>DiagAuto Pro — Mes réponses techniques</h1>
+      <p>by Kevin — diagnostics, rappels &amp; pannes connues</p>
+    </div>
+    <div class="hbtns">
+      <span class="netbadge" id="netBadge">En ligne • 4G/5G</span>
+      <button class="hbtn" id="btnInstall">⬇️ Installer</button>
+      <button class="hbtn" id="btnShare">📤 Partager</button>
+      <button class="hbtn" id="btnLock">🔒</button>
+    </div>
+  </header>
 
-        <!-- Onglet Diagnostic -->
-        <div id="diagnostic" class="tab-content active">
-            <!-- RECHERCHE INTELLIGENTE -->
-            <div class="search-box">
-                <h3>🔍 Recherche Intelligente & Prédictive</h3>
-                <p style="margin-bottom: 15px; color: #666;">
-                    Tapez n'importe quoi : marque, modèle, motorisation, organe, symptôme... La recherche comprend vos combinaisons !
-                </p>
-                <div class="search-container">
-                    <input type="text" id="searchInput" 
-                           placeholder="Ex: 3008 1.5 bluehdi courroie, peugeot fap, bmw n47 chaîne..." 
-                           autocomplete="off">
-                    <span class="search-icon">🔍</span>
-                    <div class="autocomplete-results" id="autocompleteResults"></div>
-                </div>
-                <button class="btn-primary" onclick="lancerRecherche()">Rechercher</button>
-                <button class="btn-secondary" onclick="effacerRecherche()">Effacer</button>
-                
-                <div class="examples">
-                    <h4>💡 Exemples de recherche :</h4>
-                    <span class="example-item" onclick="tryExample('3008 1.5')">3008 1.5</span>
-                    <span class="example-item" onclick="tryExample('peugeot fap')">peugeot fap</span>
-                    <span class="example-item" onclick="tryExample('bmw n47')">bmw n47</span>
-                    <span class="example-item" onclick="tryExample('courroie distribution')">courroie distribution</span>
-                    <span class="example-item" onclick="tryExample('208 puretech')">208 puretech</span>
-                    <span class="example-item" onclick="tryExample('renault clio egr')">renault clio egr</span>
-                </div>
-            </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="diag">🔍 Diagnostic</button>
+    <button class="tab" data-tab="acces">🔐 Accès</button>
+    <button class="tab" data-tab="atelier">🧰 Atelier</button>
+    <button class="tab" data-tab="elm">📡 ELM</button>
+    <button class="tab" data-tab="admin">🛡️ Admin</button>
+    <button class="tab" data-tab="maj">🔄 MAJ</button>
+  </div>
 
-            <!-- RÉSULTATS -->
-            <div class="results-container" id="resultsContainer"></div>
-        </div>
-
-        <!-- Onglet Accès -->
-        <div id="acces" class="tab-content">
-            <div class="section">
-                <h3>🔐 Contrôle d'accès</h3>
-                <p>⚪ Aucun accès actif.</p>
-                <button class="btn-info">Demander l'accès</button>
-            </div>
-        </div>
-
-        <!-- Onglet Atelier -->
-        <div id="atelier" class="tab-content">
-            <div class="section">
-                <h3>🧰 Profil atelier</h3>
-                <label>Nom de l'atelier / technicien</label>
-                <input type="text" id="atelierNom" placeholder="Ex: Garage Martin">
-                <button class="btn-primary">Enregistrer le profil</button>
-            </div>
-
-            <div class="section">
-                <h3>🚘 Fiche véhicule</h3>
-                <div class="grid">
-                    <div>
-                        <label>Immatriculation</label>
-                        <input type="text" id="vehiculeImmat">
-                    </div>
-                    <div>
-                        <label>VIN</label>
-                        <input type="text" id="vehiculeVin">
-                    </div>
-                    <div>
-                        <label>Marque</label>
-                        <select id="ficheMarque"></select>
-                    </div>
-                    <div>
-                        <label>Modèle</label>
-                        <select id="ficheModele"></select>
-                    </div>
-                </div>
-                <button class="btn-primary">Enregistrer le véhicule</button>
-            </div>
-        </div>
-
-        <!-- Onglet ELM -->
-        <div id="elm" class="tab-content">
-            <div class="section">
-                <h3>📡 Connexion ELM327 / OBD</h3>
-                <label>Transport</label>
-                <select>
-                    <option>Démo simulée</option>
-                    <option>Bluetooth Web (BLE)</option>
-                    <option>Web Serial USB</option>
-                </select>
-                <button class="btn-primary">Connecter</button>
-            </div>
-        </div>
-
-        <!-- Onglet Admin -->
-        <div id="admin" class="tab-content">
-            <div class="section">
-                <h3>🌐 Backend optionnel & données</h3>
-                <label>URL backend (vide = mode solo)</label>
-                <input type="text" id="backendUrl" placeholder="https://...">
-                <label>Code propriétaire (solo)</label>
-                <input type="password" id="codeProprio">
-                <button class="btn-primary">Enregistrer URL + code</button>
-                <button class="btn-secondary">Exporter données (JSON)</button>
-                <button class="btn-secondary">Importer données (JSON)</button>
-                <button class="btn-danger">Réinitialiser l'accès local</button>
-            </div>
-
-            <!-- IMPORT BASE MASSIVE -->
-            <div class="import-box">
-                <h3>📥 Import Base Massive</h3>
-                <p>
-                    Importer la base complète depuis <strong>appli-aide-technique</strong><br>
-                    <small>150+ marques, modèles, motorisations et diagnostics</small>
-                </p>
-                <div style="margin-bottom: 15px;">
-                    <label>URL source :</label>
-                    <input type="text" id="importSourceUrl" 
-                           value="https://expertkevin06-cell.github.io/appli-aide-technique/" 
-                           readonly 
-                           style="background: #e9ecef; cursor: not-allowed;">
-                </div>
-                <button id="btnImportMassive" class="btn-primary">
-                    🚀 Importer depuis appli-aide-technique
-                </button>
-                <div id="importStatus" class="status" style="display: none;"></div>
-            </div>
-
-            <div class="section">
-                <h3>🔐 PIN local & chiffrement</h3>
-                <label>Nouveau PIN</label>
-                <input type="password" id="nouveauPin">
-                <label>Confirmer PIN</label>
-                <input type="password" id="confirmerPin">
-                <button class="btn-primary">Activer PIN et chiffrer</button>
-            </div>
-        </div>
-
-        <!-- Onglet MAJ -->
-        <div id="maj" class="tab-content">
-            <div class="section">
-                <h3>🔄 Mise à jour</h3>
-                <div class="grid">
-                    <div class="info-card">
-                        <h4>Version app</h4>
-                        <p>5.0.3</p>
-                    </div>
-                    <div class="info-card">
-                        <h4>Version données</h4>
-                        <p><span class="badge badge-info">1 (local)</span></p>
-                    </div>
-                    <div class="info-card">
-                        <h4>Dernière sync</h4>
-                        <p>Jamais</p>
-                    </div>
-                    <div class="info-card">
-                        <h4>Réseau</h4>
-                        <p><span class="badge badge-success">En ligne</span></p>
-                    </div>
-                    <div class="info-card">
-                        <h4>Mode</h4>
-                        <p>📱 Mode solo (local)</p>
-                    </div>
-                    <div class="info-card">
-                        <h4>Stockage</h4>
-                        <p>🗄️ IndexedDB</p>
-                    </div>
-                </div>
-                <button class="btn-primary">Vérifier / recharger données embarquées</button>
-                <button class="btn-secondary">Mettre à jour PWA</button>
-            </div>
-        </div>
-
-        <footer>
-            <p>DiagAuto Pro © 2026 - Mode solo (local) - Données stockées en IndexedDB</p>
-        </footer>
+  <!-- ================= DIAGNOSTIC ================= -->
+  <div class="tabcontent active" id="tab-diag">
+    <div class="pills" id="pills">
+      <button class="pill active" data-orig="toutes">🌍 Toutes</button>
+      <button class="pill" data-orig="fr">FR Françaises</button>
+      <button class="pill" data-orig="eu">EU Européennes</button>
+      <button class="pill" data-orig="as">🌏 Asiatiques</button>
+      <button class="pill" data-orig="us">US Américaines</button>
     </div>
 
-    <script src="import-base-massive.js"></script>
+    <div class="searchwrap">
+      <input type="text" id="searchInput" autocomplete="off"
+             placeholder="Tapez : 3008 1.5 • courr • clio 1.5 dci • bmw n47 • p0016 • fap…">
+      <div class="sugg" id="suggBox"></div>
+    </div>
+
+    <div class="examples" id="examples">
+      <span class="ex">3008 1.5</span><span class="ex">courr</span>
+      <span class="ex">peugeot fap</span><span class="ex">clio 1.5 dci</span>
+      <span class="ex">bmw n47</span><span class="ex">golf 2.0 tdi</span>
+      <span class="ex">p0016</span><span class="ex">egr</span>
+    </div>
+
+    <div class="respanel">
+      <div class="reshead">🤖 Réponse automatisée &amp; résultats <span class="count" id="resCount"></span></div>
+      <div id="detectBox"></div>
+      <div id="resultsBox"><div class="empty">Tapez un mot-clé : marque, modèle, motorisation, organe (courroie, fap, egr…), symptôme ou code DTC.</div></div>
+    </div>
+  </div>
+
+  <!-- ================= ACCÈS ================= -->
+  <div class="tabcontent" id="tab-acces">
+    <div class="section">
+      <h3>🔐 Contrôle d'accès</h3>
+      <p style="color:var(--muted);margin-bottom:12px">⚪ Aucun accès actif.</p>
+      <input type="text" id="accName" placeholder="Votre prénom">
+      <button class="btn btn-blue" onclick="alert('Demande enregistrée localement (mode solo).')">Demander l'accès</button>
+    </div>
+  </div>
+
+  <!-- ================= ATELIER ================= -->
+  <div class="tabcontent" id="tab-atelier">
+    <div class="section">
+      <h3>🧰 Profil atelier</h3>
+      <input type="text" id="atelierNom" placeholder="Nom de l'atelier / technicien">
+      <button class="btn btn-green" onclick="alert('Profil enregistré localement.')">Enregistrer le profil</button>
+    </div>
+    <div class="section">
+      <h3>🚘 Fiche véhicule</h3>
+      <div class="grid">
+        <input type="text" id="vImmat" placeholder="Immatriculation">
+        <input type="text" id="vVin" placeholder="VIN">
+        <input type="text" id="vMarque" placeholder="Marque">
+        <input type="text" id="vModele" placeholder="Modèle">
+      </div>
+      <button class="btn btn-green" onclick="alert('Véhicule enregistré localement.')">Enregistrer le véhicule</button>
+    </div>
+  </div>
+
+  <!-- ================= ELM ================= -->
+  <div class="tabcontent" id="tab-elm">
+    <div class="section">
+      <h3>📡 Connexion ELM327 / OBD</h3>
+      <select id="elmTransport">
+        <option>Démo simulée</option><option>Bluetooth Web (BLE)</option>
+        <option>Web Serial USB</option><option>Manuel / prompt</option>
+      </select>
+      <button class="btn btn-blue" onclick="alert('Mode démo : connexion simulée.')">Connecter</button>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN ================= -->
+  <div class="tabcontent" id="tab-admin">
+    <div class="section">
+      <h3>🌐 Backend optionnel &amp; données</h3>
+      <input type="text" id="backendUrl" placeholder="URL backend (vide = mode solo)">
+      <input type="password" id="ownerCode" placeholder="Code propriétaire (solo)">
+      <button class="btn btn-green">Enregistrer URL + code</button>
+      <button class="btn btn-grey" id="btnExport">Exporter données (JSON)</button>
+      <button class="btn btn-grey" id="btnImportFile">Importer données (JSON)</button>
+      <input type="file" id="fileJson" accept=".json" style="display:none">
+    </div>
+
+    <div class="importbox">
+      <h3>📥 Import Base Massive</h3>
+      <p>Source : <b>https://expertkevin06-cell.github.io/appli-aide-technique/</b> — fiches diagnostics, campagnes &amp; pannes connues.</p>
+      <input type="text" value="https://expertkevin06-cell.github.io/appli-aide-technique/" readonly style="background:#0b1626;color:var(--muted)">
+      <button class="btn btn-green" id="btnImportMassive">🚀 Importer depuis appli-aide-technique</button>
+      <div class="status" id="importStatus"></div>
+    </div>
+
+    <div class="section">
+      <h3>🔐 PIN local &amp; chiffrement</h3>
+      <input type="password" id="pin1" placeholder="Nouveau PIN">
+      <input type="password" id="pin2" placeholder="Confirmer PIN">
+      <button class="btn btn-green" onclick="alert('PIN activé (démo locale).')">Activer PIN et chiffrer</button>
+    </div>
+  </div>
+
+  <!-- ================= MAJ ================= -->
+  <div class="tabcontent" id="tab-maj">
+    <div class="section">
+      <h3>🔄 Mise à jour</h3>
+      <div class="grid">
+        <div class="icard"><h4>Version app</h4>5.1.0</div>
+        <div class="icard"><h4>Version données</h4><span id="dataVersion">1 (local)</span></div>
+        <div class="icard"><h4>Fiches en base</h4><span id="ficheCount">—</span></div>
+        <div class="icard"><h4>Mode</h4>📱 Solo (local)</div>
+        <div class="icard"><h4>Stockage</h4>🗄️ IndexedDB</div>
+        <div class="icard"><h4>Réseau</h4><span id="netInfo">En ligne</span></div>
+      </div>
+      <br>
+      <button class="btn btn-blue" id="btnReloadData">Vérifier / recharger données embarquées</button>
+    </div>
+  </div>
+
+  <footer>DiagAuto Pro © 2026 — mode solo (local) — IndexedDB</footer>
+</div>
+
+<script src="import-base-massive.js"></script>
 </body>
 </html>
