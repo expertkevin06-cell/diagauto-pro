@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="diagauto-version" content="5.2.0-engineer">
+<meta name="diagauto-version" content="5.2.1-engineer">
 <title>DiagAuto Pro — Mes réponses techniques</title>
 <style>
   :root{
@@ -11,17 +11,10 @@
     --txt:#e5eefb; --muted:#8fa3bf; --blue:#3b82f6; --green:#22c55e; --red:#ef4444;
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    background:var(--bg); color:var(--txt); min-height:100vh; padding:20px;
-  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding:20px}
   .wrap{max-width:1150px;margin:0 auto}
-
-  /* ===== BANNIÈRES ===== */
   .booterror{background:#2b1212;border:1px solid var(--red);color:#fca5a5;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:14px}
   noscript div{background:#2b1212;border:1px solid var(--red);color:#fca5a5;border-radius:10px;padding:12px 16px;margin-bottom:16px}
-
-  /* ===== HEADER ===== */
   header{display:flex;align-items:center;gap:15px;flex-wrap:wrap;margin-bottom:20px}
   .logo{font-size:34px}
   .titles h1{font-size:22px}
@@ -30,32 +23,19 @@
   .netbadge{border:1px solid var(--green);color:var(--green);border-radius:20px;padding:8px 14px;font-size:13px}
   .hbtn{background:var(--card);border:1px solid var(--border);color:var(--txt);border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer}
   .hbtn:hover{border-color:var(--blue)}
-
-  /* ===== ONGLETS ===== */
   .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
   .tab{background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:9px 16px;cursor:pointer;font-size:13px}
   .tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
   .tabcontent{display:none}
   .tabcontent.active{display:block}
-
-  /* ===== PILLS ORIGINE ===== */
   .pills{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
   .pill{background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:22px;padding:10px 18px;cursor:pointer;font-size:14px}
   .pill.active{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:600}
-
-  /* ===== RECHERCHE ===== */
   .searchwrap{position:relative;margin-bottom:20px}
-  #searchInput{
-    width:100%;padding:18px 20px;font-size:18px;background:var(--panel);
-    border:1px solid var(--border);border-radius:12px;color:var(--txt);
-  }
+  #searchInput{width:100%;padding:18px 20px;font-size:18px;background:var(--panel);border:1px solid var(--border);border-radius:12px;color:var(--txt)}
   #searchInput:focus{outline:none;border-color:var(--blue)}
   #searchInput::placeholder{color:#5b6c86}
-  .sugg{
-    position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--card);
-    border:1px solid var(--blue);border-top:none;border-radius:0 0 12px 12px;
-    max-height:380px;overflow-y:auto;display:none;
-  }
+  .sugg{position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--card);border:1px solid var(--blue);border-top:none;border-radius:0 0 12px 12px;max-height:380px;overflow-y:auto;display:none}
   .sugg-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start}
   .sugg-item:last-child{border-bottom:none}
   .sugg-item:hover{background:#1d2c47}
@@ -63,12 +43,9 @@
   .sugg-item .s-main{font-size:14px;font-weight:600}
   .sugg-item .s-main b{color:#fbbf24}
   .sugg-item .s-sub{font-size:12px;color:var(--muted);margin-top:2px}
-
   .examples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
   .ex{background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:16px;padding:6px 14px;font-size:12px;cursor:pointer}
   .ex:hover{border-color:var(--blue);color:var(--txt)}
-
-  /* ===== RÉSULTATS ===== */
   .respanel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px}
   .reshead{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;font-size:18px;font-weight:700}
   .reshead .count{color:var(--muted);font-size:14px;font-weight:400}
@@ -93,37 +70,32 @@
   .f-line{font-size:14px;margin:6px 0;color:#d7e3f4}
   .f-line .ico{margin-right:8px}
   .empty{color:var(--muted);text-align:center;padding:40px 0;font-size:15px}
-
-  /* ===== SECTIONS ===== */
   .section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px}
   .section h3{margin-bottom:14px;font-size:16px}
   .importbox{background:#0f2036;border:1px solid var(--blue);border-radius:12px;padding:20px;margin-bottom:18px}
   .importbox h3{color:#93c5fd;margin-bottom:8px}
   .importbox p{color:var(--muted);font-size:13px;margin-bottom:12px}
-  input[type=text],input[type=password],select{
-    width:100%;padding:10px;background:var(--card);border:1px solid var(--border);
-    border-radius:8px;color:var(--txt);margin-bottom:10px;font-size:14px;
-  }
+  .barwrap{height:8px;background:#0b1626;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin:10px 0}
+  .barfill{height:100%;background:var(--green);transition:width .3s;width:0%}
+  .importlog{background:#0b1626;border:1px solid var(--border);border-radius:8px;padding:10px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:12px;color:#9fb6d4;max-height:200px;overflow-y:auto;margin-top:10px;white-space:pre-wrap}
+  input[type=text],input[type=password],select{width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--txt);margin-bottom:10px;font-size:14px}
   button.btn{border:none;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;margin:3px}
   .btn-green{background:var(--green);color:#052e16}
   .btn-grey{background:#334155;color:#e2e8f0}
   .btn-red{background:var(--red);color:#fff}
   .btn-blue{background:var(--blue);color:#fff}
   button:disabled{opacity:.5;cursor:not-allowed}
-  .status{margin-top:12px;padding:12px;border-radius:8px;font-size:14px;display:none}
+  .status{margin-top:15px;padding:12px;border-radius:8px;font-size:14px;display:none}
   .status.ok{display:block;background:#122b1e;color:#86efac;border:1px solid var(--green)}
   .status.err{display:block;background:#2b1212;color:#fca5a5;border:1px solid var(--red)}
   .status.inf{display:block;background:#0c2233;color:#93c5fd;border:1px solid var(--blue)}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
   .icard{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px}
   .icard h4{font-size:12px;color:var(--muted);margin-bottom:6px}
-
-  /* ===== AUTO-VÉRIFICATION ===== */
   .stsummary{border:1px solid var(--border);border-left:4px solid var(--blue);background:var(--card);border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:14px}
   .sttable{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
   .sttable th,.sttable td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
   .sttable th{background:var(--card);color:var(--muted)}
-
   footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 0 8px}
 </style>
 </head>
@@ -137,7 +109,7 @@
     <div class="logo">🔧</div>
     <div class="titles">
       <h1>DiagAuto Pro — Mes réponses techniques</h1>
-      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.2.0-engineer</p>
+      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.2.1-engineer</p>
     </div>
     <div class="hbtns">
       <span class="netbadge" id="netBadge">En ligne • 4G/5G</span>
@@ -234,7 +206,7 @@
       <h3>🧪 Auto-vérification (mode ingénieur) <span style="color:var(--muted);font-weight:400;font-size:12px" id="stTime"></span></h3>
       <div class="stsummary" id="stSummary">⏳ En attente d'exécution…</div>
       <table class="sttable">
-        <thead><tr><th style="width:34px">✓</th><th style="width:340px">Check</th><th>Détail</th></tr></thead>
+        <thead><tr><th style="width:34px">✓</th><th style="width:360px">Check</th><th>Détail</th></tr></thead>
         <tbody id="stTable"></tbody>
       </table>
       <button class="btn btn-blue" id="stRun">▶ Relancer les tests</button>
@@ -252,11 +224,13 @@
     </div>
 
     <div class="importbox">
-      <h3>📥 Import Base Massive</h3>
-      <p>Source : <b>https://expertkevin06-cell.github.io/appli-aide-technique/</b> — fiches diagnostics, campagnes &amp; pannes connues.</p>
+      <h3>📥 Import Base Massive (distant)</h3>
+      <p>Source : <b>https://expertkevin06-cell.github.io/appli-aide-technique/</b> — stratégies S1 (JSON direct) → S2 (analyse HTML/scripts) → S3 (base embarquée). Fusion dédupliquée dans IndexedDB.</p>
       <input type="text" value="https://expertkevin06-cell.github.io/appli-aide-technique/" readonly style="background:#0b1626;color:var(--muted)">
+      <div class="barwrap"><div id="importBar" class="barfill"></div></div>
       <button class="btn btn-green" id="btnImportMassive">🚀 Importer depuis appli-aide-technique</button>
       <div class="status" id="importStatus"></div>
+      <div class="importlog" id="importLog">— aucun import lancé —</div>
     </div>
 
     <div class="section">
@@ -272,7 +246,7 @@
     <div class="section">
       <h3>🔄 Mise à jour</h3>
       <div class="grid">
-        <div class="icard"><h4>Version app</h4>5.2.0-engineer</div>
+        <div class="icard"><h4>Version app</h4>5.2.1-engineer</div>
         <div class="icard"><h4>Version données</h4><span id="dataVersion">1 (local)</span></div>
         <div class="icard"><h4>Fiches en base</h4><span id="ficheCount">—</span></div>
         <div class="icard"><h4>Mode</h4>📱 Solo (local)</div>
@@ -284,19 +258,17 @@
     </div>
   </div>
 
-  <footer>DiagAuto Pro © 2026 — v5.2.0-engineer — mode solo (local) — IndexedDB — auto-vérification intégrée</footer>
+  <footer>DiagAuto Pro © 2026 — v5.2.1-engineer — mode solo (local) — IndexedDB — auto-vérification intégrée</footer>
 </div>
 
 <script src="import-base-massive.js"></script>
 <script>
 // ============================================================
-// MODULE AUTO-VÉRIFICATION (mode ingénieur) — v5.2.0
-// Tests E2E : DOM, CSS, UI, moteur, détection, prédictif,
-// stockage, stabilité. Aucun changement requis côté JS app.
+// MODULE AUTO-VÉRIFICATION — v5.2.1 (T8 corrigé : textContent)
 // ============================================================
 (function () {
 'use strict';
-var VERSION = '5.2.0-engineer';
+var VERSION = '5.2.1-engineer';
 var bootErrors = [];
 window.addEventListener('error', function (e) { bootErrors.push(e.message); });
 
@@ -328,21 +300,18 @@ async function run() {
   results.length = 0;
   var t0 = performance.now();
 
-  // T1 — DOM : ids requis
   var ids = ['searchInput','suggBox','resCount','detectBox','resultsBox','pills','examples',
     'netBadge','btnInstall','btnShare','btnLock','backendUrl','ownerCode','btnExport',
-    'btnImportFile','fileJson','btnImportMassive','importStatus','pin1','pin2',
-    'btnReloadData','dataVersion','ficheCount','netInfo','elmTransport',
+    'btnImportFile','fileJson','btnImportMassive','importStatus','importLog','importBar',
+    'pin1','pin2','btnReloadData','dataVersion','ficheCount','netInfo','elmTransport',
     'stTable','stSummary','stRun','stCopy'];
   var missing = ids.filter(function (i) { return !$(i); });
   check('T1 · DOM — ids requis présents', missing.length === 0,
         missing.length ? 'manquants : ' + missing.join(', ') : ids.length + ' ids OK');
 
-  // T2 — CSS : thème sombre
   var bg = getComputedStyle(document.body).backgroundColor;
   check('T2 · CSS — thème sombre appliqué', bg === 'rgb(11, 18, 32)', 'body background = ' + bg);
 
-  // T3 — UI : onglets
   var tA = document.querySelector('.tab[data-tab="admin"]');
   if (tA) tA.click();
   var okTabs = $('tab-admin').classList.contains('active');
@@ -350,7 +319,6 @@ async function run() {
   if (tD) tD.click();
   check('T3 · UI — commutation onglets', okTabs);
 
-  // T4 — UI : pills origine
   var pEu = document.querySelector('.pill[data-orig="eu"]');
   if (pEu) pEu.click();
   var okPill = pEu && pEu.classList.contains('active');
@@ -358,45 +326,39 @@ async function run() {
   if (pT) pT.click();
   check('T4 · UI — filtres origine actifs', !!okPill);
 
-  // T5/T6 — Moteur + détection : 3008 1.5
   await typeSearch('3008 1.5');
-  var r5 = $('resultsBox').innerHTML;
+  var r5 = $('resultsBox').textContent;
   check('T5 · Moteur — "3008 1.5" → fiche chaîne DV5 + source',
         /chaîne arbre à cames/i.test(r5) && /Campagnes Stellantis/.test(r5));
   check('T6 · Détection — bandeau "Peugeot 3008"',
-        /Véhicule détecté/.test($('detectBox').innerHTML) && /Peugeot 3008/.test($('detectBox').innerHTML),
+        /Véhicule détecté/.test($('detectBox').textContent) && /Peugeot 3008/.test($('detectBox').textContent),
         $('detectBox').textContent.trim().slice(0, 80));
 
-  // T7/T8 — Moteur + prédictif : courr
   await typeSearch('courr');
-  var r7 = $('resultsBox').innerHTML;
-  check('T7 · Moteur — "courr" remonte les courroies', /courroie/i.test(r7));
+  check('T7 · Moteur — "courr" remonte les courroies', /courroie/i.test($('resultsBox').textContent));
+  // T8 CORRIGÉ : assertion sur textContent (le surlignage <b> cassait innerHTML)
   check('T8 · Prédictif — suggestion "courroie de distribution"',
-        $('suggBox').style.display === 'block' && /courroie de distribution/i.test($('suggBox').innerHTML));
+        $('suggBox').style.display === 'block' && /courroie de distribution/i.test($('suggBox').textContent),
+        $('suggBox').textContent.trim().slice(0, 90));
 
-  // T9 — DTC
   await typeSearch('p0016');
-  check('T9 · Moteur — DTC P0016 résolu', /P0016/.test($('resultsBox').innerHTML));
+  check('T9 · Moteur — DTC P0016 résolu', /P0016/.test($('resultsBox').textContent));
 
-  // T10 — Détection Renault Clio diesel
   await typeSearch('clio 1.5 dci');
   check('T10 · Détection — "Renault Clio … (diesel)"',
-        /Renault Clio/.test($('detectBox').innerHTML) && /diesel/.test($('detectBox').innerHTML),
+        /Renault Clio/.test($('detectBox').textContent) && /diesel/.test($('detectBox').textContent),
         $('detectBox').textContent.trim().slice(0, 80));
 
-  // T11 — Réinitialisation
   await typeSearch('');
-  check('T11 · UI — réinitialisation placeholder', /Tapez un mot-clé/.test($('resultsBox').innerHTML));
+  check('T11 · UI — réinitialisation placeholder', /Tapez un mot-clé/.test($('resultsBox').textContent));
 
-  // T12 — Chips exemples
   var ex = document.querySelector('.ex');
   if (ex) ex.click();
   await sleep(320);
   check('T12 · UI — chips exemples fonctionnels',
-        !!ex && $('searchInput').value === ex.textContent && $('resultsBox').innerHTML.length > 200);
+        !!ex && $('searchInput').value === ex.textContent && $('resultsBox').textContent.length > 100);
   await typeSearch('');
 
-  // T13 — IndexedDB (après boot)
   var booted = await waitBoot();
   var dbOk = false, det = '';
   try {
@@ -412,11 +374,26 @@ async function run() {
   } catch (e) { det = 'boot=' + (booted ? 'ok' : 'timeout') + ' · ' + (e.message || e); }
   check('T13 · Stockage — IndexedDB DiagAutoDB/fiches', dbOk, det);
 
-  // T14 — Badge réseau
   check('T14 · UI — badge réseau renseigné', ($('netBadge').textContent || '').trim().length > 3, $('netBadge').textContent);
-
-  // T15 — Stabilité boot
   check('T15 · Stabilité — aucune erreur JS au boot', bootErrors.length === 0, bootErrors.join(' | ') || 'aucune');
+
+  check('T16 · Module — window.DiagImporter exposé',
+        !!(window.DiagImporter && typeof window.DiagImporter.importRemote === 'function'),
+        window.DiagImporter ? 'importRemote() disponible' : 'module absent');
+
+  var DA = window.DiagAuto, integ = false, det17 = '';
+  if (DA && Array.isArray(DA.FICHES)) {
+    var keys = {}, bad = 0;
+    DA.FICHES.forEach(function (f) {
+      if (!f.titre || !f.cat || !f.sym || !f.sol || !Array.isArray(f.kw) || !Array.isArray(f.dtc)) bad++;
+      var k = String(f.titre).toLowerCase();
+      if (keys[k]) bad++;
+      keys[k] = 1;
+    });
+    integ = DA.FICHES.length >= 40 && bad === 0;
+    det17 = DA.FICHES.length + ' fiches, ' + bad + ' anomalie(s)';
+  } else det17 = 'window.DiagAuto absent';
+  check('T17 · Intégrité — base embarquée cohérente', integ, det17);
 
   render(Math.round(performance.now() - t0));
 }
@@ -440,9 +417,7 @@ function render(dt) {
   if (fail > 0) {
     b.style.display = 'block';
     b.innerHTML = '⚠️ Auto-vérification : ' + fail + ' check(s) en échec — voir Admin → Auto-vérification.';
-  } else {
-    b.style.display = 'none';
-  }
+  } else b.style.display = 'none';
 }
 
 window.DiagSelfTest = { run: run, results: function () { return results; }, version: VERSION };
