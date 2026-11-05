@@ -825,3 +825,17 @@ boot().catch(err=>{console.error(err);toast("Erreur démarrage : "+err.message,"
   </script>
 </body>
 </html>
+<!-- Section Import Base Massive -->
+<div style="margin: 20px 0; padding: 15px; background: #f0f8ff; border-radius: 8px; border: 2px solid #007bff;">
+    <h3>📥 Import Base Massive</h3>
+    <p>Importer les données depuis <strong>appli-aide-technique</strong> (21 722 fiches)</p>
+    <input type="text" id="importSourceUrl" 
+           value="https://expertkevin06-cell.github.io/appli-aide-technique/" 
+           placeholder="URL source de la base" 
+           style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px;">
+    <button id="btnImportMassive" 
+            style="background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin: 5px 0;">
+        🚀 Importer depuis appli-aide-technique
+    </button>
+    <div id="importStatus" style="margin-top: 10px; font-weight: bold;"></div>
+</div>
