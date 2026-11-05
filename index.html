@@ -159,7 +159,7 @@
             border: 2px solid #dc3545;
             border-top: none;
             border-radius: 0 0 8px 8px;
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
             z-index: 1000;
             display: none;
@@ -167,7 +167,7 @@
         }
 
         .autocomplete-item {
-            padding: 12px 15px;
+            padding: 15px;
             cursor: pointer;
             border-bottom: 1px solid #f0f0f0;
             transition: background 0.2s;
@@ -181,15 +181,42 @@
             border-bottom: none;
         }
 
-        .autocomplete-item strong {
+        .autocomplete-item .title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+
+        .autocomplete-item .title strong {
             color: #dc3545;
         }
 
-        .autocomplete-item .category {
-            font-size: 12px;
-            color: #6c757d;
-            margin-top: 3px;
+        .autocomplete-item .description {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
         }
+
+        .autocomplete-item .tags {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .autocomplete-item .tag {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .tag.marque { background: #d1ecf1; color: #0c5460; }
+        .tag.modele { background: #f8d7da; color: #721c24; }
+        .tag.motorisation { background: #d4edda; color: #155724; }
+        .tag.organe { background: #fff3cd; color: #856404; }
+        .tag.probleme { background: #f8d7da; color: #721c24; }
 
         .import-box {
             background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
@@ -384,21 +411,52 @@
 
         .result-card {
             background: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 8px;
             border-left: 4px solid #28a745;
             margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .result-card h4 {
             color: #2c3e50;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            font-size: 16px;
         }
 
         .result-card .meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .result-card .description {
+            color: #555;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .result-card .details {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        .result-card .details h5 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .result-card .details ul {
+            margin-left: 20px;
+            color: #555;
             font-size: 13px;
-            color: #6c757d;
+        }
+
+        .result-card .details li {
             margin-bottom: 5px;
         }
 
@@ -417,6 +475,37 @@
             background: yellow;
             padding: 2px 4px;
             border-radius: 3px;
+        }
+
+        .examples {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .examples h4 {
+            color: #dc3545;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .examples .example-item {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #fff5f5;
+            border: 1px solid #dc3545;
+            border-radius: 15px;
+            margin: 3px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .examples .example-item:hover {
+            background: #dc3545;
+            color: white;
         }
     </style>
 </head>
@@ -440,54 +529,33 @@
         <div id="diagnostic" class="tab-content active">
             <!-- RECHERCHE INTELLIGENTE -->
             <div class="search-box">
-                <h3>🔍 Recherche Intelligente</h3>
+                <h3>🔍 Recherche Intelligente & Prédictive</h3>
                 <p style="margin-bottom: 15px; color: #666;">
-                    Recherchez par marque, modèle, motorisation, puissance ou organe (ex: courroie, FAP, embrayage...)
+                    Tapez n'importe quoi : marque, modèle, motorisation, organe, symptôme... La recherche comprend vos combinaisons !
                 </p>
                 <div class="search-container">
                     <input type="text" id="searchInput" 
-                           placeholder="Tapez pour rechercher (ex: Peugeot, 208, HDi, FAP, courroie...)" 
+                           placeholder="Ex: 3008 1.5 bluehdi courroie, peugeot fap, bmw n47 chaîne..." 
                            autocomplete="off">
                     <span class="search-icon">🔍</span>
                     <div class="autocomplete-results" id="autocompleteResults"></div>
                 </div>
                 <button class="btn-primary" onclick="lancerRecherche()">Rechercher</button>
                 <button class="btn-secondary" onclick="effacerRecherche()">Effacer</button>
+                
+                <div class="examples">
+                    <h4>💡 Exemples de recherche :</h4>
+                    <span class="example-item" onclick="tryExample('3008 1.5')">3008 1.5</span>
+                    <span class="example-item" onclick="tryExample('peugeot fap')">peugeot fap</span>
+                    <span class="example-item" onclick="tryExample('bmw n47')">bmw n47</span>
+                    <span class="example-item" onclick="tryExample('courroie distribution')">courroie distribution</span>
+                    <span class="example-item" onclick="tryExample('208 puretech')">208 puretech</span>
+                    <span class="example-item" onclick="tryExample('renault clio egr')">renault clio egr</span>
+                </div>
             </div>
 
             <!-- RÉSULTATS -->
             <div class="results-container" id="resultsContainer"></div>
-
-            <!-- RECHERCHE MANUELLE -->
-            <div class="section">
-                <h3>🔍 Recherche Manuelle</h3>
-                <div class="grid">
-                    <div>
-                        <label>Marque</label>
-                        <select id="selectMarque">
-                            <option value="">Toutes marques</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Modèle</label>
-                        <select id="selectModele">
-                            <option value="">Tous modèles</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Motorisation</label>
-                        <select id="selectMotorisation">
-                            <option value="">Toutes motorisations</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Puissance (ch)</label>
-                        <input type="text" id="puissanceInput" placeholder="Ex: 110, 150, 180">
-                    </div>
-                </div>
-                <button class="btn-primary" onclick="lancerDiagnostic()">Lancer le diagnostic</button>
-                <button class="btn-secondary" onclick="reinitialiserDiagnostic()">Réinitialiser</button>
-            </div>
         </div>
 
         <!-- Onglet Accès -->
@@ -565,7 +633,7 @@
                 <h3>📥 Import Base Massive</h3>
                 <p>
                     Importer la base complète depuis <strong>appli-aide-technique</strong><br>
-                    <small>150+ marques automobiles avec modèles, motorisations et organes</small>
+                    <small>150+ marques, modèles, motorisations et diagnostics</small>
                 </p>
                 <div style="margin-bottom: 15px;">
                     <label>URL source :</label>
