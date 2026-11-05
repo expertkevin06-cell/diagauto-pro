@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title>Générateur d'icônes DiagAuto Pro</title>
+<style>
+  body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#f8fafc;padding:24px;max-width:760px;margin:0 auto}
+  h1{font-size:1.3rem}
+  .card{background:#111827;border:1px solid #1e293b;border-radius:14px;padding:18px;margin:14px 0}
+  button{background:#3b82f6;color:#fff;border:0;border-radius:10px;padding:14px 18px;font-weight:800;font-size:1rem;cursor:pointer}
+  code{background:#020617;padding:2px 6px;border-radius:6px;color:#7dd3fc}
+  .log{font-family:ui-monospace,Consolas,monospace;font-size:.85rem;color:#94a3b8;white-space:pre-wrap;margin-top:12px;max-height:240px;overflow:auto}
+  .note{color:#fbbf24;font-size:.9rem}
+</style>
+</head>
+<body>
+  <h1>🎨 Générateur d'icônes PWA — DiagAuto Pro</h1>
+  <div class="card">
+    <p>Ce fichier tourne <strong>dans ton navigateur</strong>. Ni Node, ni terminal.</p>
+    <p>1. Clique sur le bouton.<br/>2. 6 fichiers se téléchargent.<br/>3. Mets‑les dans un dossier <code>icons</code>.<br/>4. Sur GitHub : <em>Add file → Upload files</em> → <strong>glisse le dossier <code>icons</code> entier</strong> → <em>Commit</em>.</p>
+    <p class="note">⚠️ Autorise les téléchargements multiples si demandé.</p>
+    <button id="go">Générer et télécharger les 6 icônes</button>
+    <div class="log" id="log">En attente…</div>
+  </div>
+<script>
+(function(){
+  const BLUE="#1e40af",WHITE="#f8fafc";
+  function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function draw(size,maskable){const c=document.createElement("canvas");c.width=size;c.height=size;const x=c.getContext("2d");x.fillStyle=BLUE;if(maskable){x.fillRect(0,0,size,size);}else{roundRect(x,0,0,size,size,size*0.1875);x.fill();}const cx=size/2,cy=size/2;x.fillStyle=WHITE;x.beginPath();x.arc(cx,cy,size*(maskable?0.22:0.293),0,Math.PI*2);x.fill();x.fillStyle=BLUE;x.beginPath();x.arc(cx,cy,size*(maskable?0.137:0.185),0,Math.PI*2);x.fill();x.fillStyle=WHITE;const bw=size*(maskable?0.055:0.07),bl=size*(maskable?0.39:0.53);x.fillRect(cx-bw/2,cy-bl/2,bw,bl);x.fillRect(cx-bl/2,cy-bw/2,bl,bw);return c;}
+  function downloadBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+  function pngFromCanvas(c){return new Promise(res=>c.toBlob(b=>res(b),"image/png"));}
+  const SVG=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#1e40af"/><circle cx="256" cy="256" r="150" fill="#f8fafc"/><circle cx="256" cy="256" r="95" fill="#1e40af"/><rect x="238" y="120" width="36" height="272" rx="18" fill="#f8fafc"/><rect x="120" y="238" width="272" height="36" rx="18" fill="#f8fafc"/></svg>`;
+  function wait(ms){return new Promise(r=>setTimeout(r,ms));}
+  async function run(){const log=document.getElementById("log");const line=m=>{log.textContent+=m+"\n";log.scrollTop=log.scrollHeight;};log.textContent="";line("→ icon.svg");downloadBlob(new Blob([SVG],{type:"image/svg+xml"}),"icon.svg");await wait(400);const jobs=[["icon-192.png",192,false],["icon-512.png",512,false],["icon-maskable-192.png",192,true],["icon-maskable-512.png",512,true],["apple-touch-icon.png",180,false]];for(const[name,size,mask]of jobs){line("→ "+name);const blob=await pngFromCanvas(draw(size,mask));downloadBlob(blob,name);await wait(500);}line("\n✅ Terminé. Mets ces 6 fichiers dans un dossier 'icons' puis glisse‑le sur GitHub.");}
+  document.getElementById("go").addEventListener("click",run);
+})();
+</script>
+</body>
+</html>
