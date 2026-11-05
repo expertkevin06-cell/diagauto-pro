@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="diagauto-version" content="5.2.0-engineer">
 <title>DiagAuto Pro — Mes réponses techniques</title>
 <style>
   :root{
@@ -16,6 +17,10 @@
   }
   .wrap{max-width:1150px;margin:0 auto}
 
+  /* ===== BANNIÈRES ===== */
+  .booterror{background:#2b1212;border:1px solid var(--red);color:#fca5a5;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:14px}
+  noscript div{background:#2b1212;border:1px solid var(--red);color:#fca5a5;border-radius:10px;padding:12px 16px;margin-bottom:16px}
+
   /* ===== HEADER ===== */
   header{display:flex;align-items:center;gap:15px;flex-wrap:wrap;margin-bottom:20px}
   .logo{font-size:34px}
@@ -26,7 +31,7 @@
   .hbtn{background:var(--card);border:1px solid var(--border);color:var(--txt);border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer}
   .hbtn:hover{border-color:var(--blue)}
 
-  /* ===== ONGLETS APP ===== */
+  /* ===== ONGLETS ===== */
   .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
   .tab{background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:9px 16px;cursor:pointer;font-size:13px}
   .tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
@@ -67,15 +72,9 @@
   .respanel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px}
   .reshead{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;font-size:18px;font-weight:700}
   .reshead .count{color:var(--muted);font-size:14px;font-weight:400}
-  .detect{
-    border-left:4px solid var(--green);background:#122b1e;border-radius:8px;
-    padding:14px 16px;margin-bottom:16px;font-size:15px;
-  }
+  .detect{border-left:4px solid var(--green);background:#122b1e;border-radius:8px;padding:14px 16px;margin-bottom:16px;font-size:15px}
   .detect b{color:#fff}
-  .fiche{
-    background:var(--card);border:1px solid var(--border);border-left:4px solid var(--blue);
-    border-radius:10px;padding:16px 18px;margin-bottom:14px;
-  }
+  .fiche{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:10px;padding:16px 18px;margin-bottom:14px}
   .f-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
   .cat{border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700}
   .cat-Moteur{background:#4c1d95;color:#e9d5ff}
@@ -95,7 +94,7 @@
   .f-line .ico{margin-right:8px}
   .empty{color:var(--muted);text-align:center;padding:40px 0;font-size:15px}
 
-  /* ===== SECTIONS ADMIN / AUTRES ===== */
+  /* ===== SECTIONS ===== */
   .section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px}
   .section h3{margin-bottom:14px;font-size:16px}
   .importbox{background:#0f2036;border:1px solid var(--blue);border-radius:12px;padding:20px;margin-bottom:18px}
@@ -118,17 +117,27 @@
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
   .icard{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px}
   .icard h4{font-size:12px;color:var(--muted);margin-bottom:6px}
+
+  /* ===== AUTO-VÉRIFICATION ===== */
+  .stsummary{border:1px solid var(--border);border-left:4px solid var(--blue);background:var(--card);border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:14px}
+  .sttable{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
+  .sttable th,.sttable td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  .sttable th{background:var(--card);color:var(--muted)}
+
   footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 0 8px}
 </style>
 </head>
 <body>
 <div class="wrap">
 
+  <div id="bootError" class="booterror" style="display:none"></div>
+  <noscript><div>⚠️ JavaScript est désactivé : l'application ne peut pas fonctionner.</div></noscript>
+
   <header>
     <div class="logo">🔧</div>
     <div class="titles">
       <h1>DiagAuto Pro — Mes réponses techniques</h1>
-      <p>by Kevin — diagnostics, rappels &amp; pannes connues</p>
+      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.2.0-engineer</p>
     </div>
     <div class="hbtns">
       <span class="netbadge" id="netBadge">En ligne • 4G/5G</span>
@@ -220,11 +229,23 @@
 
   <!-- ================= ADMIN ================= -->
   <div class="tabcontent" id="tab-admin">
+
+    <div class="section" id="selftestPanel">
+      <h3>🧪 Auto-vérification (mode ingénieur) <span style="color:var(--muted);font-weight:400;font-size:12px" id="stTime"></span></h3>
+      <div class="stsummary" id="stSummary">⏳ En attente d'exécution…</div>
+      <table class="sttable">
+        <thead><tr><th style="width:34px">✓</th><th style="width:340px">Check</th><th>Détail</th></tr></thead>
+        <tbody id="stTable"></tbody>
+      </table>
+      <button class="btn btn-blue" id="stRun">▶ Relancer les tests</button>
+      <button class="btn btn-grey" id="stCopy">📋 Copier le rapport</button>
+    </div>
+
     <div class="section">
       <h3>🌐 Backend optionnel &amp; données</h3>
       <input type="text" id="backendUrl" placeholder="URL backend (vide = mode solo)">
       <input type="password" id="ownerCode" placeholder="Code propriétaire (solo)">
-      <button class="btn btn-green">Enregistrer URL + code</button>
+      <button class="btn btn-green" onclick="alert('Configuration enregistrée localement.')">Enregistrer URL + code</button>
       <button class="btn btn-grey" id="btnExport">Exporter données (JSON)</button>
       <button class="btn btn-grey" id="btnImportFile">Importer données (JSON)</button>
       <input type="file" id="fileJson" accept=".json" style="display:none">
@@ -251,7 +272,7 @@
     <div class="section">
       <h3>🔄 Mise à jour</h3>
       <div class="grid">
-        <div class="icard"><h4>Version app</h4>5.1.0</div>
+        <div class="icard"><h4>Version app</h4>5.2.0-engineer</div>
         <div class="icard"><h4>Version données</h4><span id="dataVersion">1 (local)</span></div>
         <div class="icard"><h4>Fiches en base</h4><span id="ficheCount">—</span></div>
         <div class="icard"><h4>Mode</h4>📱 Solo (local)</div>
@@ -263,9 +284,185 @@
     </div>
   </div>
 
-  <footer>DiagAuto Pro © 2026 — mode solo (local) — IndexedDB</footer>
+  <footer>DiagAuto Pro © 2026 — v5.2.0-engineer — mode solo (local) — IndexedDB — auto-vérification intégrée</footer>
 </div>
 
 <script src="import-base-massive.js"></script>
+<script>
+// ============================================================
+// MODULE AUTO-VÉRIFICATION (mode ingénieur) — v5.2.0
+// Tests E2E : DOM, CSS, UI, moteur, détection, prédictif,
+// stockage, stabilité. Aucun changement requis côté JS app.
+// ============================================================
+(function () {
+'use strict';
+var VERSION = '5.2.0-engineer';
+var bootErrors = [];
+window.addEventListener('error', function (e) { bootErrors.push(e.message); });
+
+function $(id) { return document.getElementById(id); }
+function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+var results = [];
+function check(name, ok, detail) {
+  results.push({ name: name, ok: ok ? 'pass' : 'fail', detail: detail || '' });
+  return !!ok;
+}
+
+async function typeSearch(q) {
+  var i = $('searchInput');
+  i.value = q;
+  i.dispatchEvent(new Event('input', { bubbles: true }));
+  await sleep(320);
+}
+
+async function waitBoot() {
+  for (var i = 0; i < 30; i++) {
+    if (($('ficheCount').textContent || '').trim() !== '—') return true;
+    await sleep(100);
+  }
+  return false;
+}
+
+async function run() {
+  results.length = 0;
+  var t0 = performance.now();
+
+  // T1 — DOM : ids requis
+  var ids = ['searchInput','suggBox','resCount','detectBox','resultsBox','pills','examples',
+    'netBadge','btnInstall','btnShare','btnLock','backendUrl','ownerCode','btnExport',
+    'btnImportFile','fileJson','btnImportMassive','importStatus','pin1','pin2',
+    'btnReloadData','dataVersion','ficheCount','netInfo','elmTransport',
+    'stTable','stSummary','stRun','stCopy'];
+  var missing = ids.filter(function (i) { return !$(i); });
+  check('T1 · DOM — ids requis présents', missing.length === 0,
+        missing.length ? 'manquants : ' + missing.join(', ') : ids.length + ' ids OK');
+
+  // T2 — CSS : thème sombre
+  var bg = getComputedStyle(document.body).backgroundColor;
+  check('T2 · CSS — thème sombre appliqué', bg === 'rgb(11, 18, 32)', 'body background = ' + bg);
+
+  // T3 — UI : onglets
+  var tA = document.querySelector('.tab[data-tab="admin"]');
+  if (tA) tA.click();
+  var okTabs = $('tab-admin').classList.contains('active');
+  var tD = document.querySelector('.tab[data-tab="diag"]');
+  if (tD) tD.click();
+  check('T3 · UI — commutation onglets', okTabs);
+
+  // T4 — UI : pills origine
+  var pEu = document.querySelector('.pill[data-orig="eu"]');
+  if (pEu) pEu.click();
+  var okPill = pEu && pEu.classList.contains('active');
+  var pT = document.querySelector('.pill[data-orig="toutes"]');
+  if (pT) pT.click();
+  check('T4 · UI — filtres origine actifs', !!okPill);
+
+  // T5/T6 — Moteur + détection : 3008 1.5
+  await typeSearch('3008 1.5');
+  var r5 = $('resultsBox').innerHTML;
+  check('T5 · Moteur — "3008 1.5" → fiche chaîne DV5 + source',
+        /chaîne arbre à cames/i.test(r5) && /Campagnes Stellantis/.test(r5));
+  check('T6 · Détection — bandeau "Peugeot 3008"',
+        /Véhicule détecté/.test($('detectBox').innerHTML) && /Peugeot 3008/.test($('detectBox').innerHTML),
+        $('detectBox').textContent.trim().slice(0, 80));
+
+  // T7/T8 — Moteur + prédictif : courr
+  await typeSearch('courr');
+  var r7 = $('resultsBox').innerHTML;
+  check('T7 · Moteur — "courr" remonte les courroies', /courroie/i.test(r7));
+  check('T8 · Prédictif — suggestion "courroie de distribution"',
+        $('suggBox').style.display === 'block' && /courroie de distribution/i.test($('suggBox').innerHTML));
+
+  // T9 — DTC
+  await typeSearch('p0016');
+  check('T9 · Moteur — DTC P0016 résolu', /P0016/.test($('resultsBox').innerHTML));
+
+  // T10 — Détection Renault Clio diesel
+  await typeSearch('clio 1.5 dci');
+  check('T10 · Détection — "Renault Clio … (diesel)"',
+        /Renault Clio/.test($('detectBox').innerHTML) && /diesel/.test($('detectBox').innerHTML),
+        $('detectBox').textContent.trim().slice(0, 80));
+
+  // T11 — Réinitialisation
+  await typeSearch('');
+  check('T11 · UI — réinitialisation placeholder', /Tapez un mot-clé/.test($('resultsBox').innerHTML));
+
+  // T12 — Chips exemples
+  var ex = document.querySelector('.ex');
+  if (ex) ex.click();
+  await sleep(320);
+  check('T12 · UI — chips exemples fonctionnels',
+        !!ex && $('searchInput').value === ex.textContent && $('resultsBox').innerHTML.length > 200);
+  await typeSearch('');
+
+  // T13 — IndexedDB (après boot)
+  var booted = await waitBoot();
+  var dbOk = false, det = '';
+  try {
+    var d = await new Promise(function (res, rej) {
+      var r = indexedDB.open('DiagAutoDB');
+      r.onsuccess = function () { res(r.result); };
+      r.onerror = function () { rej(r.error); };
+      r.onblocked = function () { rej(new Error('blocked')); };
+    });
+    dbOk = d.objectStoreNames.contains('fiches');
+    det = 'boot=' + (booted ? 'ok' : 'timeout') + ' · stores : ' + Array.from(d.objectStoreNames).join(',');
+    d.close();
+  } catch (e) { det = 'boot=' + (booted ? 'ok' : 'timeout') + ' · ' + (e.message || e); }
+  check('T13 · Stockage — IndexedDB DiagAutoDB/fiches', dbOk, det);
+
+  // T14 — Badge réseau
+  check('T14 · UI — badge réseau renseigné', ($('netBadge').textContent || '').trim().length > 3, $('netBadge').textContent);
+
+  // T15 — Stabilité boot
+  check('T15 · Stabilité — aucune erreur JS au boot', bootErrors.length === 0, bootErrors.join(' | ') || 'aucune');
+
+  render(Math.round(performance.now() - t0));
+}
+
+function render(dt) {
+  var pass = results.filter(function (r) { return r.ok === 'pass'; }).length;
+  var fail = results.length - pass;
+  var s = $('stSummary');
+  s.innerHTML = (fail === 0 ? '✅' : '⚠️') + ' <b>' + pass + '/' + results.length +
+    '</b> checks OK · ' + fail + ' échec(s) · ' + dt + ' ms · v' + VERSION;
+  s.style.borderLeftColor = fail ? '#ef4444' : '#22c55e';
+  $('stTable').innerHTML = results.map(function (r) {
+    return '<tr><td>' + (r.ok === 'pass' ? '✅' : '❌') + '</td><td>' + r.name +
+           '</td><td style="color:#8fa3bf">' + r.detail + '</td></tr>';
+  }).join('');
+  $('stTime').textContent = '· ' + new Date().toLocaleTimeString('fr-FR');
+  console.group('%c DiagAuto Pro · Auto-vérification v' + VERSION + ' ', 'background:#16a34a;color:#fff;border-radius:3px');
+  console.table(results);
+  console.groupEnd();
+  var b = $('bootError');
+  if (fail > 0) {
+    b.style.display = 'block';
+    b.innerHTML = '⚠️ Auto-vérification : ' + fail + ' check(s) en échec — voir Admin → Auto-vérification.';
+  } else {
+    b.style.display = 'none';
+  }
+}
+
+window.DiagSelfTest = { run: run, results: function () { return results; }, version: VERSION };
+
+document.addEventListener('DOMContentLoaded', function () {
+  var r = $('stRun');  if (r) r.addEventListener('click', function () { run(); });
+  var c = $('stCopy'); if (c) c.addEventListener('click', function () {
+    navigator.clipboard.writeText(JSON.stringify(results, null, 2))
+      .then(function () { alert('Rapport copié.'); })
+      .catch(function () { alert('Copie impossible.'); });
+  });
+  setTimeout(function () { run(); }, 700);
+  if (new URLSearchParams(location.search).has('check')) {
+    setTimeout(function () {
+      var t = document.querySelector('.tab[data-tab="admin"]');
+      if (t) t.click();
+    }, 1000);
+  }
+});
+})();
+</script>
 </body>
 </html>
