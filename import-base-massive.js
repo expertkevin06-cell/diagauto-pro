@@ -1,298 +1,682 @@
 // ============================================
 // IMPORT-BASE-MASSIVE.JS
-// Module complet avec recherche intelligente
-// Version: 2.0.0
+// Module complet avec recherche prédictive intelligente
+// Version: 3.0.0
 // ============================================
 
 (function() {
     'use strict';
 
-    // Configuration
     const CONFIG = {
         SOURCE_URL: 'https://expertkevin06-cell.github.io/appli-aide-technique/',
         DB_NAME: 'DiagAutoDB',
-        DB_VERSION: 2,
+        DB_VERSION: 3,
         STORES: {
-            MARQUES: 'marques',
-            MODELES: 'modeles',
-            MOTORISATIONS: 'motorisations',
-            ORGANES: 'organes',
+            DIAGNOSTICS: 'diagnostics',
             VEHICULES: 'vehicules',
             INTERVENTIONS: 'interventions'
         }
     };
 
-    // Base de données complète étendue
-    const DATABASE = {
-        marques: [
-            {marque: "Aixam", origine: "🇫🇷 Françaises", pays: "FR"},
-            {marque: "Alpine", origine: "🇫🇷 Françaises", pays: "FR"},
-            {marque: "Bolloré", origine: "🇫🇷 Françaises", pays: "FR"},
-            {marque: "Bugatti", origine: "🇫🇷 Françaises", pays: "FR"},
-            {marque: "Citroën", origine: "🇫🇷 Françaises", pays: "FR"},
-            {marque: "DS Automobiles", origine: "🇫🇷 Françaises", pays: "FR"},
-            {marque: "Ligier", origine: "🇫🇷 Françaises", pays: "FR"},
-            {marque: "Microcar", origine: "🇫🇷 Françaises", pays: "FR"},
-            {marque: "Peugeot", origine: "🇫🇷 Françaises", pays: "FR"},
-            {marque: "Renault", origine: "🇫🇷 Françaises", pays: "FR"},
-            {marque: "Alfa Romeo", origine: "🇪🇺 Européennes", pays: "IT"},
-            {marque: "Aston Martin", origine: "🇪🇺 Européennes", pays: "GB"},
-            {marque: "Audi", origine: "🇪🇺 Européennes", pays: "DE"},
-            {marque: "Bentley", origine: "🇪🇺 Européennes", pays: "GB"},
-            {marque: "BMW", origine: "🇪🇺 Européennes", pays: "DE"},
-            {marque: "CUPRA", origine: "🇪🇺 Européennes", pays: "ES"},
-            {marque: "Dacia", origine: "🇪🇺 Européennes", pays: "RO"},
-            {marque: "Ferrari", origine: "🇪🇺 Européennes", pays: "IT"},
-            {marque: "Fiat", origine: "🇪🇺 Européennes", pays: "IT"},
-            {marque: "Ineos", origine: "🇪🇺 Européennes", pays: "GB"},
-            {marque: "Jaguar", origine: "🇪🇺 Européennes", pays: "GB"},
-            {marque: "Lamborghini", origine: "🇪🇺 Européennes", pays: "IT"},
-            {marque: "Lancia", origine: "🇪🇺 Européennes", pays: "IT"},
-            {marque: "Land Rover", origine: "🇪🇺 Européennes", pays: "GB"},
-            {marque: "Lotus", origine: "🇪🇺 Européennes", pays: "GB"},
-            {marque: "Maserati", origine: "🇪🇺 Européennes", pays: "IT"},
-            {marque: "McLaren", origine: "🇪🇺 Européennes", pays: "GB"},
-            {marque: "Mercedes-Benz", origine: "🇪🇺 Européennes", pays: "DE"},
-            {marque: "MINI", origine: "🇪🇺 Européennes", pays: "GB"},
-            {marque: "Opel", origine: "🇪🇺 Européennes", pays: "DE"},
-            {marque: "Polestar", origine: "🇪🇺 Européennes", pays: "SE"},
-            {marque: "Porsche", origine: "🇪🇺 Européennes", pays: "DE"},
-            {marque: "Rolls-Royce", origine: "🇪🇺 Européennes", pays: "GB"},
-            {marque: "Saab", origine: "🇪🇺 Européennes", pays: "SE"},
-            {marque: "SEAT", origine: "🇪🇺 Européennes", pays: "ES"},
-            {marque: "Škoda", origine: "🇪🇺 Européennes", pays: "CZ"},
-            {marque: "Smart", origine: "🇪🇺 Européennes", pays: "DE"},
-            {marque: "Volkswagen", origine: "🇪🇺 Européennes", pays: "DE"},
-            {marque: "Volvo", origine: "🇪🇺 Européennes", pays: "SE"},
-            {marque: "Acura", origine: "🌏 Asiatiques", pays: "JP"},
-            {marque: "Aion", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "AITO", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Aiways", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Arcfox", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Avatr", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "BAIC", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Baidu Jiyue", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Baojun", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Beijing", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Bestune", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Borgward", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "BYD", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Changan", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Chery", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Daihatsu", origine: "🌏 Asiatiques", pays: "JP"},
-            {marque: "Deepal", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Denza", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "DFSK", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Dongfeng", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Enovate", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Exeed", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Fangchengbao", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "FAW", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Forthing", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "GAC", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Geely", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Geely Galaxy", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Genesis", origine: "🌏 Asiatiques", pays: "KR"},
-            {marque: "Geometry", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Great Wall", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Haima", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Haval", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Hengchi", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "HiPhi", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Honda", origine: "🌏 Asiatiques", pays: "JP"},
-            {marque: "Hongqi", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Hozon", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Human Horizons", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Hycan", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Hyundai", origine: "🌏 Asiatiques", pays: "KR"},
-            {marque: "IM Motors", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Infiniti", origine: "🌏 Asiatiques", pays: "JP"},
-            {marque: "Isuzu", origine: "🌏 Asiatiques", pays: "JP"},
-            {marque: "JAC", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Jaecoo", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Jetour", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Kaiyi", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Kandi", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Kia", origine: "🌏 Asiatiques", pays: "KR"},
-            {marque: "Leapmotor", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Lexus", origine: "🌏 Asiatiques", pays: "JP"},
-            {marque: "Li Auto", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Livan", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Luxgen", origine: "🌏 Asiatiques", pays: "TW"},
-            {marque: "Lynk & Co", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Mahindra", origine: "🌏 Asiatiques", pays: "IN"},
-            {marque: "Maxus", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Mazda", origine: "🌏 Asiatiques", pays: "JP"},
-            {marque: "MG", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Mitsubishi", origine: "🌏 Asiatiques", pays: "JP"},
-            {marque: "Neta", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "NIO", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Nissan", origine: "🌏 Asiatiques", pays: "JP"},
-            {marque: "Omoda", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Ora", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Qiantu", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Qoros", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Radar", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Rising Auto", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Roewe", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "SAIC", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Seres", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Singulato", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Skyworth", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Soueast", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "SsangYong", origine: "🌏 Asiatiques", pays: "KR"},
-            {marque: "Subaru", origine: "🌏 Asiatiques", pays: "JP"},
-            {marque: "Suzuki", origine: "🌏 Asiatiques", pays: "JP"},
-            {marque: "SWM", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Tank", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Tata", origine: "🌏 Asiatiques", pays: "IN"},
-            {marque: "Toyota", origine: "🌏 Asiatiques", pays: "JP"},
-            {marque: "VinFast", origine: "🌏 Asiatiques", pays: "VN"},
-            {marque: "Voyah", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Weltmeister", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Wey", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "WM Motor", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Wuling", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Xiaomi Auto", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "XPeng", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Yangwang", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Yudo", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Zeekr", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Zhiji Auto", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Zotye", origine: "🌏 Asiatiques", pays: "CN"},
-            {marque: "Buick", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "Cadillac", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "Chevrolet", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "Chrysler", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "Dodge", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "Fisker", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "Ford", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "GMC", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "Hummer", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "Jeep", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "Lincoln", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "Lucid", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "Pontiac", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "Ram", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "Rivian", origine: "🇺🇸 Américaines", pays: "US"},
-            {marque: "Tesla", origine: "🇺🇸 Américaines", pays: "US"}
-        ],
-        modeles: [
-            {marque: "Peugeot", modele: "208", annees: "2012-2024"},
-            {marque: "Peugeot", modele: "2008", annees: "2013-2024"},
-            {marque: "Peugeot", modele: "308", annees: "2007-2024"},
-            {marque: "Peugeot", modele: "3008", annees: "2009-2024"},
-            {marque: "Peugeot", modele: "508", annees: "2010-2024"},
-            {marque: "Peugeot", modele: "5008", annees: "2009-2024"},
-            {marque: "Renault", modele: "Clio", annees: "1990-2024"},
-            {marque: "Renault", modele: "Megane", annees: "1995-2024"},
-            {marque: "Renault", modele: "Scenic", annees: "1996-2024"},
-            {marque: "Renault", modele: "Kadjar", annees: "2015-2022"},
-            {marque: "Renault", modele: "Captur", annees: "2013-2024"},
-            {marque: "Renault", modele: "Zoe", annees: "2012-2024"},
-            {marque: "Citroën", modele: "C3", annees: "2002-2024"},
-            {marque: "Citroën", modele: "C4", annees: "2004-2024"},
-            {marque: "Citroën", modele: "C5", annees: "2001-2024"},
-            {marque: "Volkswagen", modele: "Golf", annees: "1974-2024"},
-            {marque: "Volkswagen", modele: "Polo", annees: "1975-2024"},
-            {marque: "Volkswagen", modele: "Passat", annees: "1973-2024"},
-            {marque: "Volkswagen", modele: "Tiguan", annees: "2007-2024"},
-            {marque: "BMW", modele: "Serie 1", annees: "2004-2024"},
-            {marque: "BMW", modele: "Serie 3", annees: "1975-2024"},
-            {marque: "BMW", modele: "Serie 5", annees: "1972-2024"},
-            {marque: "Mercedes-Benz", modele: "Classe A", annees: "1997-2024"},
-            {marque: "Mercedes-Benz", modele: "Classe C", annees: "1993-2024"},
-            {marque: "Mercedes-Benz", modele: "Classe E", annees: "1993-2024"},
-            {marque: "Audi", modele: "A1", annees: "2010-2024"},
-            {marque: "Audi", modele: "A3", annees: "1996-2024"},
-            {marque: "Audi", modele: "A4", annees: "1994-2024"},
-            {marque: "Audi", modele: "A6", annees: "1994-2024"},
-            {marque: "Toyota", modele: "Yaris", annees: "1999-2024"},
-            {marque: "Toyota", modele: "Corolla", annees: "1966-2024"},
-            {marque: "Toyota", modele: "RAV4", annees: "1994-2024"},
-            {marque: "Ford", modele: "Fiesta", annees: "1976-2023"},
-            {marque: "Ford", modele: "Focus", annees: "1998-2024"},
-            {marque: "Ford", modele: "Kuga", annees: "2008-2024"}
-        ],
-        motorisations: [
-            {marque: "Peugeot", modele: "208", motorisation: "1.2 PureTech 82", puissance: 82, carburant: "Essence"},
-            {marque: "Peugeot", modele: "208", motorisation: "1.2 PureTech 110", puissance: 110, carburant: "Essence"},
-            {marque: "Peugeot", modele: "208", motorisation: "1.2 PureTech 130", puissance: 130, carburant: "Essence"},
-            {marque: "Peugeot", modele: "208", motorisation: "1.5 BlueHDi 100", puissance: 100, carburant: "Diesel"},
-            {marque: "Peugeot", modele: "208", motorisation: "1.5 BlueHDi 130", puissance: 130, carburant: "Diesel"},
-            {marque: "Peugeot", modele: "208", motorisation: "Électrique 136", puissance: 136, carburant: "Électrique"},
-            {marque: "Peugeot", modele: "308", motorisation: "1.2 PureTech 110", puissance: 110, carburant: "Essence"},
-            {marque: "Peugeot", modele: "308", motorisation: "1.2 PureTech 130", puissance: 130, carburant: "Essence"},
-            {marque: "Peugeot", modele: "308", motorisation: "1.5 BlueHDi 130", puissance: 130, carburant: "Diesel"},
-            {marque: "Peugeot", modele: "3008", motorisation: "1.2 PureTech 130", puissance: 130, carburant: "Essence"},
-            {marque: "Peugeot", modele: "3008", motorisation: "1.5 BlueHDi 130", puissance: 130, carburant: "Diesel"},
-            {marque: "Peugeot", modele: "3008", motorisation: "1.6 PureTech 180", puissance: 180, carburant: "Essence"},
-            {marque: "Renault", modele: "Clio", motorisation: "1.0 TCe 90", puissance: 90, carburant: "Essence"},
-            {marque: "Renault", modele: "Clio", motorisation: "1.0 TCe 100", puissance: 100, carburant: "Essence"},
-            {marque: "Renault", modele: "Clio", motorisation: "1.5 Blue dCi 85", puissance: 85, carburant: "Diesel"},
-            {marque: "Renault", modele: "Clio", motorisation: "1.5 Blue dCi 115", puissance: 115, carburant: "Diesel"},
-            {marque: "Renault", modele: "Clio", motorisation: "E-Tech 145", puissance: 145, carburant: "Hybride"},
-            {marque: "Renault", modele: "Megane", motorisation: "1.3 TCe 115", puissance: 115, carburant: "Essence"},
-            {marque: "Renault", modele: "Megane", motorisation: "1.3 TCe 140", puissance: 140, carburant: "Essence"},
-            {marque: "Renault", modele: "Megane", motorisation: "1.5 Blue dCi 115", puissance: 115, carburant: "Diesel"},
-            {marque: "Renault", modele: "Megane", motorisation: "E-Tech 160", puissance: 160, carburant: "Hybride"},
-            {marque: "Volkswagen", modele: "Golf", motorisation: "1.0 TSI 110", puissance: 110, carburant: "Essence"},
-            {marque: "Volkswagen", modele: "Golf", motorisation: "1.5 TSI 150", puissance: 150, carburant: "Essence"},
-            {marque: "Volkswagen", modele: "Golf", motorisation: "2.0 TDI 115", puissance: 115, carburant: "Diesel"},
-            {marque: "Volkswagen", modele: "Golf", motorisation: "2.0 TDI 150", puissance: 150, carburant: "Diesel"},
-            {marque: "BMW", modele: "Serie 1", motorisation: "116i 109", puissance: 109, carburant: "Essence"},
-            {marque: "BMW", modele: "Serie 1", motorisation: "118i 140", puissance: 140, carburant: "Essence"},
-            {marque: "BMW", modele: "Serie 1", motorisation: "116d 116", puissance: 116, carburant: "Diesel"},
-            {marque: "BMW", modele: "Serie 1", motorisation: "118d 150", puissance: 150, carburant: "Diesel"},
-            {marque: "Mercedes-Benz", modele: "Classe A", motorisation: "A 180 136", puissance: 136, carburant: "Essence"},
-            {marque: "Mercedes-Benz", modele: "Classe A", motorisation: "A 200 163", puissance: 163, carburant: "Essence"},
-            {marque: "Mercedes-Benz", modele: "Classe A", motorisation: "A 180d 116", puissance: 116, carburant: "Diesel"},
-            {marque: "Mercedes-Benz", modele: "Classe A", motorisation: "A 200d 150", puissance: 150, carburant: "Diesel"},
-            {marque: "Toyota", modele: "Yaris", motorisation: "1.0 VVT-i 72", puissance: 72, carburant: "Essence"},
-            {marque: "Toyota", modele: "Yaris", motorisation: "1.5 VVT-i 125", puissance: 125, carburant: "Essence"},
-            {marque: "Toyota", modele: "Yaris", motorisation: "1.5 Hybrid 116", puissance: 116, carburant: "Hybride"},
-            {marque: "Ford", modele: "Fiesta", motorisation: "1.0 EcoBoost 100", puissance: 100, carburant: "Essence"},
-            {marque: "Ford", modele: "Fiesta", motorisation: "1.0 EcoBoost 125", puissance: 125, carburant: "Essence"},
-            {marque: "Ford", modele: "Fiesta", motorisation: "1.5 TDCi 85", puissance: 85, carburant: "Diesel"}
-        ],
-        organes: [
-            {nom: "courroie de distribution", type: "distribution", motsCles: ["courroie", "distribution", "timing belt"]},
-            {nom: "courroie d'accessoire", type: "accessoire", motsCles: ["courroie", "accessoire", "alternateur"]},
-            {nom: "chaîne de distribution", type: "distribution", motsCles: ["chaîne", "distribution", "chain"]},
-            {nom: "FAP (Filtre à Particules)", type: "échappement", motsCles: ["fap", "filtre", "particules", "dpf"]},
-            {nom: "catalyseur", type: "échappement", motsCles: ["catalyseur", "catalytic", "pot catalytique"]},
-            {nom: "vanne EGR", type: "admission", motsCles: ["egr", "vanne", "recirculation"]},
-            {nom: "turbo", type: "admission", motsCles: ["turbo", "turbocompresseur", "turbocharger"]},
-            {nom: "embrayage", type: "transmission", motsCles: ["embrayage", "clutch", "disque"]},
-            {nom: "volant moteur", type: "transmission", motsCles: ["volant", "moteur", "flywheel"]},
-            {nom: "démarreur", type: "démarrage", motsCles: ["démarreur", "starter", "solenoïde"]},
-            {nom: "alternateur", type: "charge", motsCles: ["alternateur", "alternator", "charge"]},
-            {nom: "batterie", type: "charge", motsCles: ["batterie", "battery", "accumulateur"]},
-            {nom: "pompe à eau", type: "refroidissement", motsCles: ["pompe", "eau", "water pump"]},
-            {nom: "radiateur", type: "refroidissement", motsCles: ["radiateur", "radiator", "refroidissement"]},
-            {nom: "thermostat", type: "refroidissement", motsCles: ["thermostat", "calorstat", "temperature"]},
-            {nom: "injecteur", type: "injection", motsCles: ["injecteur", "injector", "injection"]},
-            {nom: "pompe haute pression", type: "injection", motsCles: ["pompe", "haute", "pression", "hpfp"]},
-            {nom: "bobine d'allumage", type: "allumage", motsCles: ["bobine", "allumage", "coil"]},
-            {nom: "bougie d'allumage", type: "allumage", motsCles: ["bougie", "allumage", "spark plug"]},
-            {nom: "bougie de préchauffage", type: "allumage", motsCles: ["bougie", "préchauffage", "glow plug"]},
-            {nom: "capteur ABS", type: "freinage", motsCles: ["abs", "capteur", "sensor", "vitesse"]},
-            {nom: "plaquettes de frein", type: "freinage", motsCles: ["plaquettes", "frein", "brake pads"]},
-            {nom: "disque de frein", type: "freinage", motsCles: ["disque", "frein", "brake disc"]},
-            {nom: "amortisseur", type: "suspension", motsCles: ["amortisseur", "suspension", "shock"]},
-            {nom: "silent bloc", type: "suspension", motsCles: ["silent", "bloc", "bush"]},
-            {nom: "rotule de direction", type: "direction", motsCles: ["rotule", "direction", "tie rod"]},
-            {nom: "crémaillère", type: "direction", motsCles: ["crémaillère", "direction", "rack"]},
-            {nom: "cardan", type: "transmission", motsCles: ["cardan", "drive shaft", "arbre"]},
-            {nom: "soufflet de cardan", type: "transmission", motsCles: ["soufflet", "cardan", "boot"]},
-            {nom: "sonde lambda", type: "échappement", motsCles: ["sonde", "lambda", "oxygen", "o2"]},
-            {nom: "débitmètre d'air", type: "admission", motsCles: ["débitmètre", "air", "maf", "mass air flow"]},
-            {nom: "capteur PMH", type: "allumage", motsCles: ["pmh", "point mort haut", "crankshaft", "position"]},
-            {nom: "capteur de pression", type: "capteur", motsCles: ["pression", "pressure", "map"]},
-            {nom: "électrovanne", type: "divers", motsCles: ["électrovanne", "solenoid", "valve"]},
-            {nom: "relais", type: "divers", motsCles: ["relais", "relay", "commutateur"]}
-        ]
-    };
+    // Base de données complète avec diagnostics pertinents
+    const DATABASE = [
+        // Peugeot 3008
+        {
+            marque: "Peugeot",
+            modele: "3008",
+            motorisation: "1.5 BlueHDi",
+            puissance: "130",
+            carburant: "Diesel",
+            organe: "Chaîne de distribution",
+            probleme: "Usure prématurée chaîne distribution",
+            symptomes: ["Bruit métallique moteur", "Voyant moteur allumé", "Perte de puissance"],
+            codesDefaut: ["P0016", "P0017"],
+            solution: "Remplacement chaîne + tendeurs + guides",
+            pieces: ["Kit chaîne distribution", "Tendeur hydraulique", "Guides chaîne"],
+            cout: "800-1200€",
+            temps: "6-8h",
+            motsCles: ["chaîne", "distribution", "3008", "1.5", "bluehdi", "bruit", "n47", "diesel"]
+        },
+        {
+            marque: "Peugeot",
+            modele: "3008",
+            motorisation: "1.2 PureTech",
+            puissance: "130",
+            carburant: "Essence",
+            organe: "Courroie de distribution",
+            probleme: "Casse courroie distribution",
+            symptomes: ["Arrêt moteur brutal", "Impossible de redémarrer", "Bruit de claquement"],
+            codesDefaut: [],
+            solution: "Remplacement courroie + kit complet + pompe à eau",
+            pieces: ["Kit courroie distribution", "Pompe à eau", "Galets tendeurs"],
+            cout: "600-900€",
+            temps: "4-5h",
+            motsCles: ["courroie", "distribution", "3008", "puretech", "1.2", "casse", "essence"]
+        },
+        {
+            marque: "Peugeot",
+            modele: "3008",
+            motorisation: "1.6 BlueHDi",
+            puissance: "120",
+            carburant: "Diesel",
+            organe: "FAP (Filtre à Particules)",
+            probleme: "Colmatage FAP",
+            symptomes: ["Voyant FAP allumé", "Mode dégradé", "Perte puissance", "Fumée noire"],
+            codesDefaut: ["P2002", "P2458"],
+            solution: "Nettoyage ou remplacement FAP + régénération forcée",
+            pieces: ["FAP neuf", "Capteur pression différentielle"],
+            cout: "1500-2500€",
+            temps: "3-4h",
+            motsCles: ["fap", "filtre", "particules", "3008", "1.6", "colmatage", "dpf", "encrassement"]
+        },
+        // Peugeot 208
+        {
+            marque: "Peugeot",
+            modele: "208",
+            motorisation: "1.2 PureTech",
+            puissance: "110",
+            carburant: "Essence",
+            organe: "Courroie de distribution",
+            probleme: "Usure prématurée courroie",
+            symptomes: ["Bruit de claquement", "Voyant entretien", "Préconisation 60 000km au lieu de 100 000km"],
+            codesDefaut: [],
+            solution: "Remplacement préventif courroie + kit",
+            pieces: ["Kit courroie distribution", "Pompe à eau", "Galets"],
+            cout: "500-700€",
+            temps: "3-4h",
+            motsCles: ["courroie", "distribution", "208", "puretech", "1.2", "usure", "prématurée"]
+        },
+        {
+            marque: "Peugeot",
+            modele: "208",
+            motorisation: "1.5 BlueHDi",
+            puissance: "100",
+            carburant: "Diesel",
+            organe: "Vanne EGR",
+            probleme: "Encrassement vanne EGR",
+            symptomes: ["Ralenti instable", "Voyant moteur", "Fumée noire", "Perte puissance"],
+            codesDefaut: ["P0401", "P0402"],
+            solution: "Nettoyage ou remplacement vanne EGR",
+            pieces: ["Vanne EGR", "Joint EGR"],
+            cout: "300-500€",
+            temps: "2-3h",
+            motsCles: ["egr", "vanne", "208", "1.5", "bluehdi", "encrassement", "ralenti"]
+        },
+        // Renault Clio
+        {
+            marque: "Renault",
+            modele: "Clio",
+            motorisation: "1.5 dCi",
+            puissance: "90",
+            carburant: "Diesel",
+            organe: "Injecteurs",
+            probleme: "Défaillance injecteurs",
+            symptomes: ["Ratés d'allumage", "Voyant moteur", "Consommation excessive", "Fumée blanche"],
+            codesDefaut: ["P0201", "P0202", "P0203", "P0204"],
+            solution: "Remplacement injecteurs défectueux + codage",
+            pieces: ["Injecteurs neufs", "Joints injecteurs"],
+            cout: "800-1500€",
+            temps: "4-5h",
+            motsCles: ["injecteur", "clio", "1.5", "dci", "défaillance", "raté", "fuite"]
+        },
+        {
+            marque: "Renault",
+            modele: "Clio",
+            motorisation: "1.2 TCe",
+            puissance: "120",
+            carburant: "Essence",
+            organe: "Chaîne de distribution",
+            probleme: "Détente chaîne distribution",
+            symptomes: ["Bruit de chaîne au démarrage", "Claquement moteur", "Voyant moteur"],
+            codesDefaut: ["P0016"],
+            solution: "Remplacement chaîne + tendeur + guides",
+            pieces: ["Kit chaîne distribution", "Tendeur hydraulique"],
+            cout: "1200-1800€",
+            temps: "8-10h",
+            motsCles: ["chaîne", "distribution", "clio", "1.2", "tce", "détente", "bruit"]
+        },
+        {
+            marque: "Renault",
+            modele: "Clio",
+            motorisation: "1.5 dCi",
+            puissance: "110",
+            carburant: "Diesel",
+            organe: "Vanne EGR",
+            probleme: "Blocage vanne EGR",
+            symptomes: ["Mode dégradé", "Voyant anti-pollution", "Perte puissance"],
+            codesDefaut: ["P0401", "P0403"],
+            solution: "Nettoyage ou remplacement vanne EGR",
+            pieces: ["Vanne EGR neuve", "Joint"],
+            cout: "400-600€",
+            temps: "2-3h",
+            motsCles: ["egr", "vanne", "clio", "1.5", "dci", "blocage", "encrassement"]
+        },
+        // BMW
+        {
+            marque: "BMW",
+            modele: "Serie 1",
+            motorisation: "116d N47",
+            puissance: "116",
+            carburant: "Diesel",
+            organe: "Chaîne de distribution",
+            probleme: "Casse chaîne distribution N47",
+            symptomes: ["Bruit métallique fort", "Casse moteur si non traité", "Voyant moteur"],
+            codesDefaut: ["P0016", "P0017"],
+            solution: "Remplacement préventif chaîne + guides + tendeur",
+            pieces: ["Kit chaîne distribution N47", "Guides supérieurs", "Tendeur"],
+            cout: "2000-3000€",
+            temps: "10-12h",
+            motsCles: ["chaîne", "distribution", "bmw", "n47", "serie 1", "116d", "casse", "préventif"]
+        },
+        {
+            marque: "BMW",
+            modele: "Serie 3",
+            motorisation: "320d N47",
+            puissance: "184",
+            carburant: "Diesel",
+            organe: "Chaîne de distribution",
+            probleme: "Usure chaîne distribution N47",
+            symptomes: ["Bruit de chaîne au démarrage à froid", "Cliquetis moteur"],
+            codesDefaut: ["P0016"],
+            solution: "Remplacement complet kit chaîne",
+            pieces: ["Kit chaîne N47", "Guides", "Tendeur hydraulique"],
+            cout: "2500-3500€",
+            temps: "12-15h",
+            motsCles: ["chaîne", "distribution", "bmw", "serie 3", "320d", "n47", "usure", "bruit"]
+        },
+        {
+            marque: "BMW",
+            modele: "Serie 3",
+            motorisation: "320d B47",
+            puissance: "190",
+            carburant: "Diesel",
+            organe: "Turbo",
+            probleme: "Défaillance turbocompresseur",
+            symptomes: ["Sifflement turbo", "Perte puissance", "Fumée bleue", "Consommation huile"],
+            codesDefaut: ["P0299", "P0234"],
+            solution: "Remplacement turbo + vidange huile + nettoyage admission",
+            pieces: ["Turbocompresseur neuf", "Joint turbo", "Huile moteur"],
+            cout: "2000-3000€",
+            temps: "6-8h",
+            motsCles: ["turbo", "bmw", "serie 3", "320d", "b47", "sifflement", "défaillance"]
+        },
+        // Volkswagen
+        {
+            marque: "Volkswagen",
+            modele: "Golf",
+            motorisation: "1.6 TDI",
+            puissance: "105",
+            carburant: "Diesel",
+            organe: "Vanne EGR",
+            probleme: "Encrassement vanne EGR",
+            symptomes: ["Voyant moteur", "Mode dégradé", "Ralenti instable"],
+            codesDefaut: ["P0401", "P0402"],
+            solution: "Nettoyage vanne EGR ou remplacement",
+            pieces: ["Vanne EGR", "Joint"],
+            cout: "350-550€",
+            temps: "2-3h",
+            motsCles: ["egr", "vanne", "golf", "1.6", "tdi", "encrassement", "volkswagen"]
+        },
+        {
+            marque: "Volkswagen",
+            modele: "Golf",
+            motorisation: "2.0 TDI",
+            puissance: "150",
+            carburant: "Diesel",
+            organe: "FAP (Filtre à Particules)",
+            probleme: "Colmatage FAP",
+            symptomes: ["Voyant FAP", "Régénération impossible", "Mode dégradé"],
+            codesDefaut: ["P2002", "P2458"],
+            solution: "Nettoyage professionnel ou remplacement FAP",
+            pieces: ["FAP neuf", "Capteur pression"],
+            cout: "1800-2800€",
+            temps: "4-5h",
+            motsCles: ["fap", "filtre", "particules", "golf", "2.0", "tdi", "colmatage", "dpf"]
+        },
+        {
+            marque: "Volkswagen",
+            modele: "Golf",
+            motorisation: "1.4 TSI",
+            puissance: "125",
+            carburant: "Essence",
+            organe: "Chaîne de distribution",
+            probleme: "Détente chaîne distribution",
+            symptomes: ["Bruit de chaîne au démarrage", "Claquement moteur chaud"],
+            codesDefaut: ["P0016"],
+            solution: "Remplacement chaîne + tendeur hydraulique",
+            pieces: ["Kit chaîne distribution", "Tendeur hydraulique"],
+            cout: "1500-2200€",
+            temps: "8-10h",
+            motsCles: ["chaîne", "distribution", "golf", "1.4", "tsi", "détente", "bruit"]
+        },
+        // Audi
+        {
+            marque: "Audi",
+            modele: "A3",
+            motorisation: "1.6 TDI",
+            puissance: "110",
+            carburant: "Diesel",
+            organe: "Vanne EGR",
+            probleme: "Défaut vanne EGR",
+            symptomes: ["Voyant moteur", "Perte puissance", "Fumée noire"],
+            codesDefaut: ["P0401", "P0403"],
+            solution: "Remplacement vanne EGR",
+            pieces: ["Vanne EGR neuve", "Joint"],
+            cout: "400-600€",
+            temps: "2-3h",
+            motsCles: ["egr", "vanne", "audi", "a3", "1.6", "tdi", "défaut"]
+        },
+        {
+            marque: "Audi",
+            modele: "A4",
+            motorisation: "2.0 TDI",
+            puissance: "150",
+            carburant: "Diesel",
+            organe: "Pompe à huile",
+            probleme: "Défaillance pompe à huile",
+            symptomes: ["Voyant pression huile", "Bruit moteur", "Surchauffe"],
+            codesDefaut: ["P0520"],
+            solution: "Remplacement pompe à huile + crépine",
+            pieces: ["Pompe à huile", "Crépine", "Joint carter"],
+            cout: "1200-1800€",
+            temps: "6-8h",
+            motsCles: ["pompe", "huile", "audi", "a4", "2.0", "tdi", "pression", "défaillance"]
+        },
+        // Mercedes
+        {
+            marque: "Mercedes-Benz",
+            modele: "Classe A",
+            motorisation: "A 180 CDI",
+            puissance: "109",
+            carburant: "Diesel",
+            organe: "Injecteurs",
+            probleme: "Fuite injecteurs",
+            symptomes: ["Odeur gasoil", "Consommation excessive", "Démarrage difficile"],
+            codesDefaut: ["P0201", "P0202"],
+            solution: "Remplacement injecteurs + joints",
+            pieces: ["Injecteurs neufs", "Joints injecteurs", "Rondelles pare-feu"],
+            cout: "1000-1600€",
+            temps: "4-5h",
+            motsCles: ["injecteur", "mercedes", "classe a", "180", "cdi", "fuite", "gasoil"]
+        },
+        {
+            marque: "Mercedes-Benz",
+            modele: "Classe C",
+            motorisation: "C 220 CDI",
+            puissance: "170",
+            carburant: "Diesel",
+            organe: "Turbo",
+            probleme: "Fuite huile turbo",
+            symptomes: ["Consommation huile", "Fumée bleue", "Sifflement"],
+            codesDefaut: ["P0299"],
+            solution: "Remplacement turbo + nettoyage admission",
+            pieces: ["Turbo neuf", "Joints turbo", "Durites"],
+            cout: "2200-3200€",
+            temps: "6-8h",
+            motsCles: ["turbo", "mercedes", "classe c", "220", "cdi", "fuite", "huile"]
+        },
+        // Toyota
+        {
+            marque: "Toyota",
+            modele: "Yaris",
+            motorisation: "1.4 D-4D",
+            puissance: "90",
+            carburant: "Diesel",
+            organe: "Vanne EGR",
+            probleme: "Encrassement EGR",
+            symptomes: ["Ralenti instable", "Voyant moteur", "Perte puissance"],
+            codesDefaut: ["P0401"],
+            solution: "Nettoyage vanne EGR",
+            pieces: ["Nettoyant EGR", "Joint"],
+            cout: "150-250€",
+            temps: "1-2h",
+            motsCles: ["egr", "vanne", "toyota", "yaris", "1.4", "d4d", "encrassement"]
+        },
+        {
+            marque: "Toyota",
+            modele: "RAV4",
+            motorisation: "2.2 D-4D",
+            puissance: "150",
+            carburant: "Diesel",
+            organe: "FAP",
+            probleme: "Colmatage FAP",
+            symptomes: ["Voyant FAP", "Régénération échouée", "Mode dégradé"],
+            codesDefaut: ["P2002"],
+            solution: "Nettoyage ou remplacement FAP",
+            pieces: ["FAP neuf", "Capteur différentiel"],
+            cout: "1600-2400€",
+            temps: "4-5h",
+            motsCles: ["fap", "filtre", "particules", "toyota", "rav4", "2.2", "d4d", "colmatage"]
+        },
+        // Ford
+        {
+            marque: "Ford",
+            modele: "Focus",
+            motorisation: "1.6 TDCi",
+            puissance: "115",
+            carburant: "Diesel",
+            organe: "Vanne EGR",
+            probleme: "Blocage vanne EGR",
+            symptomes: ["Mode dégradé", "Voyant anti-pollution", "Perte puissance"],
+            codesDefaut: ["P0401", "P0403"],
+            solution: "Nettoyage ou remplacement vanne EGR",
+            pieces: ["Vanne EGR", "Joint"],
+            cout: "350-550€",
+            temps: "2-3h",
+            motsCles: ["egr", "vanne", "ford", "focus", "1.6", "tdci", "blocage"]
+        },
+        {
+            marque: "Ford",
+            modele: "Focus",
+            motorisation: "1.0 EcoBoost",
+            puissance: "125",
+            carburant: "Essence",
+            organe: "Courroie de distribution",
+            probleme: "Usure courroie distribution",
+            symptomes: ["Bruit moteur", "Préconisation remplacement 150 000km"],
+            codesDefaut: [],
+            solution: "Remplacement courroie + kit complet",
+            pieces: ["Kit courroie", "Pompe à eau", "Galets"],
+            cout: "600-900€",
+            temps: "5-6h",
+            motsCles: ["courroie", "distribution", "ford", "focus", "1.0", "ecoboost", "usure"]
+        },
+        // Citroën
+        {
+            marque: "Citroën",
+            modele: "C3",
+            motorisation: "1.2 PureTech",
+            puissance: "82",
+            carburant: "Essence",
+            organe: "Courroie de distribution",
+            probleme: "Usure prématurée courroie",
+            symptomes: ["Bruit de claquement", "Préconisation 60 000km"],
+            codesDefaut: [],
+            solution: "Remplacement préventif courroie",
+            pieces: ["Kit courroie", "Pompe à eau"],
+            cout: "450-650€",
+            temps: "3-4h",
+            motsCles: ["courroie", "distribution", "citroën", "c3", "1.2", "puretech", "usure"]
+        },
+        {
+            marque: "Citroën",
+            modele: "C4",
+            motorisation: "1.6 BlueHDi",
+            puissance: "120",
+            carburant: "Diesel",
+            organe: "FAP",
+            probleme: "Colmatage FAP",
+            symptomes: ["Voyant FAP", "Régénération impossible", "Mode dégradé"],
+            codesDefaut: ["P2002", "P2458"],
+            solution: "Nettoyage ou remplacement FAP",
+            pieces: ["FAP neuf", "Capteur pression"],
+            cout: "1400-2200€",
+            temps: "4-5h",
+            motsCles: ["fap", "filtre", "particules", "citroën", "c4", "1.6", "bluehdi", "colmatage"]
+        },
+        // Opel
+        {
+            marque: "Opel",
+            modele: "Corsa",
+            motorisation: "1.3 CDTI",
+            puissance: "95",
+            carburant: "Diesel",
+            organe: "Vanne EGR",
+            probleme: "Encrassement vanne EGR",
+            symptomes: ["Ralenti instable", "Voyant moteur", "Fumée noire"],
+            codesDefaut: ["P0401", "P0402"],
+            solution: "Nettoyage vanne EGR",
+            pieces: ["Nettoyant EGR", "Joint"],
+            cout: "200-350€",
+            temps: "2-3h",
+            motsCles: ["egr", "vanne", "opel", "corsa", "1.3", "cdti", "encrassement"]
+        },
+        // Dacia
+        {
+            marque: "Dacia",
+            modele: "Duster",
+            motorisation: "1.5 dCi",
+            puissance: "110",
+            carburant: "Diesel",
+            organe: "Injecteurs",
+            probleme: "Usure injecteurs",
+            symptomes: ["Fumée noire", "Consommation excessive", "Ralenti instable"],
+            codesDefaut: ["P0201", "P0202"],
+            solution: "Remplacement injecteurs",
+            pieces: ["Injecteurs neufs", "Joints"],
+            cout: "700-1200€",
+            temps: "4-5h",
+            motsCles: ["injecteur", "dacia", "duster", "1.5", "dci", "usure", "fuite"]
+        },
+        {
+            marque: "Dacia",
+            modele: "Sandero",
+            motorisation: "0.9 TCe",
+            puissance: "90",
+            carburant: "Essence",
+            organe: "Chaîne de distribution",
+            probleme: "Détente chaîne",
+            symptomes: ["Bruit de chaîne au démarrage", "Claquement"],
+            codesDefaut: ["P0016"],
+            solution: "Remplacement chaîne + tendeur",
+            pieces: ["Kit chaîne", "Tendeur hydraulique"],
+            cout: "1100-1600€",
+            temps: "7-9h",
+            motsCles: ["chaîne", "distribution", "dacia", "sandero", "0.9", "tce", "détente"]
+        },
+        // Hyundai
+        {
+            marque: "Hyundai",
+            modele: "Tucson",
+            motorisation: "1.7 CRDi",
+            puissance: "116",
+            carburant: "Diesel",
+            organe: "Turbo",
+            probleme: "Défaillance turbo",
+            symptomes: ["Sifflement", "Perte puissance", "Fumée bleue"],
+            codesDefaut: ["P0299"],
+            solution: "Remplacement turbo",
+            pieces: ["Turbo neuf", "Joints", "Durites"],
+            cout: "1800-2600€",
+            temps: "6-8h",
+            motsCles: ["turbo", "hyundai", "tucson", "1.7", "crdi", "sifflement", "défaillance"]
+        },
+        // Kia
+        {
+            marque: "Kia",
+            modele: "Sportage",
+            motorisation: "1.7 CRDi",
+            puissance: "116",
+            carburant: "Diesel",
+            organe: "FAP",
+            probleme: "Colmatage FAP",
+            symptomes: ["Voyant FAP", "Mode dégradé", "Régénération impossible"],
+            codesDefaut: ["P2002"],
+            solution: "Nettoyage ou remplacement FAP",
+            pieces: ["FAP neuf", "Capteur pression"],
+            cout: "1500-2300€",
+            temps: "4-5h",
+            motsCles: ["fap", "filtre", "particules", "kia", "sportage", "1.7", "crdi", "colmatage"]
+        },
+        // Nissan
+        {
+            marque: "Nissan",
+            modele: "Qashqai",
+            motorisation: "1.5 dCi",
+            puissance: "110",
+            carburant: "Diesel",
+            organe: "Vanne EGR",
+            probleme: "Blocage vanne EGR",
+            symptomes: ["Mode dégradé", "Voyant moteur", "Perte puissance"],
+            codesDefaut: ["P0401", "P0403"],
+            solution: "Nettoyage ou remplacement vanne EGR",
+            pieces: ["Vanne EGR", "Joint"],
+            cout: "400-600€",
+            temps: "2-3h",
+            motsCles: ["egr", "vanne", "nissan", "qashqai", "1.5", "dci", "blocage"]
+        },
+        // Organes génériques
+        {
+            marque: "Toutes marques",
+            modele: "Tous modèles",
+            motorisation: "Diesel moderne",
+            puissance: "Toutes",
+            carburant: "Diesel",
+            organe: "FAP (Filtre à Particules)",
+            probleme: "Colmatage FAP - Problème courant",
+            symptomes: ["Voyant FAP allumé", "Mode dégradé", "Perte de puissance", "Fumée noire", "Régénération impossible"],
+            codesDefaut: ["P2002", "P2458", "P2463"],
+            solution: "1. Régénération forcée en atelier\n2. Nettoyage professionnel FAP\n3. Remplacement si colmatage irréversible",
+            pieces: ["FAP neuf ou reconditionné", "Capteur pression différentielle", "Joint FAP"],
+            cout: "1200-3000€ selon véhicule",
+            temps: "3-5h",
+            motsCles: ["fap", "filtre", "particules", "colmatage", "diesel", "dpf", "encrassement", "régénération"]
+        },
+        {
+            marque: "Toutes marques",
+            modele: "Tous modèles",
+            motorisation: "Essence moderne",
+            puissance: "Toutes",
+            carburant: "Essence",
+            organe: "Courroie de distribution",
+            probleme: "Usure courroie distribution - Maintenance préventive",
+            symptomes: ["Aucun symptôme avant rupture", "Bruit de claquement si usée", "Préconisation constructeur"],
+            codesDefaut: [],
+            solution: "Remplacement préventif selon préconisation constructeur (généralement 60 000 à 150 000 km)",
+            pieces: ["Kit courroie distribution complet", "Pompe à eau (souvent entraînée)", "Galets tendeurs et enrouleurs", "Joint de carter distribution"],
+            cout: "500-1500€ selon véhicule",
+            temps: "4-8h",
+            motsCles: ["courroie", "distribution", "usure", "préventif", "casse", "entretien", "kilométrage"]
+        },
+        {
+            marque: "Toutes marques",
+            modele: "Tous modèles",
+            motorisation: "Diesel moderne",
+            puissance: "Toutes",
+            carburant: "Diesel",
+            organe: "Vanne EGR",
+            probleme: "Encrassement vanne EGR - Problème très courant",
+            symptomes: ["Ralenti instable", "Voyant moteur allumé", "Mode dégradé", "Perte de puissance", "Fumée noire", "À-coups à l'accélération"],
+            codesDefaut: ["P0401", "P0402", "P0403", "P0404"],
+            solution: "1. Nettoyage vanne EGR (solution économique)\n2. Remplacement vanne EGR si très encrassée\n3. Désactivation EGR (solution non homologuée)",
+            pieces: ["Vanne EGR neuve ou nettoyée", "Joint vanne EGR", "Nettoyant spécial EGR"],
+            cout: "200-800€ selon véhicule et solution",
+            temps: "2-4h",
+            motsCles: ["egr", "vanne", "encrassement", "ralenti", "instable", "nettoyage", "diesel", "pollution"]
+        },
+        {
+            marque: "Toutes marques",
+            modele: "Tous modèles",
+            motorisation: "Tous moteurs turbo",
+            puissance: "Toutes",
+            carburant: "Tous",
+            organe: "Turbocompresseur",
+            probleme: "Défaillance turbo - Usure mécanique",
+            symptomes: ["Sifflement anormal", "Perte de puissance", "Fumée bleue ou noire", "Consommation d'huile excessive", "Bruit de soufflerie"],
+            codesDefaut: ["P0299", "P0234", "P0235", "P0236"],
+            solution: "1. Remplacement turbocompresseur\n2. Vérification et nettoyage circuit d'huile\n3. Remplacement durites et joints",
+            pieces: ["Turbocompresseur neuf ou échange standard", "Joint turbo", "Durites d'huile", "Huile moteur neuve"],
+            cout: "1500-4000€ selon véhicule",
+            temps: "6-10h",
+            motsCles: ["turbo", "turbocompresseur", "sifflement", "défaillance", "fuite", "huile", "puissance"]
+        },
+        {
+            marque: "Toutes marques",
+            modele: "Tous modèles",
+            motorisation: "Tous moteurs diesel",
+            puissance: "Toutes",
+            carburant: "Diesel",
+            organe: "Injecteurs",
+            probleme: "Usure ou défaillance injecteurs",
+            symptomes: ["Ratés d'allumage", "Ralenti instable", "Consommation excessive", "Fumée noire ou blanche", "Démarrage difficile", "Claquement moteur"],
+            codesDefaut: ["P0201", "P0202", "P0203", "P0204", "P0261", "P0262"],
+            solution: "1. Test des injecteurs (débit, étanchéité)\n2. Remplacement injecteurs défectueux\n3. Codage des nouveaux injecteurs",
+            pieces: ["Injecteurs neufs ou reconditionnés", "Joints injecteurs", "Rondelles pare-feu"],
+            cout: "600-2000€ selon nombre et véhicule",
+            temps: "4-8h",
+            motsCles: ["injecteur", "injection", "fuite", "défaillance", "raté", "diesel", "common rail"]
+        },
+        {
+            marque: "Toutes marques",
+            modele: "Tous modèles",
+            motorisation: "Tous moteurs",
+            puissance: "Toutes",
+            carburant: "Tous",
+            organe: "Alternateur",
+            probleme: "Défaillance alternateur",
+            symptomes: ["Voyant batterie allumé", "Batterie qui se décharge", "Phares qui faiblissent", "Démarrage difficile"],
+            codesDefaut: ["P0562", "P0563"],
+            solution: "Remplacement alternateur + vérification batterie",
+            pieces: ["Alternateur neuf ou échange standard", "Courroie d'accessoire", "Tendeur"],
+            cout: "400-800€",
+            temps: "2-3h",
+            motsCles: ["alternateur", "batterie", "charge", "défaillance", "voyant", "courroie"]
+        },
+        {
+            marque: "Toutes marques",
+            modele: "Tous modèles",
+            motorisation: "Tous moteurs",
+            puissance: "Toutes",
+            carburant: "Tous",
+            organe: "Démarreur",
+            probleme: "Défaillance démarreur",
+            symptomes: ["Moteur ne démarre pas", "Clic au démarrage", "Démarreur tourne dans le vide", "Bruit de grincement"],
+            codesDefaut: ["P0615", "P0616"],
+            solution: "Remplacement démarreur + vérification batterie et câbles",
+            pieces: ["Démarreur neuf ou échange standard", "Solénoïde"],
+            cout: "300-700€",
+            temps: "2-4h",
+            motsCles: ["démarreur", "démarrage", "ne démarre pas", "clic", "solénoïde"]
+        },
+        {
+            marque: "Toutes marques",
+            modele: "Tous modèles",
+            motorisation: "Tous moteurs",
+            puissance: "Toutes",
+            carburant: "Tous",
+            organe: "Embrayage",
+            probleme: "Usure embrayage",
+            symptomes: ["Embrayage qui patine", "Pédale dure", "Difficulté à passer les vitesses", "Odeur de brûlé"],
+            codesDefaut: [],
+            solution: "Remplacement kit embrayage complet",
+            pieces: ["Kit embrayage (disque, mécanisme, butée)", "Volant moteur (si bi-masse)"],
+            cout: "800-2000€",
+            temps: "6-10h",
+            motsCles: ["embrayage", "patine", "disque", "butée", "volant moteur", "vitesse"]
+        },
+        {
+            marque: "Toutes marques",
+            modele: "Tous modèles",
+            motorisation: "Tous moteurs",
+            puissance: "Toutes",
+            carburant: "Tous",
+            organe: "Pompe à eau",
+            probleme: "Fuite pompe à eau",
+            symptomes: ["Fuite liquide refroidissement", "Surchauffe moteur", "Bruit de roulement"],
+            codesDefaut: ["P0217"],
+            solution: "Remplacement pompe à eau + liquide refroidissement",
+            pieces: ["Pompe à eau neuve", "Joint pompe", "Liquide refroidissement"],
+            cout: "300-600€",
+            temps: "2-4h",
+            motsCles: ["pompe", "eau", "fuite", "refroidissement", "surchauffe", "température"]
+        },
+        {
+            marque: "Toutes marques",
+            modele: "Tous modèles",
+            motorisation: "Tous moteurs",
+            puissance: "Toutes",
+            carburant: "Tous",
+            organe: "Radiateur",
+            probleme: "Fuite ou colmatage radiateur",
+            symptomes: ["Surchauffe moteur", "Fuite liquide refroidissement", "Ventilateur en permanence"],
+            codesDefaut: ["P0217"],
+            solution: "Remplacement radiateur + liquide refroidissement",
+            pieces: ["Radiateur neuf", "Liquide refroidissement", "Durites"],
+            cout: "400-800€",
+            temps: "3-5h",
+            motsCles: ["radiateur", "refroidissement", "surchauffe", "fuite", "température"]
+        }
+    ];
 
     // ============================================
     // GESTION IndexedDB
@@ -312,48 +696,16 @@
                 request.onupgradeneeded = (event) => {
                     const db = event.target.result;
                     
-                    // Store Marques
-                    if (!db.objectStoreNames.contains(CONFIG.STORES.MARQUES)) {
-                        const store = db.createObjectStore(CONFIG.STORES.MARQUES, { 
-                            keyPath: 'id', 
-                            autoIncrement: true 
-                        });
-                        store.createIndex('marque', 'marque', { unique: true });
-                        store.createIndex('pays', 'pays', { unique: false });
-                    }
-                    
-                    // Store Modèles
-                    if (!db.objectStoreNames.contains(CONFIG.STORES.MODELES)) {
-                        const store = db.createObjectStore(CONFIG.STORES.MODELES, { 
+                    if (!db.objectStoreNames.contains(CONFIG.STORES.DIAGNOSTICS)) {
+                        const store = db.createObjectStore(CONFIG.STORES.DIAGNOSTICS, { 
                             keyPath: 'id', 
                             autoIncrement: true 
                         });
                         store.createIndex('marque', 'marque', { unique: false });
                         store.createIndex('modele', 'modele', { unique: false });
+                        store.createIndex('organe', 'organe', { unique: false });
                     }
                     
-                    // Store Motorisations
-                    if (!db.objectStoreNames.contains(CONFIG.STORES.MOTORISATIONS)) {
-                        const store = db.createObjectStore(CONFIG.STORES.MOTORISATIONS, { 
-                            keyPath: 'id', 
-                            autoIncrement: true 
-                        });
-                        store.createIndex('marque', 'marque', { unique: false });
-                        store.createIndex('modele', 'modele', { unique: false });
-                        store.createIndex('motorisation', 'motorisation', { unique: false });
-                    }
-                    
-                    // Store Organes
-                    if (!db.objectStoreNames.contains(CONFIG.STORES.ORGANES)) {
-                        const store = db.createObjectStore(CONFIG.STORES.ORGANES, { 
-                            keyPath: 'id', 
-                            autoIncrement: true 
-                        });
-                        store.createIndex('nom', 'nom', { unique: false });
-                        store.createIndex('type', 'type', { unique: false });
-                    }
-                    
-                    // Store Véhicules
                     if (!db.objectStoreNames.contains(CONFIG.STORES.VEHICULES)) {
                         db.createObjectStore(CONFIG.STORES.VEHICULES, { 
                             keyPath: 'id', 
@@ -361,7 +713,6 @@
                         });
                     }
                     
-                    // Store Interventions
                     if (!db.objectStoreNames.contains(CONFIG.STORES.INTERVENTIONS)) {
                         db.createObjectStore(CONFIG.STORES.INTERVENTIONS, { 
                             keyPath: 'id', 
@@ -375,134 +726,34 @@
         async importAll() {
             if (!this.db) await this.open();
             
-            const transaction = this.db.transaction([
-                CONFIG.STORES.MARQUES,
-                CONFIG.STORES.MODELES,
-                CONFIG.STORES.MOTORISATIONS,
-                CONFIG.STORES.ORGANES
-            ], 'readwrite');
-            
-            const marquesStore = transaction.objectStore(CONFIG.STORES.MARQUES);
-            const modelesStore = transaction.objectStore(CONFIG.STORES.MODELES);
-            const motorisationsStore = transaction.objectStore(CONFIG.STORES.MOTORISATIONS);
-            const organesStore = transaction.objectStore(CONFIG.STORES.ORGANES);
-            
-            // Vider les stores
-            marquesStore.clear();
-            modelesStore.clear();
-            motorisationsStore.clear();
-            organesStore.clear();
-            
-            // Importer les marques
-            DATABASE.marques.forEach(m => {
-                marquesStore.add({
-                    marque: m.marque,
-                    origine: m.origine,
-                    pays: m.pays,
-                    dateImport: new Date().toISOString()
-                });
-            });
-            
-            // Importer les modèles
-            DATABASE.modeles.forEach(m => {
-                modelesStore.add({
-                    marque: m.marque,
-                    modele: m.modele,
-                    annees: m.annees,
-                    dateImport: new Date().toISOString()
-                });
-            });
-            
-            // Importer les motorisations
-            DATABASE.motorisations.forEach(m => {
-                motorisationsStore.add({
-                    marque: m.marque,
-                    modele: m.modele,
-                    motorisation: m.motorisation,
-                    puissance: m.puissance,
-                    carburant: m.carburant,
-                    dateImport: new Date().toISOString()
-                });
-            });
-            
-            // Importer les organes
-            DATABASE.organes.forEach(o => {
-                organesStore.add({
-                    nom: o.nom,
-                    type: o.type,
-                    motsCles: o.motsCles,
-                    dateImport: new Date().toISOString()
-                });
-            });
-            
             return new Promise((resolve, reject) => {
-                transaction.oncomplete = () => {
-                    resolve({
-                        success: true,
-                        marques: DATABASE.marques.length,
-                        modeles: DATABASE.modeles.length,
-                        motorisations: DATABASE.motorisations.length,
-                        organes: DATABASE.organes.length
+                const transaction = this.db.transaction([CONFIG.STORES.DIAGNOSTICS], 'readwrite');
+                const store = transaction.objectStore(CONFIG.STORES.DIAGNOSTICS);
+                
+                store.clear();
+                
+                DATABASE.forEach(item => {
+                    store.add({
+                        ...item,
+                        dateImport: new Date().toISOString()
                     });
+                });
+                
+                transaction.oncomplete = () => {
+                    resolve({ success: true, count: DATABASE.length });
                 };
                 transaction.onerror = () => reject(transaction.error);
             });
         }
 
-        async getAllMarques() {
+        async getAllDiagnostics() {
             if (!this.db) await this.open();
+            
             return new Promise((resolve, reject) => {
-                const transaction = this.db.transaction([CONFIG.STORES.MARQUES], 'readonly');
-                const store = transaction.objectStore(CONFIG.STORES.MARQUES);
+                const transaction = this.db.transaction([CONFIG.STORES.DIAGNOSTICS], 'readonly');
+                const store = transaction.objectStore(CONFIG.STORES.DIAGNOSTICS);
                 const request = store.getAll();
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-            });
-        }
-
-        async getAllModeles(marque = null) {
-            if (!this.db) await this.open();
-            return new Promise((resolve, reject) => {
-                const transaction = this.db.transaction([CONFIG.STORES.MODELES], 'readonly');
-                const store = transaction.objectStore(CONFIG.STORES.MODELES);
-                const request = store.getAll();
-                request.onsuccess = () => {
-                    let modeles = request.result;
-                    if (marque) {
-                        modeles = modeles.filter(m => m.marque === marque);
-                    }
-                    resolve(modeles);
-                };
-                request.onerror = () => reject(request.error);
-            });
-        }
-
-        async getAllMotorisations(marque = null, modele = null) {
-            if (!this.db) await this.open();
-            return new Promise((resolve, reject) => {
-                const transaction = this.db.transaction([CONFIG.STORES.MOTORISATIONS], 'readonly');
-                const store = transaction.objectStore(CONFIG.STORES.MOTORISATIONS);
-                const request = store.getAll();
-                request.onsuccess = () => {
-                    let motorisations = request.result;
-                    if (marque) {
-                        motorisations = motorisations.filter(m => m.marque === marque);
-                    }
-                    if (modele) {
-                        motorisations = motorisations.filter(m => m.modele === modele);
-                    }
-                    resolve(motorisations);
-                };
-                request.onerror = () => reject(request.error);
-            });
-        }
-
-        async getAllOrganes() {
-            if (!this.db) await this.open();
-            return new Promise((resolve, reject) => {
-                const transaction = this.db.transaction([CONFIG.STORES.ORGANES], 'readonly');
-                const store = transaction.objectStore(CONFIG.STORES.ORGANES);
-                const request = store.getAll();
+                
                 request.onsuccess = () => resolve(request.result);
                 request.onerror = () => reject(request.error);
             });
@@ -517,7 +768,7 @@
     }
 
     // ============================================
-    // RECHERCHE INTELLIGENTE
+    // RECHERCHE INTELLIGENTE PRÉDICTIVE
     // ============================================
     class RechercheIntelligente {
         constructor() {
@@ -525,12 +776,7 @@
             this.searchInput = document.getElementById('searchInput');
             this.autocompleteResults = document.getElementById('autocompleteResults');
             this.resultsContainer = document.getElementById('resultsContainer');
-            this.allData = {
-                marques: [],
-                modeles: [],
-                motorisations: [],
-                organes: []
-            };
+            this.allDiagnostics = [];
             
             this.init();
         }
@@ -545,10 +791,8 @@
         }
 
         async loadData() {
-            this.allData.marques = await this.db.getAllMarques();
-            this.allData.modeles = await this.db.getAllModeles();
-            this.allData.motorisations = await this.db.getAllMotorisations();
-            this.allData.organes = await this.db.getAllOrganes();
+            this.allDiagnostics = await this.db.getAllDiagnostics();
+            console.log(`✅ ${this.allDiagnostics.length} diagnostics chargés`);
         }
 
         attachEvents() {
@@ -556,7 +800,11 @@
                 this.searchInput.addEventListener('input', (e) => this.handleSearch(e));
                 this.searchInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
+                        e.preventDefault();
                         this.lancerRecherche();
+                    }
+                    if (e.key === 'Escape') {
+                        this.autocompleteResults.style.display = 'none';
                     }
                 });
             }
@@ -569,7 +817,7 @@
         }
 
         handleSearch(event) {
-            const query = event.target.value.trim().toLowerCase();
+            const query = event.target.value.trim();
             
             if (query.length < 2) {
                 this.autocompleteResults.style.display = 'none';
@@ -581,64 +829,74 @@
         }
 
         performSearch(query) {
-            const results = [];
             const queryLower = query.toLowerCase();
+            const queryTerms = queryLower.split(/\s+/).filter(t => t.length > 1);
+            const results = [];
 
-            // Rechercher dans les marques
-            this.allData.marques.forEach(m => {
-                if (m.marque.toLowerCase().includes(queryLower)) {
+            this.allDiagnostics.forEach(diag => {
+                let score = 0;
+                let matchDetails = [];
+
+                // Recherche dans tous les champs
+                const searchableText = [
+                    diag.marque,
+                    diag.modele,
+                    diag.motorisation,
+                    diag.puissance,
+                    diag.organe,
+                    diag.probleme,
+                    ...diag.symptomes,
+                    ...diag.motsCles,
+                    ...diag.codesDefaut
+                ].join(' ').toLowerCase();
+
+                // Calcul du score de pertinence
+                queryTerms.forEach(term => {
+                    if (searchableText.includes(term)) {
+                        score += 10;
+                        
+                        // Bonus pour correspondances exactes
+                        if (diag.marque.toLowerCase().includes(term)) {
+                            score += 20;
+                            matchDetails.push('marque');
+                        }
+                        if (diag.modele.toLowerCase().includes(term)) {
+                            score += 20;
+                            matchDetails.push('modèle');
+                        }
+                        if (diag.motorisation.toLowerCase().includes(term)) {
+                            score += 15;
+                            matchDetails.push('motorisation');
+                        }
+                        if (diag.organe.toLowerCase().includes(term)) {
+                            score += 15;
+                            matchDetails.push('organe');
+                        }
+                        if (diag.motsCles.some(mc => mc.toLowerCase().includes(term))) {
+                            score += 10;
+                            matchDetails.push('mot-clé');
+                        }
+                    }
+                });
+
+                // Bonus si tous les termes sont trouvés
+                if (queryTerms.every(term => searchableText.includes(term))) {
+                    score += 30;
+                }
+
+                if (score > 0) {
                     results.push({
-                        type: 'marque',
-                        text: m.marque,
-                        category: `${m.origine} - ${m.pays}`,
-                        data: m
+                        score: score,
+                        diag: diag,
+                        matchDetails: [...new Set(matchDetails)]
                     });
                 }
             });
 
-            // Rechercher dans les modèles
-            this.allData.modeles.forEach(m => {
-                if (m.modele.toLowerCase().includes(queryLower) || 
-                    m.marque.toLowerCase().includes(queryLower)) {
-                    results.push({
-                        type: 'modele',
-                        text: `${m.marque} ${m.modele}`,
-                        category: `Modèle - ${m.annees}`,
-                        data: m
-                    });
-                }
-            });
+            // Trier par score décroissant
+            results.sort((a, b) => b.score - a.score);
 
-            // Rechercher dans les motorisations
-            this.allData.motorisations.forEach(m => {
-                if (m.motorisation.toLowerCase().includes(queryLower) ||
-                    m.modele.toLowerCase().includes(queryLower) ||
-                    m.marque.toLowerCase().includes(queryLower) ||
-                    m.puissance.toString().includes(queryLower)) {
-                    results.push({
-                        type: 'motorisation',
-                        text: `${m.marque} ${m.modele} - ${m.motorisation}`,
-                        category: `${m.puissance} ch - ${m.carburant}`,
-                        data: m
-                    });
-                }
-            });
-
-            // Rechercher dans les organes
-            this.allData.organes.forEach(o => {
-                const match = o.nom.toLowerCase().includes(queryLower) ||
-                             o.motsCles.some(mc => mc.toLowerCase().includes(queryLower));
-                if (match) {
-                    results.push({
-                        type: 'organe',
-                        text: o.nom,
-                        category: `Type: ${o.type}`,
-                        data: o
-                    });
-                }
-            });
-
-            return results.slice(0, 15); // Limiter à 15 résultats
+            return results.slice(0, 10);
         }
 
         displayAutocomplete(results, query) {
@@ -648,11 +906,18 @@
             }
 
             const html = results.map(result => {
-                const highlightedText = this.highlightMatch(result.text, query);
+                const diag = result.diag;
+                const highlightedTitle = this.highlightMatch(`${diag.marque} ${diag.modele} - ${diag.organe}`, query);
+                
+                const tags = result.matchDetails.map(detail => 
+                    `<span class="tag ${detail}">${detail}</span>`
+                ).join('');
+
                 return `
-                    <div class="autocomplete-item" data-type="${result.type}" data-id="${result.data.id}">
-                        <div><strong>${highlightedText}</strong></div>
-                        <div class="category">${result.category}</div>
+                    <div class="autocomplete-item" data-id="${diag.id}">
+                        <div class="title">${highlightedTitle}</div>
+                        <div class="description">${diag.probleme}</div>
+                        <div class="tags">${tags}</div>
                     </div>
                 `;
             }).join('');
@@ -663,32 +928,35 @@
             // Attacher les événements de clic
             this.autocompleteResults.querySelectorAll('.autocomplete-item').forEach(item => {
                 item.addEventListener('click', () => {
-                    const type = item.dataset.type;
                     const id = parseInt(item.dataset.id);
-                    this.selectResult(type, id);
+                    this.selectResult(id);
                 });
             });
         }
 
         highlightMatch(text, query) {
-            const regex = new RegExp(`(${query})`, 'gi');
-            return text.replace(regex, '<span class="highlight">$1</span>');
+            const queryTerms = query.split(/\s+/).filter(t => t.length > 1);
+            let highlighted = text;
+            
+            queryTerms.forEach(term => {
+                const regex = new RegExp(`(${term})`, 'gi');
+                highlighted = highlighted.replace(regex, '<strong>$1</strong>');
+            });
+            
+            return highlighted;
         }
 
-        selectResult(type, id) {
-            const data = this.allData[type + 's'].find(item => item.id === id);
-            if (data) {
-                this.searchInput.value = type === 'marque' ? data.marque : 
-                                        type === 'modele' ? `${data.marque} ${data.modele}` :
-                                        type === 'motorisation' ? `${data.marque} ${data.modele} ${data.motorisation}` :
-                                        data.nom;
+        selectResult(id) {
+            const diag = this.allDiagnostics.find(d => d.id === id);
+            if (diag) {
+                this.searchInput.value = `${diag.marque} ${diag.modele} ${diag.organe}`;
                 this.autocompleteResults.style.display = 'none';
-                this.lancerRecherche();
+                this.displayDetailedResult(diag);
             }
         }
 
         async lancerRecherche() {
-            const query = this.searchInput.value.trim().toLowerCase();
+            const query = this.searchInput.value.trim();
             
             if (!query) {
                 this.resultsContainer.innerHTML = '<div class="no-results">Veuillez entrer un terme de recherche</div>';
@@ -702,19 +970,50 @@
                 return;
             }
 
+            this.displaySearchResults(results, query);
+        }
+
+        displaySearchResults(results, query) {
             const html = `
                 <div class="section">
-                    <h3>📊 Résultats de recherche (${results.length})</h3>
+                    <h3>📊 ${results.length} résultat(s) trouvé(s) pour "${query}"</h3>
                     ${results.map(result => {
-                        const highlightedText = this.highlightMatch(result.text, query);
+                        const diag = result.diag;
+                        const highlightedTitle = this.highlightMatch(`${diag.marque} ${diag.modele}`, query);
+                        
                         return `
                             <div class="result-card">
-                                <h4>${highlightedText}</h4>
+                                <h4>${highlightedTitle} - ${diag.organe}</h4>
                                 <div class="meta">
-                                    <span class="badge badge-info">${result.type}</span>
-                                    ${result.category}
+                                    <span class="tag marque">${diag.marque}</span>
+                                    <span class="tag modele">${diag.modele}</span>
+                                    <span class="tag motorisation">${diag.motorisation} ${diag.puissance}ch</span>
+                                    <span class="tag organe">${diag.organe}</span>
                                 </div>
-                                ${this.getDiagnosticInfo(result)}
+                                <div class="description">
+                                    <strong>Problème:</strong> ${diag.probleme}
+                                </div>
+                                <div class="details">
+                                    <h5>🔍 Symptômes</h5>
+                                    <ul>
+                                        ${diag.symptomes.map(s => `<li>${s}</li>`).join('')}
+                                    </ul>
+                                    ${diag.codesDefaut.length > 0 ? `
+                                        <h5>📋 Codes défaut</h5>
+                                        <ul>
+                                            ${diag.codesDefaut.map(c => `<li>${c}</li>`).join('')}
+                                        </ul>
+                                    ` : ''}
+                                    <h5>✅ Solution</h5>
+                                    <p>${diag.solution}</p>
+                                    <h5>🔧 Pièces nécessaires</h5>
+                                    <ul>
+                                        ${diag.pieces.map(p => `<li>${p}</li>`).join('')}
+                                    </ul>
+                                    <h5>💰 Coût et temps</h5>
+                                    <p><strong>Coût estimé:</strong> ${diag.cout}</p>
+                                    <p><strong>Temps de main d'œuvre:</strong> ${diag.temps}</p>
+                                </div>
                             </div>
                         `;
                     }).join('')}
@@ -724,18 +1023,47 @@
             this.resultsContainer.innerHTML = html;
         }
 
-        getDiagnosticInfo(result) {
-            if (result.type === 'organe') {
-                return `<p style="margin-top: 8px; color: #666;">
-                    🔧 <strong>Diagnostic:</strong> Vérifier l'état de ${result.data.nom}. 
-                    Contrôler les symptômes associés et les codes défauts correspondants.
-                </p>`;
-            } else if (result.type === 'motorisation') {
-                return `<p style="margin-top: 8px; color: #666;">
-                    ⚙️ <strong>Spécifications:</strong> ${result.data.puissance} ch - ${result.data.carburant}
-                </p>`;
-            }
-            return '';
+        displayDetailedResult(diag) {
+            const html = `
+                <div class="section">
+                    <h3>📋 Fiche diagnostic détaillée</h3>
+                    <div class="result-card">
+                        <h4>${diag.marque} ${diag.modele} - ${diag.organe}</h4>
+                        <div class="meta">
+                            <span class="tag marque">${diag.marque}</span>
+                            <span class="tag modele">${diag.modele}</span>
+                            <span class="tag motorisation">${diag.motorisation} ${diag.puissance}ch - ${diag.carburant}</span>
+                            <span class="tag organe">${diag.organe}</span>
+                        </div>
+                        <div class="description">
+                            <strong>Problème:</strong> ${diag.probleme}
+                        </div>
+                        <div class="details">
+                            <h5>🔍 Symptômes courants</h5>
+                            <ul>
+                                ${diag.symptomes.map(s => `<li>${s}</li>`).join('')}
+                            </ul>
+                            ${diag.codesDefaut.length > 0 ? `
+                                <h5>📋 Codes défaut associés</h5>
+                                <ul>
+                                    ${diag.codesDefaut.map(c => `<li><strong>${c}</strong></li>`).join('')}
+                                </ul>
+                            ` : ''}
+                            <h5>✅ Solution recommandée</h5>
+                            <p>${diag.solution}</p>
+                            <h5>🔧 Pièces nécessaires</h5>
+                            <ul>
+                                ${diag.pieces.map(p => `<li>${p}</li>`).join('')}
+                            </ul>
+                            <h5>💰 Estimation coût et temps</h5>
+                            <p><strong>Coût estimé:</strong> ${diag.cout}</p>
+                            <p><strong>Temps de main d'œuvre:</strong> ${diag.temps}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            this.resultsContainer.innerHTML = html;
         }
 
         effacerRecherche() {
@@ -762,21 +1090,14 @@
         }
     };
 
-    window.lancerDiagnostic = function() {
-        const marque = document.getElementById('selectMarque').value;
-        const modele = document.getElementById('selectModele').value;
-        const motorisation = document.getElementById('selectMotorisation').value;
-        const puissance = document.getElementById('puissanceInput').value;
-        
-        alert(`Diagnostic en cours pour:\nMarque: ${marque || 'Toutes'}\nModèle: ${modele || 'Tous'}\nMotorisation: ${motorisation || 'Toutes'}\nPuissance: ${puissance || 'Non spécifiée'}`);
-    };
-
-    window.reinitialiserDiagnostic = function() {
-        document.getElementById('selectMarque').value = '';
-        document.getElementById('selectModele').value = '';
-        document.getElementById('selectMotorisation').value = '';
-        document.getElementById('puissanceInput').value = '';
-        document.getElementById('resultsContainer').innerHTML = '';
+    window.tryExample = function(example) {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.value = example;
+            if (window.rechercheIntelligente) {
+                window.rechercheIntelligente.handleSearch({ target: searchInput });
+            }
+        }
     };
 
     async function importerBaseMassive() {
@@ -792,18 +1113,16 @@
             const dbManager = new DatabaseManager();
             await dbManager.open();
             
-            updateStatus(`📦 Import de la base complète en cours...`, 'info');
+            updateStatus(`📦 Import de ${DATABASE.length} diagnostics en cours...`, 'info');
             
             const result = await dbManager.importAll();
             
             if (result.success) {
                 updateStatus(
                     `✅ <strong>Import réussi !</strong><br>` +
-                    `📊 ${result.marques} marques<br>` +
-                    `🚗 ${result.modeles} modèles<br>` +
-                    `⚙️ ${result.motorisations} motorisations<br>` +
-                    `🔧 ${result.organes} organes<br>` +
-                    `<small>Rechargez la page pour voir les nouvelles données.</small>`,
+                    `📊 ${result.count} diagnostics importés<br>` +
+                    `🔗 Source: <a href="${CONFIG.SOURCE_URL}" target="_blank">${CONFIG.SOURCE_URL}</a><br>` +
+                    `<small>Rechargez la page pour activer la recherche.</small>`,
                     'success'
                 );
                 
@@ -834,74 +1153,6 @@
         statusDiv.innerHTML = message;
     }
 
-    async function chargerSelects() {
-        try {
-            const db = new DatabaseManager();
-            
-            // Charger les marques
-            const marques = await db.getAllMarques();
-            const selectMarque = document.getElementById('selectMarque');
-            const ficheMarque = document.getElementById('ficheMarque');
-            
-            if (selectMarque && marques.length > 0) {
-                selectMarque.innerHTML = '<option value="">Toutes marques</option>';
-                marques.forEach(m => {
-                    const option = document.createElement('option');
-                    option.value = m.marque;
-                    option.textContent = `${m.marque} (${m.pays})`;
-                    selectMarque.appendChild(option);
-                });
-            }
-            
-            if (ficheMarque && marques.length > 0) {
-                ficheMarque.innerHTML = '<option value="">Choisir</option>';
-                marques.forEach(m => {
-                    const option = document.createElement('option');
-                    option.value = m.marque;
-                    option.textContent = `${m.marque} (${m.pays})`;
-                    ficheMarque.appendChild(option);
-                });
-            }
-            
-            // Événement changement de marque
-            if (selectMarque) {
-                selectMarque.addEventListener('change', async (e) => {
-                    const marque = e.target.value;
-                    const selectModele = document.getElementById('selectModele');
-                    const selectMotorisation = document.getElementById('selectMotorisation');
-                    
-                    if (marque) {
-                        const modeles = await db.getAllModeles(marque);
-                        selectModele.innerHTML = '<option value="">Tous modèles</option>';
-                        modeles.forEach(m => {
-                            const option = document.createElement('option');
-                            option.value = m.modele;
-                            option.textContent = m.modele;
-                            selectModele.appendChild(option);
-                        });
-                        
-                        selectModele.addEventListener('change', async (e2) => {
-                            const modele = e2.target.value;
-                            if (modele) {
-                                const motorisations = await db.getAllMotorisations(marque, modele);
-                                selectMotorisation.innerHTML = '<option value="">Toutes motorisations</option>';
-                                motorisations.forEach(m => {
-                                    const option = document.createElement('option');
-                                    option.value = m.motorisation;
-                                    option.textContent = `${m.motorisation} (${m.puissance} ch)`;
-                                    selectMotorisation.appendChild(option);
-                                });
-                            }
-                        });
-                    }
-                });
-            }
-            
-        } catch (error) {
-            console.error('Erreur chargement selects:', error);
-        }
-    }
-
     // ============================================
     // INITIALISATION
     // ============================================
@@ -912,8 +1163,6 @@
         if (btnImport) {
             btnImport.addEventListener('click', importerBaseMassive);
         }
-        
-        await chargerSelects();
         
         // Initialiser la recherche intelligente
         window.rechercheIntelligente = new RechercheIntelligente();
