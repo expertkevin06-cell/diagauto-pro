@@ -1,1182 +1,598 @@
-// ============================================
-// IMPORT-BASE-MASSIVE.JS
-// Module complet avec recherche prédictive intelligente
-// Version: 3.0.0
-// ============================================
+// ============================================================
+// IMPORT-BASE-MASSIVE.JS — v4.0
+// Recherche prédictive + réponse automatisée type
+// "appli-aide-technique" : véhicule détecté + fiches ciblées
+// ============================================================
+(function () {
+'use strict';
 
-(function() {
-    'use strict';
+const CONFIG = {
+  SOURCE_URL: 'https://expertkevin06-cell.github.io/appli-aide-technique/',
+  DB_NAME: 'DiagAutoDB', DB_VERSION: 4, STORE: 'fiches'
+};
 
-    const CONFIG = {
-        SOURCE_URL: 'https://expertkevin06-cell.github.io/appli-aide-technique/',
-        DB_NAME: 'DiagAutoDB',
-        DB_VERSION: 3,
-        STORES: {
-            DIAGNOSTICS: 'diagnostics',
-            VEHICULES: 'vehicules',
-            INTERVENTIONS: 'interventions'
-        }
-    };
+// ---------- Utilitaires ----------
+const norm = s => (s || '').toLowerCase()
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/[^a-z0-9.]+/g, ' ').replace(/\s+/g, ' ').trim();
 
-    // Base de données complète avec diagnostics pertinents
-    const DATABASE = [
-        // Peugeot 3008
-        {
-            marque: "Peugeot",
-            modele: "3008",
-            motorisation: "1.5 BlueHDi",
-            puissance: "130",
-            carburant: "Diesel",
-            organe: "Chaîne de distribution",
-            probleme: "Usure prématurée chaîne distribution",
-            symptomes: ["Bruit métallique moteur", "Voyant moteur allumé", "Perte de puissance"],
-            codesDefaut: ["P0016", "P0017"],
-            solution: "Remplacement chaîne + tendeurs + guides",
-            pieces: ["Kit chaîne distribution", "Tendeur hydraulique", "Guides chaîne"],
-            cout: "800-1200€",
-            temps: "6-8h",
-            motsCles: ["chaîne", "distribution", "3008", "1.5", "bluehdi", "bruit", "n47", "diesel"]
-        },
-        {
-            marque: "Peugeot",
-            modele: "3008",
-            motorisation: "1.2 PureTech",
-            puissance: "130",
-            carburant: "Essence",
-            organe: "Courroie de distribution",
-            probleme: "Casse courroie distribution",
-            symptomes: ["Arrêt moteur brutal", "Impossible de redémarrer", "Bruit de claquement"],
-            codesDefaut: [],
-            solution: "Remplacement courroie + kit complet + pompe à eau",
-            pieces: ["Kit courroie distribution", "Pompe à eau", "Galets tendeurs"],
-            cout: "600-900€",
-            temps: "4-5h",
-            motsCles: ["courroie", "distribution", "3008", "puretech", "1.2", "casse", "essence"]
-        },
-        {
-            marque: "Peugeot",
-            modele: "3008",
-            motorisation: "1.6 BlueHDi",
-            puissance: "120",
-            carburant: "Diesel",
-            organe: "FAP (Filtre à Particules)",
-            probleme: "Colmatage FAP",
-            symptomes: ["Voyant FAP allumé", "Mode dégradé", "Perte puissance", "Fumée noire"],
-            codesDefaut: ["P2002", "P2458"],
-            solution: "Nettoyage ou remplacement FAP + régénération forcée",
-            pieces: ["FAP neuf", "Capteur pression différentielle"],
-            cout: "1500-2500€",
-            temps: "3-4h",
-            motsCles: ["fap", "filtre", "particules", "3008", "1.6", "colmatage", "dpf", "encrassement"]
-        },
-        // Peugeot 208
-        {
-            marque: "Peugeot",
-            modele: "208",
-            motorisation: "1.2 PureTech",
-            puissance: "110",
-            carburant: "Essence",
-            organe: "Courroie de distribution",
-            probleme: "Usure prématurée courroie",
-            symptomes: ["Bruit de claquement", "Voyant entretien", "Préconisation 60 000km au lieu de 100 000km"],
-            codesDefaut: [],
-            solution: "Remplacement préventif courroie + kit",
-            pieces: ["Kit courroie distribution", "Pompe à eau", "Galets"],
-            cout: "500-700€",
-            temps: "3-4h",
-            motsCles: ["courroie", "distribution", "208", "puretech", "1.2", "usure", "prématurée"]
-        },
-        {
-            marque: "Peugeot",
-            modele: "208",
-            motorisation: "1.5 BlueHDi",
-            puissance: "100",
-            carburant: "Diesel",
-            organe: "Vanne EGR",
-            probleme: "Encrassement vanne EGR",
-            symptomes: ["Ralenti instable", "Voyant moteur", "Fumée noire", "Perte puissance"],
-            codesDefaut: ["P0401", "P0402"],
-            solution: "Nettoyage ou remplacement vanne EGR",
-            pieces: ["Vanne EGR", "Joint EGR"],
-            cout: "300-500€",
-            temps: "2-3h",
-            motsCles: ["egr", "vanne", "208", "1.5", "bluehdi", "encrassement", "ralenti"]
-        },
-        // Renault Clio
-        {
-            marque: "Renault",
-            modele: "Clio",
-            motorisation: "1.5 dCi",
-            puissance: "90",
-            carburant: "Diesel",
-            organe: "Injecteurs",
-            probleme: "Défaillance injecteurs",
-            symptomes: ["Ratés d'allumage", "Voyant moteur", "Consommation excessive", "Fumée blanche"],
-            codesDefaut: ["P0201", "P0202", "P0203", "P0204"],
-            solution: "Remplacement injecteurs défectueux + codage",
-            pieces: ["Injecteurs neufs", "Joints injecteurs"],
-            cout: "800-1500€",
-            temps: "4-5h",
-            motsCles: ["injecteur", "clio", "1.5", "dci", "défaillance", "raté", "fuite"]
-        },
-        {
-            marque: "Renault",
-            modele: "Clio",
-            motorisation: "1.2 TCe",
-            puissance: "120",
-            carburant: "Essence",
-            organe: "Chaîne de distribution",
-            probleme: "Détente chaîne distribution",
-            symptomes: ["Bruit de chaîne au démarrage", "Claquement moteur", "Voyant moteur"],
-            codesDefaut: ["P0016"],
-            solution: "Remplacement chaîne + tendeur + guides",
-            pieces: ["Kit chaîne distribution", "Tendeur hydraulique"],
-            cout: "1200-1800€",
-            temps: "8-10h",
-            motsCles: ["chaîne", "distribution", "clio", "1.2", "tce", "détente", "bruit"]
-        },
-        {
-            marque: "Renault",
-            modele: "Clio",
-            motorisation: "1.5 dCi",
-            puissance: "110",
-            carburant: "Diesel",
-            organe: "Vanne EGR",
-            probleme: "Blocage vanne EGR",
-            symptomes: ["Mode dégradé", "Voyant anti-pollution", "Perte puissance"],
-            codesDefaut: ["P0401", "P0403"],
-            solution: "Nettoyage ou remplacement vanne EGR",
-            pieces: ["Vanne EGR neuve", "Joint"],
-            cout: "400-600€",
-            temps: "2-3h",
-            motsCles: ["egr", "vanne", "clio", "1.5", "dci", "blocage", "encrassement"]
-        },
-        // BMW
-        {
-            marque: "BMW",
-            modele: "Serie 1",
-            motorisation: "116d N47",
-            puissance: "116",
-            carburant: "Diesel",
-            organe: "Chaîne de distribution",
-            probleme: "Casse chaîne distribution N47",
-            symptomes: ["Bruit métallique fort", "Casse moteur si non traité", "Voyant moteur"],
-            codesDefaut: ["P0016", "P0017"],
-            solution: "Remplacement préventif chaîne + guides + tendeur",
-            pieces: ["Kit chaîne distribution N47", "Guides supérieurs", "Tendeur"],
-            cout: "2000-3000€",
-            temps: "10-12h",
-            motsCles: ["chaîne", "distribution", "bmw", "n47", "serie 1", "116d", "casse", "préventif"]
-        },
-        {
-            marque: "BMW",
-            modele: "Serie 3",
-            motorisation: "320d N47",
-            puissance: "184",
-            carburant: "Diesel",
-            organe: "Chaîne de distribution",
-            probleme: "Usure chaîne distribution N47",
-            symptomes: ["Bruit de chaîne au démarrage à froid", "Cliquetis moteur"],
-            codesDefaut: ["P0016"],
-            solution: "Remplacement complet kit chaîne",
-            pieces: ["Kit chaîne N47", "Guides", "Tendeur hydraulique"],
-            cout: "2500-3500€",
-            temps: "12-15h",
-            motsCles: ["chaîne", "distribution", "bmw", "serie 3", "320d", "n47", "usure", "bruit"]
-        },
-        {
-            marque: "BMW",
-            modele: "Serie 3",
-            motorisation: "320d B47",
-            puissance: "190",
-            carburant: "Diesel",
-            organe: "Turbo",
-            probleme: "Défaillance turbocompresseur",
-            symptomes: ["Sifflement turbo", "Perte puissance", "Fumée bleue", "Consommation huile"],
-            codesDefaut: ["P0299", "P0234"],
-            solution: "Remplacement turbo + vidange huile + nettoyage admission",
-            pieces: ["Turbocompresseur neuf", "Joint turbo", "Huile moteur"],
-            cout: "2000-3000€",
-            temps: "6-8h",
-            motsCles: ["turbo", "bmw", "serie 3", "320d", "b47", "sifflement", "défaillance"]
-        },
-        // Volkswagen
-        {
-            marque: "Volkswagen",
-            modele: "Golf",
-            motorisation: "1.6 TDI",
-            puissance: "105",
-            carburant: "Diesel",
-            organe: "Vanne EGR",
-            probleme: "Encrassement vanne EGR",
-            symptomes: ["Voyant moteur", "Mode dégradé", "Ralenti instable"],
-            codesDefaut: ["P0401", "P0402"],
-            solution: "Nettoyage vanne EGR ou remplacement",
-            pieces: ["Vanne EGR", "Joint"],
-            cout: "350-550€",
-            temps: "2-3h",
-            motsCles: ["egr", "vanne", "golf", "1.6", "tdi", "encrassement", "volkswagen"]
-        },
-        {
-            marque: "Volkswagen",
-            modele: "Golf",
-            motorisation: "2.0 TDI",
-            puissance: "150",
-            carburant: "Diesel",
-            organe: "FAP (Filtre à Particules)",
-            probleme: "Colmatage FAP",
-            symptomes: ["Voyant FAP", "Régénération impossible", "Mode dégradé"],
-            codesDefaut: ["P2002", "P2458"],
-            solution: "Nettoyage professionnel ou remplacement FAP",
-            pieces: ["FAP neuf", "Capteur pression"],
-            cout: "1800-2800€",
-            temps: "4-5h",
-            motsCles: ["fap", "filtre", "particules", "golf", "2.0", "tdi", "colmatage", "dpf"]
-        },
-        {
-            marque: "Volkswagen",
-            modele: "Golf",
-            motorisation: "1.4 TSI",
-            puissance: "125",
-            carburant: "Essence",
-            organe: "Chaîne de distribution",
-            probleme: "Détente chaîne distribution",
-            symptomes: ["Bruit de chaîne au démarrage", "Claquement moteur chaud"],
-            codesDefaut: ["P0016"],
-            solution: "Remplacement chaîne + tendeur hydraulique",
-            pieces: ["Kit chaîne distribution", "Tendeur hydraulique"],
-            cout: "1500-2200€",
-            temps: "8-10h",
-            motsCles: ["chaîne", "distribution", "golf", "1.4", "tsi", "détente", "bruit"]
-        },
-        // Audi
-        {
-            marque: "Audi",
-            modele: "A3",
-            motorisation: "1.6 TDI",
-            puissance: "110",
-            carburant: "Diesel",
-            organe: "Vanne EGR",
-            probleme: "Défaut vanne EGR",
-            symptomes: ["Voyant moteur", "Perte puissance", "Fumée noire"],
-            codesDefaut: ["P0401", "P0403"],
-            solution: "Remplacement vanne EGR",
-            pieces: ["Vanne EGR neuve", "Joint"],
-            cout: "400-600€",
-            temps: "2-3h",
-            motsCles: ["egr", "vanne", "audi", "a3", "1.6", "tdi", "défaut"]
-        },
-        {
-            marque: "Audi",
-            modele: "A4",
-            motorisation: "2.0 TDI",
-            puissance: "150",
-            carburant: "Diesel",
-            organe: "Pompe à huile",
-            probleme: "Défaillance pompe à huile",
-            symptomes: ["Voyant pression huile", "Bruit moteur", "Surchauffe"],
-            codesDefaut: ["P0520"],
-            solution: "Remplacement pompe à huile + crépine",
-            pieces: ["Pompe à huile", "Crépine", "Joint carter"],
-            cout: "1200-1800€",
-            temps: "6-8h",
-            motsCles: ["pompe", "huile", "audi", "a4", "2.0", "tdi", "pression", "défaillance"]
-        },
-        // Mercedes
-        {
-            marque: "Mercedes-Benz",
-            modele: "Classe A",
-            motorisation: "A 180 CDI",
-            puissance: "109",
-            carburant: "Diesel",
-            organe: "Injecteurs",
-            probleme: "Fuite injecteurs",
-            symptomes: ["Odeur gasoil", "Consommation excessive", "Démarrage difficile"],
-            codesDefaut: ["P0201", "P0202"],
-            solution: "Remplacement injecteurs + joints",
-            pieces: ["Injecteurs neufs", "Joints injecteurs", "Rondelles pare-feu"],
-            cout: "1000-1600€",
-            temps: "4-5h",
-            motsCles: ["injecteur", "mercedes", "classe a", "180", "cdi", "fuite", "gasoil"]
-        },
-        {
-            marque: "Mercedes-Benz",
-            modele: "Classe C",
-            motorisation: "C 220 CDI",
-            puissance: "170",
-            carburant: "Diesel",
-            organe: "Turbo",
-            probleme: "Fuite huile turbo",
-            symptomes: ["Consommation huile", "Fumée bleue", "Sifflement"],
-            codesDefaut: ["P0299"],
-            solution: "Remplacement turbo + nettoyage admission",
-            pieces: ["Turbo neuf", "Joints turbo", "Durites"],
-            cout: "2200-3200€",
-            temps: "6-8h",
-            motsCles: ["turbo", "mercedes", "classe c", "220", "cdi", "fuite", "huile"]
-        },
-        // Toyota
-        {
-            marque: "Toyota",
-            modele: "Yaris",
-            motorisation: "1.4 D-4D",
-            puissance: "90",
-            carburant: "Diesel",
-            organe: "Vanne EGR",
-            probleme: "Encrassement EGR",
-            symptomes: ["Ralenti instable", "Voyant moteur", "Perte puissance"],
-            codesDefaut: ["P0401"],
-            solution: "Nettoyage vanne EGR",
-            pieces: ["Nettoyant EGR", "Joint"],
-            cout: "150-250€",
-            temps: "1-2h",
-            motsCles: ["egr", "vanne", "toyota", "yaris", "1.4", "d4d", "encrassement"]
-        },
-        {
-            marque: "Toyota",
-            modele: "RAV4",
-            motorisation: "2.2 D-4D",
-            puissance: "150",
-            carburant: "Diesel",
-            organe: "FAP",
-            probleme: "Colmatage FAP",
-            symptomes: ["Voyant FAP", "Régénération échouée", "Mode dégradé"],
-            codesDefaut: ["P2002"],
-            solution: "Nettoyage ou remplacement FAP",
-            pieces: ["FAP neuf", "Capteur différentiel"],
-            cout: "1600-2400€",
-            temps: "4-5h",
-            motsCles: ["fap", "filtre", "particules", "toyota", "rav4", "2.2", "d4d", "colmatage"]
-        },
-        // Ford
-        {
-            marque: "Ford",
-            modele: "Focus",
-            motorisation: "1.6 TDCi",
-            puissance: "115",
-            carburant: "Diesel",
-            organe: "Vanne EGR",
-            probleme: "Blocage vanne EGR",
-            symptomes: ["Mode dégradé", "Voyant anti-pollution", "Perte puissance"],
-            codesDefaut: ["P0401", "P0403"],
-            solution: "Nettoyage ou remplacement vanne EGR",
-            pieces: ["Vanne EGR", "Joint"],
-            cout: "350-550€",
-            temps: "2-3h",
-            motsCles: ["egr", "vanne", "ford", "focus", "1.6", "tdci", "blocage"]
-        },
-        {
-            marque: "Ford",
-            modele: "Focus",
-            motorisation: "1.0 EcoBoost",
-            puissance: "125",
-            carburant: "Essence",
-            organe: "Courroie de distribution",
-            probleme: "Usure courroie distribution",
-            symptomes: ["Bruit moteur", "Préconisation remplacement 150 000km"],
-            codesDefaut: [],
-            solution: "Remplacement courroie + kit complet",
-            pieces: ["Kit courroie", "Pompe à eau", "Galets"],
-            cout: "600-900€",
-            temps: "5-6h",
-            motsCles: ["courroie", "distribution", "ford", "focus", "1.0", "ecoboost", "usure"]
-        },
-        // Citroën
-        {
-            marque: "Citroën",
-            modele: "C3",
-            motorisation: "1.2 PureTech",
-            puissance: "82",
-            carburant: "Essence",
-            organe: "Courroie de distribution",
-            probleme: "Usure prématurée courroie",
-            symptomes: ["Bruit de claquement", "Préconisation 60 000km"],
-            codesDefaut: [],
-            solution: "Remplacement préventif courroie",
-            pieces: ["Kit courroie", "Pompe à eau"],
-            cout: "450-650€",
-            temps: "3-4h",
-            motsCles: ["courroie", "distribution", "citroën", "c3", "1.2", "puretech", "usure"]
-        },
-        {
-            marque: "Citroën",
-            modele: "C4",
-            motorisation: "1.6 BlueHDi",
-            puissance: "120",
-            carburant: "Diesel",
-            organe: "FAP",
-            probleme: "Colmatage FAP",
-            symptomes: ["Voyant FAP", "Régénération impossible", "Mode dégradé"],
-            codesDefaut: ["P2002", "P2458"],
-            solution: "Nettoyage ou remplacement FAP",
-            pieces: ["FAP neuf", "Capteur pression"],
-            cout: "1400-2200€",
-            temps: "4-5h",
-            motsCles: ["fap", "filtre", "particules", "citroën", "c4", "1.6", "bluehdi", "colmatage"]
-        },
-        // Opel
-        {
-            marque: "Opel",
-            modele: "Corsa",
-            motorisation: "1.3 CDTI",
-            puissance: "95",
-            carburant: "Diesel",
-            organe: "Vanne EGR",
-            probleme: "Encrassement vanne EGR",
-            symptomes: ["Ralenti instable", "Voyant moteur", "Fumée noire"],
-            codesDefaut: ["P0401", "P0402"],
-            solution: "Nettoyage vanne EGR",
-            pieces: ["Nettoyant EGR", "Joint"],
-            cout: "200-350€",
-            temps: "2-3h",
-            motsCles: ["egr", "vanne", "opel", "corsa", "1.3", "cdti", "encrassement"]
-        },
-        // Dacia
-        {
-            marque: "Dacia",
-            modele: "Duster",
-            motorisation: "1.5 dCi",
-            puissance: "110",
-            carburant: "Diesel",
-            organe: "Injecteurs",
-            probleme: "Usure injecteurs",
-            symptomes: ["Fumée noire", "Consommation excessive", "Ralenti instable"],
-            codesDefaut: ["P0201", "P0202"],
-            solution: "Remplacement injecteurs",
-            pieces: ["Injecteurs neufs", "Joints"],
-            cout: "700-1200€",
-            temps: "4-5h",
-            motsCles: ["injecteur", "dacia", "duster", "1.5", "dci", "usure", "fuite"]
-        },
-        {
-            marque: "Dacia",
-            modele: "Sandero",
-            motorisation: "0.9 TCe",
-            puissance: "90",
-            carburant: "Essence",
-            organe: "Chaîne de distribution",
-            probleme: "Détente chaîne",
-            symptomes: ["Bruit de chaîne au démarrage", "Claquement"],
-            codesDefaut: ["P0016"],
-            solution: "Remplacement chaîne + tendeur",
-            pieces: ["Kit chaîne", "Tendeur hydraulique"],
-            cout: "1100-1600€",
-            temps: "7-9h",
-            motsCles: ["chaîne", "distribution", "dacia", "sandero", "0.9", "tce", "détente"]
-        },
-        // Hyundai
-        {
-            marque: "Hyundai",
-            modele: "Tucson",
-            motorisation: "1.7 CRDi",
-            puissance: "116",
-            carburant: "Diesel",
-            organe: "Turbo",
-            probleme: "Défaillance turbo",
-            symptomes: ["Sifflement", "Perte puissance", "Fumée bleue"],
-            codesDefaut: ["P0299"],
-            solution: "Remplacement turbo",
-            pieces: ["Turbo neuf", "Joints", "Durites"],
-            cout: "1800-2600€",
-            temps: "6-8h",
-            motsCles: ["turbo", "hyundai", "tucson", "1.7", "crdi", "sifflement", "défaillance"]
-        },
-        // Kia
-        {
-            marque: "Kia",
-            modele: "Sportage",
-            motorisation: "1.7 CRDi",
-            puissance: "116",
-            carburant: "Diesel",
-            organe: "FAP",
-            probleme: "Colmatage FAP",
-            symptomes: ["Voyant FAP", "Mode dégradé", "Régénération impossible"],
-            codesDefaut: ["P2002"],
-            solution: "Nettoyage ou remplacement FAP",
-            pieces: ["FAP neuf", "Capteur pression"],
-            cout: "1500-2300€",
-            temps: "4-5h",
-            motsCles: ["fap", "filtre", "particules", "kia", "sportage", "1.7", "crdi", "colmatage"]
-        },
-        // Nissan
-        {
-            marque: "Nissan",
-            modele: "Qashqai",
-            motorisation: "1.5 dCi",
-            puissance: "110",
-            carburant: "Diesel",
-            organe: "Vanne EGR",
-            probleme: "Blocage vanne EGR",
-            symptomes: ["Mode dégradé", "Voyant moteur", "Perte puissance"],
-            codesDefaut: ["P0401", "P0403"],
-            solution: "Nettoyage ou remplacement vanne EGR",
-            pieces: ["Vanne EGR", "Joint"],
-            cout: "400-600€",
-            temps: "2-3h",
-            motsCles: ["egr", "vanne", "nissan", "qashqai", "1.5", "dci", "blocage"]
-        },
-        // Organes génériques
-        {
-            marque: "Toutes marques",
-            modele: "Tous modèles",
-            motorisation: "Diesel moderne",
-            puissance: "Toutes",
-            carburant: "Diesel",
-            organe: "FAP (Filtre à Particules)",
-            probleme: "Colmatage FAP - Problème courant",
-            symptomes: ["Voyant FAP allumé", "Mode dégradé", "Perte de puissance", "Fumée noire", "Régénération impossible"],
-            codesDefaut: ["P2002", "P2458", "P2463"],
-            solution: "1. Régénération forcée en atelier\n2. Nettoyage professionnel FAP\n3. Remplacement si colmatage irréversible",
-            pieces: ["FAP neuf ou reconditionné", "Capteur pression différentielle", "Joint FAP"],
-            cout: "1200-3000€ selon véhicule",
-            temps: "3-5h",
-            motsCles: ["fap", "filtre", "particules", "colmatage", "diesel", "dpf", "encrassement", "régénération"]
-        },
-        {
-            marque: "Toutes marques",
-            modele: "Tous modèles",
-            motorisation: "Essence moderne",
-            puissance: "Toutes",
-            carburant: "Essence",
-            organe: "Courroie de distribution",
-            probleme: "Usure courroie distribution - Maintenance préventive",
-            symptomes: ["Aucun symptôme avant rupture", "Bruit de claquement si usée", "Préconisation constructeur"],
-            codesDefaut: [],
-            solution: "Remplacement préventif selon préconisation constructeur (généralement 60 000 à 150 000 km)",
-            pieces: ["Kit courroie distribution complet", "Pompe à eau (souvent entraînée)", "Galets tendeurs et enrouleurs", "Joint de carter distribution"],
-            cout: "500-1500€ selon véhicule",
-            temps: "4-8h",
-            motsCles: ["courroie", "distribution", "usure", "préventif", "casse", "entretien", "kilométrage"]
-        },
-        {
-            marque: "Toutes marques",
-            modele: "Tous modèles",
-            motorisation: "Diesel moderne",
-            puissance: "Toutes",
-            carburant: "Diesel",
-            organe: "Vanne EGR",
-            probleme: "Encrassement vanne EGR - Problème très courant",
-            symptomes: ["Ralenti instable", "Voyant moteur allumé", "Mode dégradé", "Perte de puissance", "Fumée noire", "À-coups à l'accélération"],
-            codesDefaut: ["P0401", "P0402", "P0403", "P0404"],
-            solution: "1. Nettoyage vanne EGR (solution économique)\n2. Remplacement vanne EGR si très encrassée\n3. Désactivation EGR (solution non homologuée)",
-            pieces: ["Vanne EGR neuve ou nettoyée", "Joint vanne EGR", "Nettoyant spécial EGR"],
-            cout: "200-800€ selon véhicule et solution",
-            temps: "2-4h",
-            motsCles: ["egr", "vanne", "encrassement", "ralenti", "instable", "nettoyage", "diesel", "pollution"]
-        },
-        {
-            marque: "Toutes marques",
-            modele: "Tous modèles",
-            motorisation: "Tous moteurs turbo",
-            puissance: "Toutes",
-            carburant: "Tous",
-            organe: "Turbocompresseur",
-            probleme: "Défaillance turbo - Usure mécanique",
-            symptomes: ["Sifflement anormal", "Perte de puissance", "Fumée bleue ou noire", "Consommation d'huile excessive", "Bruit de soufflerie"],
-            codesDefaut: ["P0299", "P0234", "P0235", "P0236"],
-            solution: "1. Remplacement turbocompresseur\n2. Vérification et nettoyage circuit d'huile\n3. Remplacement durites et joints",
-            pieces: ["Turbocompresseur neuf ou échange standard", "Joint turbo", "Durites d'huile", "Huile moteur neuve"],
-            cout: "1500-4000€ selon véhicule",
-            temps: "6-10h",
-            motsCles: ["turbo", "turbocompresseur", "sifflement", "défaillance", "fuite", "huile", "puissance"]
-        },
-        {
-            marque: "Toutes marques",
-            modele: "Tous modèles",
-            motorisation: "Tous moteurs diesel",
-            puissance: "Toutes",
-            carburant: "Diesel",
-            organe: "Injecteurs",
-            probleme: "Usure ou défaillance injecteurs",
-            symptomes: ["Ratés d'allumage", "Ralenti instable", "Consommation excessive", "Fumée noire ou blanche", "Démarrage difficile", "Claquement moteur"],
-            codesDefaut: ["P0201", "P0202", "P0203", "P0204", "P0261", "P0262"],
-            solution: "1. Test des injecteurs (débit, étanchéité)\n2. Remplacement injecteurs défectueux\n3. Codage des nouveaux injecteurs",
-            pieces: ["Injecteurs neufs ou reconditionnés", "Joints injecteurs", "Rondelles pare-feu"],
-            cout: "600-2000€ selon nombre et véhicule",
-            temps: "4-8h",
-            motsCles: ["injecteur", "injection", "fuite", "défaillance", "raté", "diesel", "common rail"]
-        },
-        {
-            marque: "Toutes marques",
-            modele: "Tous modèles",
-            motorisation: "Tous moteurs",
-            puissance: "Toutes",
-            carburant: "Tous",
-            organe: "Alternateur",
-            probleme: "Défaillance alternateur",
-            symptomes: ["Voyant batterie allumé", "Batterie qui se décharge", "Phares qui faiblissent", "Démarrage difficile"],
-            codesDefaut: ["P0562", "P0563"],
-            solution: "Remplacement alternateur + vérification batterie",
-            pieces: ["Alternateur neuf ou échange standard", "Courroie d'accessoire", "Tendeur"],
-            cout: "400-800€",
-            temps: "2-3h",
-            motsCles: ["alternateur", "batterie", "charge", "défaillance", "voyant", "courroie"]
-        },
-        {
-            marque: "Toutes marques",
-            modele: "Tous modèles",
-            motorisation: "Tous moteurs",
-            puissance: "Toutes",
-            carburant: "Tous",
-            organe: "Démarreur",
-            probleme: "Défaillance démarreur",
-            symptomes: ["Moteur ne démarre pas", "Clic au démarrage", "Démarreur tourne dans le vide", "Bruit de grincement"],
-            codesDefaut: ["P0615", "P0616"],
-            solution: "Remplacement démarreur + vérification batterie et câbles",
-            pieces: ["Démarreur neuf ou échange standard", "Solénoïde"],
-            cout: "300-700€",
-            temps: "2-4h",
-            motsCles: ["démarreur", "démarrage", "ne démarre pas", "clic", "solénoïde"]
-        },
-        {
-            marque: "Toutes marques",
-            modele: "Tous modèles",
-            motorisation: "Tous moteurs",
-            puissance: "Toutes",
-            carburant: "Tous",
-            organe: "Embrayage",
-            probleme: "Usure embrayage",
-            symptomes: ["Embrayage qui patine", "Pédale dure", "Difficulté à passer les vitesses", "Odeur de brûlé"],
-            codesDefaut: [],
-            solution: "Remplacement kit embrayage complet",
-            pieces: ["Kit embrayage (disque, mécanisme, butée)", "Volant moteur (si bi-masse)"],
-            cout: "800-2000€",
-            temps: "6-10h",
-            motsCles: ["embrayage", "patine", "disque", "butée", "volant moteur", "vitesse"]
-        },
-        {
-            marque: "Toutes marques",
-            modele: "Tous modèles",
-            motorisation: "Tous moteurs",
-            puissance: "Toutes",
-            carburant: "Tous",
-            organe: "Pompe à eau",
-            probleme: "Fuite pompe à eau",
-            symptomes: ["Fuite liquide refroidissement", "Surchauffe moteur", "Bruit de roulement"],
-            codesDefaut: ["P0217"],
-            solution: "Remplacement pompe à eau + liquide refroidissement",
-            pieces: ["Pompe à eau neuve", "Joint pompe", "Liquide refroidissement"],
-            cout: "300-600€",
-            temps: "2-4h",
-            motsCles: ["pompe", "eau", "fuite", "refroidissement", "surchauffe", "température"]
-        },
-        {
-            marque: "Toutes marques",
-            modele: "Tous modèles",
-            motorisation: "Tous moteurs",
-            puissance: "Toutes",
-            carburant: "Tous",
-            organe: "Radiateur",
-            probleme: "Fuite ou colmatage radiateur",
-            symptomes: ["Surchauffe moteur", "Fuite liquide refroidissement", "Ventilateur en permanence"],
-            codesDefaut: ["P0217"],
-            solution: "Remplacement radiateur + liquide refroidissement",
-            pieces: ["Radiateur neuf", "Liquide refroidissement", "Durites"],
-            cout: "400-800€",
-            temps: "3-5h",
-            motsCles: ["radiateur", "refroidissement", "surchauffe", "fuite", "température"]
-        }
-    ];
+// ---------- Origine des marques ----------
+const ORIG = {
+  'Peugeot':'fr','Citroën':'fr','DS Automobiles':'fr','Renault':'fr',
+  'Dacia':'eu','Volkswagen':'eu','Audi':'eu','Škoda':'eu','SEAT':'eu','BMW':'eu',
+  'MINI':'eu','Mercedes-Benz':'eu','Opel':'eu','Volvo':'eu','Porsche':'eu','Fiat':'eu',
+  'Toyota':'as','Lexus':'as','Hyundai':'as','Kia':'as','Nissan':'as','Honda':'as','Mitsubishi':'as','Suzuki':'as',
+  'Ford':'us','Chevrolet':'us','Jeep':'us','Tesla':'us','Ram':'us'
+};
 
-    // ============================================
-    // GESTION IndexedDB
-    // ============================================
-    class DatabaseManager {
-        async open() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VERSION);
-                
-                request.onerror = () => reject(request.error);
-                
-                request.onsuccess = () => {
-                    this.db = request.result;
-                    resolve(this.db);
-                };
-                
-                request.onupgradeneeded = (event) => {
-                    const db = event.target.result;
-                    
-                    if (!db.objectStoreNames.contains(CONFIG.STORES.DIAGNOSTICS)) {
-                        const store = db.createObjectStore(CONFIG.STORES.DIAGNOSTICS, { 
-                            keyPath: 'id', 
-                            autoIncrement: true 
-                        });
-                        store.createIndex('marque', 'marque', { unique: false });
-                        store.createIndex('modele', 'modele', { unique: false });
-                        store.createIndex('organe', 'organe', { unique: false });
-                    }
-                    
-                    if (!db.objectStoreNames.contains(CONFIG.STORES.VEHICULES)) {
-                        db.createObjectStore(CONFIG.STORES.VEHICULES, { 
-                            keyPath: 'id', 
-                            autoIncrement: true 
-                        });
-                    }
-                    
-                    if (!db.objectStoreNames.contains(CONFIG.STORES.INTERVENTIONS)) {
-                        db.createObjectStore(CONFIG.STORES.INTERVENTIONS, { 
-                            keyPath: 'id', 
-                            autoIncrement: true 
-                        });
-                    }
-                };
-            });
-        }
+// ---------- Détection véhicules (alias → marque/modèle) ----------
+const VEH = [
+  ['3008','Peugeot','3008'],['2008','Peugeot','2008'],['5008','Peugeot','5008'],['408','Peugeot','408'],
+  ['208','Peugeot','208'],['308','Peugeot','308'],['508','Peugeot','508'],['partner','Peugeot','Partner'],['rifter','Peugeot','Rifter'],['expert','Peugeot','Expert'],
+  ['clio','Renault','Clio'],['megane','Renault','Megane'],['scenic','Renault','Scenic'],['captur','Renault','Captur'],['kadjar','Renault','Kadjar'],['austral','Renault','Austral'],['zoe','Renault','Zoe'],['twingo','Renault','Twingo'],['kangoo','Renault','Kangoo'],['trafic','Renault','Trafic'],['master','Renault','Master'],
+  ['duster','Dacia','Duster'],['sandero','Dacia','Sandero'],['logan','Dacia','Logan'],['jogger','Dacia','Jogger'],['spring','Dacia','Spring'],
+  ['c3 aircross','Citroën','C3 Aircross'],['c3','Citroën','C3'],['c4','Citroën','C4'],['c5 aircross','Citroën','C5 Aircross'],['berlingo','Citroën','Berlingo'],['jumpy','Citroën','Jumpy'],
+  ['ds3','DS Automobiles','DS 3'],['ds4','DS Automobiles','DS 4'],['ds7','DS Automobiles','DS 7'],
+  ['golf','Volkswagen','Golf'],['polo','Volkswagen','Polo'],['passat','Volkswagen','Passat'],['tiguan','Volkswagen','Tiguan'],['touareg','Volkswagen','Touareg'],['t roc','Volkswagen','T-Roc'],
+  ['a3','Audi','A3'],['a4','Audi','A4'],['a5','Audi','A5'],['a6','Audi','A6'],['q3','Audi','Q3'],['q5','Audi','Q5'],['q7','Audi','Q7'],
+  ['octavia','Škoda','Octavia'],['fabia','Škoda','Fabia'],['superb','Škoda','Superb'],['kodiaq','Škoda','Kodiaq'],['kamiq','Škoda','Kamiq'],
+  ['leon','SEAT','Leon'],['ibiza','SEAT','Ibiza'],['ateca','SEAT','Ateca'],['arona','SEAT','Arona'],
+  ['serie 1','BMW','Serie 1'],['serie 3','BMW','Serie 3'],['serie 5','BMW','Serie 5'],['x1','BMW','X1'],['x3','BMW','X3'],['x5','BMW','X5'],
+  ['countryman','MINI','Countryman'],['mini','MINI','Cooper'],
+  ['classe a','Mercedes-Benz','Classe A'],['classe c','Mercedes-Benz','Classe C'],['classe e','Mercedes-Benz','Classe E'],['gla','Mercedes-Benz','GLA'],['glc','Mercedes-Benz','GLC'],
+  ['yaris','Toyota','Yaris'],['corolla','Toyota','Corolla'],['rav4','Toyota','RAV4'],['c hr','Toyota','C-HR'],['hilux','Toyota','Hilux'],['prius','Toyota','Prius'],
+  ['fiesta','Ford','Fiesta'],['focus','Ford','Focus'],['kuga','Ford','Kuga'],['puma','Ford','Puma'],['transit','Ford','Transit'],
+  ['i20','Hyundai','i20'],['i30','Hyundai','i30'],['tucson','Hyundai','Tucson'],['santa fe','Hyundai','Santa Fe'],['kona','Hyundai','Kona'],
+  ['ceed','Kia','Ceed'],['sportage','Kia','Sportage'],['niro','Kia','Niro'],['sorento','Kia','Sorento'],['picanto','Kia','Picanto'],
+  ['qashqai','Nissan','Qashqai'],['juke','Nissan','Juke'],['micra','Nissan','Micra'],['leaf','Nissan','Leaf'],['x trail','Nissan','X-Trail'],
+  ['corsa','Opel','Corsa'],['astra','Opel','Astra'],['mokka','Opel','Mokka'],['grandland','Opel','Grandland']
+].sort((a, b) => b[0].length - a[0].length);
 
-        async importAll() {
-            if (!this.db) await this.open();
-            
-            return new Promise((resolve, reject) => {
-                const transaction = this.db.transaction([CONFIG.STORES.DIAGNOSTICS], 'readwrite');
-                const store = transaction.objectStore(CONFIG.STORES.DIAGNOSTICS);
-                
-                store.clear();
-                
-                DATABASE.forEach(item => {
-                    store.add({
-                        ...item,
-                        dateImport: new Date().toISOString()
-                    });
-                });
-                
-                transaction.oncomplete = () => {
-                    resolve({ success: true, count: DATABASE.length });
-                };
-                transaction.onerror = () => reject(transaction.error);
-            });
-        }
+const MARQUES = [
+  ['peugeot','Peugeot'],['renault','Renault'],['citroen','Citroën'],['ds automobiles','DS Automobiles'],
+  ['dacia','Dacia'],['volkswagen','Volkswagen'],['vw','Volkswagen'],['audi','Audi'],['skoda','Škoda'],['seat','SEAT'],
+  ['bmw','BMW'],['mini','MINI'],['mercedes','Mercedes-Benz'],['toyota','Toyota'],['lexus','Lexus'],['ford','Ford'],
+  ['hyundai','Hyundai'],['kia','Kia'],['nissan','Nissan'],['opel','Opel'],['tesla','Tesla'],['jeep','Jeep'],
+  ['chevrolet','Chevrolet'],['honda','Honda'],['mazda','Mazda'],['volvo','Volvo'],['porsche','Porsche'],['fiat','Fiat']
+].sort((a, b) => b[0].length - a[0].length);
 
-        async getAllDiagnostics() {
-            if (!this.db) await this.open();
-            
-            return new Promise((resolve, reject) => {
-                const transaction = this.db.transaction([CONFIG.STORES.DIAGNOSTICS], 'readonly');
-                const store = transaction.objectStore(CONFIG.STORES.DIAGNOSTICS);
-                const request = store.getAll();
-                
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-            });
-        }
+// ---------- Familles moteurs ----------
+const FAMILLES = [
+  { tok: ['bluehdi','hdi','dv5','dv6'], carbu: 'diesel' },
+  { tok: ['tdi'], carbu: 'diesel' },
+  { tok: ['dci','k9k'], carbu: 'diesel' },
+  { tok: ['crdi'], carbu: 'diesel' },
+  { tok: ['tdci'], carbu: 'diesel' },
+  { tok: ['d 4d','d4d'], carbu: 'diesel' },
+  { tok: ['puretech','eb2','thp','ep6','tsi','tfsi','ea888','ea211','tce','ecoboost','vti'], carbu: 'essence' },
+  { tok: ['hybride','hsd','e tech','etech'], carbu: 'hybride' }
+];
 
-        close() {
-            if (this.db) {
-                this.db.close();
-                this.db = null;
-            }
-        }
-    }
+// ---------- Termes organes (prédictif) ----------
+const ORGANES = [
+  'courroie de distribution','courroie d\'accessoire','chaîne de distribution','fap (filtre à particules)',
+  'vanne egr','turbo','injecteurs','pompe haute pression','pompe à eau','alternateur','démarreur',
+  'embrayage','volant moteur','sonde lambda','catalyseur','débitmètre','bobines d\'allumage','bougies',
+  'amortisseurs','plaquettes de frein','disques de frein','capteur abs','crémaillère direction',
+  'radiateur','thermostat','compresseur clim','batterie','système adblue scr'
+];
 
-    // ============================================
-    // RECHERCHE INTELLIGENTE PRÉDICTIVE
-    // ============================================
-    class RechercheIntelligente {
-        constructor() {
-            this.db = new DatabaseManager();
-            this.searchInput = document.getElementById('searchInput');
-            this.autocompleteResults = document.getElementById('autocompleteResults');
-            this.resultsContainer = document.getElementById('resultsContainer');
-            this.allDiagnostics = [];
-            
-            this.init();
-        }
+// ============================================================
+// BASE DE FICHES (format identique à la référence)
+// cat | titre | src | sym | dtc | sol | veh | carbu | kw | prio
+// ============================================================
+const FICHES = [
+  // ----- Stellantis -----
+  { cat:'Moteur', titre:'1.5 BlueHDi (DV5) : chaîne arbre à cames', src:'Campagnes Stellantis',
+    sym:'Bruit métallique, casse.', dtc:['P0016'], sol:'Chaîne renforcée.',
+    veh:{marques:['Peugeot','Citroën','DS Automobiles','Opel'], modeles:['3008','5008','208','2008','308','408','508','Partner','Rifter','C3 Aircross','C4','Berlingo','DS 3','DS 4','Grandland','Astra'], mot:['1.5','bluehdi','dv5']},
+    carbu:'diesel', kw:['chaine','distribution','arbre a cames','bruit metallique','casse','dv5'], prio:0 },
 
-        async init() {
-            try {
-                await this.loadData();
-                this.attachEvents();
-            } catch (error) {
-                console.error('Erreur initialisation recherche:', error);
-            }
-        }
+  { cat:'Moteur', titre:'1.2 PureTech : courroie de distribution humide', src:'Campagnes Stellantis',
+    sym:'Usure prématurée, débris dans l\'huile, voyant.', dtc:['P0016'], sol:'Courroie revisitée + intervalle 60 000 km.',
+    veh:{marques:['Peugeot','Citroën','DS Automobiles','Opel'], modeles:['208','2008','308','3008','C3','C3 Aircross','C4','C5 Aircross','DS 3','DS 4','Corsa','Mokka'], mot:['1.2','puretech','eb2']},
+    carbu:'essence', kw:['courroie','distribution','puretech','humide','usure','eb2'], prio:1 },
 
-        async loadData() {
-            this.allDiagnostics = await this.db.getAllDiagnostics();
-            console.log(`✅ ${this.allDiagnostics.length} diagnostics chargés`);
-        }
+  { cat:'Moteur', titre:'1.6 THP : tendeur de chaîne', src:'Campagne PSA',
+    sym:'Claquement à froid, voyant moteur.', dtc:['P0016'], sol:'Tendeur + chaîne revisités.',
+    veh:{marques:['Peugeot','Citroën','DS Automobiles'], modeles:['308','3008','508','C4','C5 Aircross','DS 4','DS 7'], mot:['1.6','thp','ep6']},
+    carbu:'essence', kw:['chaine','tendeur','thp','claquement','ep6'], prio:2 },
 
-        attachEvents() {
-            if (this.searchInput) {
-                this.searchInput.addEventListener('input', (e) => this.handleSearch(e));
-                this.searchInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        this.lancerRecherche();
-                    }
-                    if (e.key === 'Escape') {
-                        this.autocompleteResults.style.display = 'none';
-                    }
-                });
-            }
+  { cat:'Transmission', titre:'Boîte EAT8 : à-coups basse vitesse', src:'TSB Stellantis',
+    sym:'À-coups, vibrations en manœuvre.', dtc:[], sol:'Mise à jour logiciel boîte.',
+    veh:{marques:['Peugeot','Citroën','DS Automobiles','Opel'], modeles:['3008','5008','308','508','208','C4','C5 Aircross','DS 7','Grandland'], mot:['eat8']},
+    carbu:'all', kw:['boite','eat8','a coups','vibration'], prio:3 },
 
-            document.addEventListener('click', (e) => {
-                if (!this.autocompleteResults.contains(e.target) && e.target !== this.searchInput) {
-                    this.autocompleteResults.style.display = 'none';
-                }
-            });
-        }
+  // ----- Renault / Dacia -----
+  { cat:'Injection', titre:'1.5 dCi (K9K) : injecteurs', src:'Campagnes Renault',
+    sym:'Claquement diesel, fumée, ratés.', dtc:['P0201','P0203'], sol:'Injecteurs neufs + codage.',
+    veh:{marques:['Renault','Dacia'], modeles:['Clio','Megane','Scenic','Captur','Kadjar','Kangoo','Trafic','Duster','Sandero','Logan','Jogger'], mot:['1.5','dci','k9k']},
+    carbu:'diesel', kw:['injecteur','k9k','claquement','fumee','rate'], prio:1 },
 
-        handleSearch(event) {
-            const query = event.target.value.trim();
-            
-            if (query.length < 2) {
-                this.autocompleteResults.style.display = 'none';
-                return;
-            }
+  { cat:'Moteur', titre:'1.2 TCe (H5F) : chaîne de distribution', src:'Campagnes Renault',
+    sym:'Bruit de chaîne, voyant, risque casse.', dtc:['P0016'], sol:'Kit chaîne + crépine.',
+    veh:{marques:['Renault','Dacia'], modeles:['Clio','Megane','Captur','Kadjar','Jogger','Duster'], mot:['1.2','tce','h5f']},
+    carbu:'essence', kw:['chaine','distribution','tce','h5f','bruit'], prio:1 },
 
-            const results = this.performSearch(query);
-            this.displayAutocomplete(results, query);
-        }
+  { cat:'Moteur', titre:'1.5 dCi : coussinets de bielle', src:'Problème connu K9K',
+    sym:'Claquement bas moteur, casse.', dtc:[], sol:'Contrôle pression huile, coussinets.',
+    veh:{marques:['Renault','Dacia'], modeles:['Clio','Megane','Scenic','Captur','Kangoo','Duster','Sandero','Logan'], mot:['1.5','dci','k9k']},
+    carbu:'diesel', kw:['coussinet','bielle','claquement','casse','pression huile'], prio:2 },
 
-        performSearch(query) {
-            const queryLower = query.toLowerCase();
-            const queryTerms = queryLower.split(/\s+/).filter(t => t.length > 1);
-            const results = [];
+  { cat:'Transmission', titre:'Boîte EDC : mécatronique', src:'TSB Renault',
+    sym:'À-coups, vitesses qui sautent.', dtc:['P17BF'], sol:'Mécatronique / mise à jour.',
+    veh:{marques:['Renault','Dacia'], modeles:['Clio','Megane','Captur','Scenic','Kadjar','Duster'], mot:['edc']},
+    carbu:'all', kw:['boite','edc','mecatronique','a coups'], prio:3 },
 
-            this.allDiagnostics.forEach(diag => {
-                let score = 0;
-                let matchDetails = [];
+  // ----- VAG -----
+  { cat:'Moteur', titre:'TSI (EA888) : tendeur de chaîne', src:'Campagne VAG',
+    sym:'Claquement à froid, voyant.', dtc:['P0016'], sol:'Tendeur revisité + chaîne.',
+    veh:{marques:['Volkswagen','Audi','SEAT','Škoda'], modeles:['Golf','Passat','Tiguan','A3','A4','A5','Q3','Q5','Leon','Ateca','Octavia','Superb'], mot:['1.8','2.0','tsi','ea888']},
+    carbu:'essence', kw:['chaine','tendeur','tsi','ea888','claquement'], prio:1 },
 
-                // Recherche dans tous les champs
-                const searchableText = [
-                    diag.marque,
-                    diag.modele,
-                    diag.motorisation,
-                    diag.puissance,
-                    diag.organe,
-                    diag.probleme,
-                    ...diag.symptomes,
-                    ...diag.motsCles,
-                    ...diag.codesDefaut
-                ].join(' ').toLowerCase();
+  { cat:'Dépollution', titre:'2.0 TDI (EA189) : campagne NOx', src:'Campagne VAG',
+    sym:'Voyant, conso, rappel constructeur.', dtc:[], sol:'Mise à jour calculateur (rappel).',
+    veh:{marques:['Volkswagen','Audi','SEAT','Škoda'], modeles:['Golf','Passat','Tiguan','A3','A4','Q3','Q5','Leon','Octavia'], mot:['2.0','tdi','ea189']},
+    carbu:'diesel', kw:['tdi','ea189','nox','rappel','campagne'], prio:2 },
 
-                // Calcul du score de pertinence
-                queryTerms.forEach(term => {
-                    if (searchableText.includes(term)) {
-                        score += 10;
-                        
-                        // Bonus pour correspondances exactes
-                        if (diag.marque.toLowerCase().includes(term)) {
-                            score += 20;
-                            matchDetails.push('marque');
-                        }
-                        if (diag.modele.toLowerCase().includes(term)) {
-                            score += 20;
-                            matchDetails.push('modèle');
-                        }
-                        if (diag.motorisation.toLowerCase().includes(term)) {
-                            score += 15;
-                            matchDetails.push('motorisation');
-                        }
-                        if (diag.organe.toLowerCase().includes(term)) {
-                            score += 15;
-                            matchDetails.push('organe');
-                        }
-                        if (diag.motsCles.some(mc => mc.toLowerCase().includes(term))) {
-                            score += 10;
-                            matchDetails.push('mot-clé');
-                        }
-                    }
-                });
+  { cat:'Refroidissement', titre:'Pompe à eau EA211 : fuite', src:'Campagne VAG',
+    sym:'Fuite LDR, témoin niveau.', dtc:[], sol:'Pompe à eau revisitée.',
+    veh:{marques:['Volkswagen','Audi','SEAT','Škoda'], modeles:['Golf','Polo','Passat','Tiguan','A1','A3','Leon','Ibiza','Octavia','Fabia'], mot:['1.0','1.2','1.4','tsi','ea211']},
+    carbu:'essence', kw:['pompe a eau','fuite','ldr','ea211'], prio:3 },
 
-                // Bonus si tous les termes sont trouvés
-                if (queryTerms.every(term => searchableText.includes(term))) {
-                    score += 30;
-                }
+  // ----- BMW / Mercedes -----
+  { cat:'Moteur', titre:'N47 / B47 : chaîne de distribution', src:'Problème connu BMW',
+    sym:'Bruit métallique arrière moteur, casse.', dtc:['P0016'], sol:'Remplacement préventif chaîne complet.',
+    veh:{marques:['BMW','MINI'], modeles:['Serie 1','Serie 3','Serie 5','X1','X3','X5','Cooper','Countryman'], mot:['n47','b47','2.0']},
+    carbu:'diesel', kw:['chaine','distribution','n47','b47','bruit metallique','casse'], prio:0 },
 
-                if (score > 0) {
-                    results.push({
-                        score: score,
-                        diag: diag,
-                        matchDetails: [...new Set(matchDetails)]
-                    });
-                }
-            });
+  { cat:'Dépollution', titre:'N47 : refroidisseur EGR fissuré', src:'Rappel BMW',
+    sym:'Fuite LDR, fumée blanche, risque incendie.', dtc:['P0401'], sol:'Remplacement refroidisseur EGR (rappel).',
+    veh:{marques:['BMW','MINI'], modeles:['Serie 1','Serie 3','Serie 5','X1','X3','Cooper','Countryman'], mot:['n47','2.0']},
+    carbu:'diesel', kw:['egr','refroidisseur','fuite','fumee blanche','rappel'], prio:1 },
 
-            // Trier par score décroissant
-            results.sort((a, b) => b.score - a.score);
+  { cat:'Injection', titre:'OM651 : injecteurs Delphi', src:'Problème connu Mercedes',
+    sym:'Fumée, claquement, retour gasoil.', dtc:['P0201'], sol:'Injecteurs + rondelles pare-feu.',
+    veh:{marques:['Mercedes-Benz'], modeles:['Classe A','Classe C','Classe E','GLA','GLC'], mot:['om651','2.1','2.2','cdi']},
+    carbu:'diesel', kw:['injecteur','om651','delphi','fumee','claquement'], prio:1 },
 
-            return results.slice(0, 10);
-        }
+  { cat:'Dépollution', titre:'OM651 : refroidisseur EGR', src:'Rappel Mercedes',
+    sym:'Fuite LDR, voyant.', dtc:['P0401'], sol:'Rappel refroidisseur EGR.',
+    veh:{marques:['Mercedes-Benz'], modeles:['Classe A','Classe C','Classe E','GLA','GLC'], mot:['om651','2.1','2.2','cdi']},
+    carbu:'diesel', kw:['egr','refroidisseur','fuite','rappel'], prio:2 },
 
-        displayAutocomplete(results, query) {
-            if (results.length === 0) {
-                this.autocompleteResults.style.display = 'none';
-                return;
-            }
+  // ----- Toyota / Ford / Hyundai-Kia -----
+  { cat:'Moteur', titre:'2.2 D-4D (136) : joint de culasse', src:'Problème connu Toyota',
+    sym:'Surchauffe, bulles dans LDR, conso LDR.', dtc:[], sol:'Joint culasse / bloc (campagne).',
+    veh:{marques:['Toyota'], modeles:['RAV4','Corolla','Hilux'], mot:['2.2','d 4d','d4d']},
+    carbu:'diesel', kw:['joint culasse','surchauffe','ldr','d 4d'], prio:1 },
 
-            const html = results.map(result => {
-                const diag = result.diag;
-                const highlightedTitle = this.highlightMatch(`${diag.marque} ${diag.modele} - ${diag.organe}`, query);
-                
-                const tags = result.matchDetails.map(detail => 
-                    `<span class="tag ${detail}">${detail}</span>`
-                ).join('');
+  { cat:'Moteur', titre:'1.0 EcoBoost : courroie immergée', src:'Campagne Ford',
+    sym:'Usure courroie, débris, pompe à vide HS.', dtc:[], sol:'Kit courroie + huile spécifiée.',
+    veh:{marques:['Ford'], modeles:['Fiesta','Focus','Puma','Kuga'], mot:['1.0','ecoboost']},
+    carbu:'essence', kw:['courroie','distribution','ecoboost','immergee','usure'], prio:1 },
 
-                return `
-                    <div class="autocomplete-item" data-id="${diag.id}">
-                        <div class="title">${highlightedTitle}</div>
-                        <div class="description">${diag.probleme}</div>
-                        <div class="tags">${tags}</div>
-                    </div>
-                `;
-            }).join('');
+  { cat:'Moteur', titre:'Theta II : coussinets / casse moteur', src:'Rappel Hyundai-Kia',
+    sym:'Claquement, casse moteur, voyant huile.', dtc:['P0520'], sol:'Campagne moteur long block.',
+    veh:{marques:['Hyundai','Kia'], modeles:['Tucson','Santa Fe','Sportage','Sorento'], mot:['2.0','2.4','theta']},
+    carbu:'essence', kw:['coussinet','casse','theta','claquement','huile'], prio:1 },
 
-            this.autocompleteResults.innerHTML = html;
-            this.autocompleteResults.style.display = 'block';
+  // ----- FICHES GÉNÉRIQUES (base) -----
+  { cat:'Injection', titre:'Pompe HP / régulation rail', src:'Panne diesel — base',
+    sym:'Démarrage difficile, calage.', dtc:['P0087','P0088'], sol:'Contrôle pression rail, pompe HP.',
+    veh:null, carbu:'diesel', kw:['pompe','hp','rail','pression','demarrage','calage'], prio:1 },
 
-            // Attacher les événements de clic
-            this.autocompleteResults.querySelectorAll('.autocomplete-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const id = parseInt(item.dataset.id);
-                    this.selectResult(id);
-                });
-            });
-        }
+  { cat:'Dépollution', titre:'Vanne EGR encrassée', src:'Panne diesel — base',
+    sym:'Perte puissance, ralenti instable.', dtc:['P0401','P0402'], sol:'Nettoyage/remplacement vanne EGR.',
+    veh:null, carbu:'diesel', kw:['egr','vanne','ralenti','puissance','encrassee'], prio:2 },
 
-        highlightMatch(text, query) {
-            const queryTerms = query.split(/\s+/).filter(t => t.length > 1);
-            let highlighted = text;
-            
-            queryTerms.forEach(term => {
-                const regex = new RegExp(`(${term})`, 'gi');
-                highlighted = highlighted.replace(regex, '<strong>$1</strong>');
-            });
-            
-            return highlighted;
-        }
+  { cat:'Échappement', titre:'FAP colmaté', src:'Panne diesel — base',
+    sym:'Voyant FAP, mode dégradé.', dtc:['P2002','P242F'], sol:'Régénération forcée, contrôle pression.',
+    veh:null, carbu:'diesel', kw:['fap','filtre particules','colmate','voyant','mode degrade','dpf'], prio:3 },
 
-        selectResult(id) {
-            const diag = this.allDiagnostics.find(d => d.id === id);
-            if (diag) {
-                this.searchInput.value = `${diag.marque} ${diag.modele} ${diag.organe}`;
-                this.autocompleteResults.style.display = 'none';
-                this.displayDetailedResult(diag);
-            }
-        }
+  { cat:'Dépollution', titre:'Système AdBlue / SCR défaillant', src:'Panne diesel — base',
+    sym:'Voyant défaut, démarrage interdit après compte à rebours.', dtc:['P20EE','P204F'], sol:'Pompe / capteur AdBlue, mise à jour calc.',
+    veh:null, carbu:'diesel', kw:['adblue','scr','uree','voyant','demarrage interdit'], prio:4 },
 
-        async lancerRecherche() {
-            const query = this.searchInput.value.trim();
-            
-            if (!query) {
-                this.resultsContainer.innerHTML = '<div class="no-results">Veuillez entrer un terme de recherche</div>';
-                return;
-            }
+  { cat:'Admission', titre:'Turbo : géométrie / wastegate', src:'Panne base',
+    sym:'Sifflement, perte puissance, fumée.', dtc:['P0299','P0234'], sol:'Contrôle turbo, durites, remplacement.',
+    veh:null, carbu:'all', kw:['turbo','sifflement','puissance','fumee','wastegate'], prio:5 },
 
-            const results = this.performSearch(query);
-            
-            if (results.length === 0) {
-                this.resultsContainer.innerHTML = '<div class="no-results">Aucun résultat trouvé pour "' + query + '"</div>';
-                return;
-            }
+  { cat:'Injection', titre:'Injecteurs : retour / fuite', src:'Panne diesel — base',
+    sym:'Claquement, fumée noire, ratés.', dtc:['P0201','P0204'], sol:'Test retour, remplacement + codage.',
+    veh:null, carbu:'diesel', kw:['injecteur','fuite','fumee noire','rate','retour'], prio:6 },
 
-            this.displaySearchResults(results, query);
-        }
+  { cat:'Moteur', titre:'Distribution : courroie (préventif)', src:'Entretien — base',
+    sym:'Échéance km/ans, risque casse.', dtc:[], sol:'Kit courroie + pompe à eau.',
+    veh:null, carbu:'all', kw:['courroie','distribution','entretien','kit','preventif'], prio:7 },
 
-        displaySearchResults(results, query) {
-            const html = `
-                <div class="section">
-                    <h3>📊 ${results.length} résultat(s) trouvé(s) pour "${query}"</h3>
-                    ${results.map(result => {
-                        const diag = result.diag;
-                        const highlightedTitle = this.highlightMatch(`${diag.marque} ${diag.modele}`, query);
-                        
-                        return `
-                            <div class="result-card">
-                                <h4>${highlightedTitle} - ${diag.organe}</h4>
-                                <div class="meta">
-                                    <span class="tag marque">${diag.marque}</span>
-                                    <span class="tag modele">${diag.modele}</span>
-                                    <span class="tag motorisation">${diag.motorisation} ${diag.puissance}ch</span>
-                                    <span class="tag organe">${diag.organe}</span>
-                                </div>
-                                <div class="description">
-                                    <strong>Problème:</strong> ${diag.probleme}
-                                </div>
-                                <div class="details">
-                                    <h5>🔍 Symptômes</h5>
-                                    <ul>
-                                        ${diag.symptomes.map(s => `<li>${s}</li>`).join('')}
-                                    </ul>
-                                    ${diag.codesDefaut.length > 0 ? `
-                                        <h5>📋 Codes défaut</h5>
-                                        <ul>
-                                            ${diag.codesDefaut.map(c => `<li>${c}</li>`).join('')}
-                                        </ul>
-                                    ` : ''}
-                                    <h5>✅ Solution</h5>
-                                    <p>${diag.solution}</p>
-                                    <h5>🔧 Pièces nécessaires</h5>
-                                    <ul>
-                                        ${diag.pieces.map(p => `<li>${p}</li>`).join('')}
-                                    </ul>
-                                    <h5>💰 Coût et temps</h5>
-                                    <p><strong>Coût estimé:</strong> ${diag.cout}</p>
-                                    <p><strong>Temps de main d'œuvre:</strong> ${diag.temps}</p>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
+  { cat:'Moteur', titre:'Distribution : chaîne (préventif)', src:'Entretien — base',
+    sym:'Bruit chaîne à froid, tendeur fatigué.', dtc:['P0016'], sol:'Kit chaîne + tendeur.',
+    veh:null, carbu:'all', kw:['chaine','distribution','tendeur','bruit','preventif'], prio:8 },
 
-            this.resultsContainer.innerHTML = html;
-        }
+  { cat:'Moteur', titre:'Essence : bobines / bougies', src:'Panne essence — base',
+    sym:'Ratés, voyant moteur, à-coups.', dtc:['P0300','P0301'], sol:'Bobines + bougies.',
+    veh:null, carbu:'essence', kw:['bobine','bougie','rate','allumage','a coups'], prio:7 },
 
-        displayDetailedResult(diag) {
-            const html = `
-                <div class="section">
-                    <h3>📋 Fiche diagnostic détaillée</h3>
-                    <div class="result-card">
-                        <h4>${diag.marque} ${diag.modele} - ${diag.organe}</h4>
-                        <div class="meta">
-                            <span class="tag marque">${diag.marque}</span>
-                            <span class="tag modele">${diag.modele}</span>
-                            <span class="tag motorisation">${diag.motorisation} ${diag.puissance}ch - ${diag.carburant}</span>
-                            <span class="tag organe">${diag.organe}</span>
-                        </div>
-                        <div class="description">
-                            <strong>Problème:</strong> ${diag.probleme}
-                        </div>
-                        <div class="details">
-                            <h5>🔍 Symptômes courants</h5>
-                            <ul>
-                                ${diag.symptomes.map(s => `<li>${s}</li>`).join('')}
-                            </ul>
-                            ${diag.codesDefaut.length > 0 ? `
-                                <h5>📋 Codes défaut associés</h5>
-                                <ul>
-                                    ${diag.codesDefaut.map(c => `<li><strong>${c}</strong></li>`).join('')}
-                                </ul>
-                            ` : ''}
-                            <h5>✅ Solution recommandée</h5>
-                            <p>${diag.solution}</p>
-                            <h5>🔧 Pièces nécessaires</h5>
-                            <ul>
-                                ${diag.pieces.map(p => `<li>${p}</li>`).join('')}
-                            </ul>
-                            <h5>💰 Estimation coût et temps</h5>
-                            <p><strong>Coût estimé:</strong> ${diag.cout}</p>
-                            <p><strong>Temps de main d'œuvre:</strong> ${diag.temps}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
+  { cat:'Admission', titre:'Débitmètre / prise d\'air', src:'Panne base',
+    sym:'Ralenti instable, trou à l\'accélération.', dtc:['P0101','P0171'], sol:'Débitmètre, durites admission.',
+    veh:null, carbu:'all', kw:['debitmetre','prise air','ralenti','trou'], prio:8 },
 
-            this.resultsContainer.innerHTML = html;
-        }
+  { cat:'Échappement', titre:'Sonde lambda / catalyseur', src:'Panne base',
+    sym:'Voyant, conso, échec contrôle technique.', dtc:['P0420','P0130'], sol:'Sonde lambda / catalyseur.',
+    veh:null, carbu:'all', kw:['sonde lambda','catalyseur','p0420','voyant'], prio:8 },
 
-        effacerRecherche() {
-            if (this.searchInput) {
-                this.searchInput.value = '';
-                this.autocompleteResults.style.display = 'none';
-                this.resultsContainer.innerHTML = '';
-            }
-        }
-    }
+  { cat:'Électrique', titre:'Alternateur / circuit de charge', src:'Panne électrique — base',
+    sym:'Voyant batterie, décharge, phares faibles.', dtc:['P0562'], sol:'Alternateur + courroie accessoire.',
+    veh:null, carbu:'all', kw:['alternateur','batterie','charge','voyant','courroie accessoire'], prio:8 },
 
-    // ============================================
-    // FONCTIONS GLOBALES
-    // ============================================
-    window.lancerRecherche = function() {
-        if (window.rechercheIntelligente) {
-            window.rechercheIntelligente.lancerRecherche();
-        }
-    };
+  { cat:'Électrique', titre:'Démarreur / solénoïde', src:'Panne base',
+    sym:'Clic, ne démarre pas.', dtc:['P0615'], sol:'Démarreur / solénoïde.',
+    veh:null, carbu:'all', kw:['demarreur','clic','demarre','solenoide'], prio:8 },
 
-    window.effacerRecherche = function() {
-        if (window.rechercheIntelligente) {
-            window.rechercheIntelligente.effacerRecherche();
-        }
-    };
+  { cat:'Électrique', titre:'Batterie / codage BMS', src:'Panne base',
+    sym:'Démarrage difficile, voyant.', dtc:[], sol:'Batterie + codage BMS.',
+    veh:null, carbu:'all', kw:['batterie','bms','demarrage','codage'], prio:9 },
 
-    window.tryExample = function(example) {
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-            searchInput.value = example;
-            if (window.rechercheIntelligente) {
-                window.rechercheIntelligente.handleSearch({ target: searchInput });
-            }
-        }
-    };
+  { cat:'Refroidissement', titre:'Pompe à eau / fuite LDR', src:'Panne base',
+    sym:'Fuite, surchauffe, voyant température.', dtc:['P0217'], sol:'Pompe à eau + LDR.',
+    veh:null, carbu:'all', kw:['pompe a eau','fuite','surchauffe','temperature','ldr'], prio:8 },
 
-    async function importerBaseMassive() {
-        const statusDiv = document.getElementById('importStatus');
-        const btnImport = document.getElementById('btnImportMassive');
-        
-        try {
-            btnImport.disabled = true;
-            btnImport.textContent = '⏳ Import en cours...';
-            
-            updateStatus('🔌 Connexion à la base de données...', 'info');
-            
-            const dbManager = new DatabaseManager();
-            await dbManager.open();
-            
-            updateStatus(`📦 Import de ${DATABASE.length} diagnostics en cours...`, 'info');
-            
-            const result = await dbManager.importAll();
-            
-            if (result.success) {
-                updateStatus(
-                    `✅ <strong>Import réussi !</strong><br>` +
-                    `📊 ${result.count} diagnostics importés<br>` +
-                    `🔗 Source: <a href="${CONFIG.SOURCE_URL}" target="_blank">${CONFIG.SOURCE_URL}</a><br>` +
-                    `<small>Rechargez la page pour activer la recherche.</small>`,
-                    'success'
-                );
-                
-                setTimeout(() => {
-                    if (confirm('Import terminé !\n\nVoulez-vous recharger la page ?')) {
-                        location.reload();
-                    }
-                }, 1500);
-            }
-            
-        } catch (error) {
-            updateStatus(
-                `❌ <strong>Erreur lors de l'import</strong><br>` +
-                `<code>${error.message}</code>`,
-                'error'
-            );
-            console.error('Erreur import:', error);
-        } finally {
-            btnImport.disabled = false;
-            btnImport.textContent = '🚀 Importer depuis appli-aide-technique';
-        }
-    }
+  { cat:'Freinage', titre:'Plaquettes / disques usés', src:'Entretien — base',
+    sym:'Grincement, voyant frein, pédale longue.', dtc:[], sol:'Remplacement plaquettes/disques.',
+    veh:null, carbu:'all', kw:['frein','plaquette','disque','grincement','pedale'], prio:9 },
 
-    function updateStatus(message, type) {
-        const statusDiv = document.getElementById('importStatus');
-        statusDiv.style.display = 'block';
-        statusDiv.className = `status ${type}`;
-        statusDiv.innerHTML = message;
-    }
+  { cat:'Freinage', titre:'ABS / capteur de roue', src:'Panne base',
+    sym:'Voyant ABS/ESP, perte assistance.', dtc:['C0035','C0040'], sol:'Capteur ABS / bague.',
+    veh:null, carbu:'all', kw:['abs','esp','capteur','voyant','roue'], prio:9 },
 
-    // ============================================
-    // INITIALISATION
-    // ============================================
-    document.addEventListener('DOMContentLoaded', async () => {
-        console.log('🚀 DiagAuto Pro initialisé');
-        
-        const btnImport = document.getElementById('btnImportMassive');
-        if (btnImport) {
-            btnImport.addEventListener('click', importerBaseMassive);
-        }
-        
-        // Initialiser la recherche intelligente
-        window.rechercheIntelligente = new RechercheIntelligente();
+  { cat:'Transmission', titre:'Embrayage / volant moteur', src:'Entretien — base',
+    sym:'Patine, pédale dure, bruits.', dtc:[], sol:'Kit embrayage + volant bi-masse.',
+    veh:null, carbu:'all', kw:['embrayage','volant moteur','patine','pedale','bruit'], prio:9 },
+
+  { cat:'Transmission', titre:'Boîte double embrayage (DSG/EDC/EAT)', src:'Panne base',
+    sym:'À-coups, voyant boîte, mode dégradé.', dtc:['P17BF','P0730'], sol:'Huile boîte, mécatronique, MAJ.',
+    veh:null, carbu:'all', kw:['boite','dsg','edc','eat','mecatronique','a coups'], prio:9 },
+
+  { cat:'Direction', titre:'Direction assistée / crémaillère', src:'Panne base',
+    sym:'Dureté, bruit, jeu.', dtc:[], sol:'Crémaillère / pompe DA.',
+    veh:null, carbu:'all', kw:['direction','cremaillere','durete','jeu','bruit'], prio:9 },
+
+  { cat:'Entretien', titre:'Climatisation : compresseur / gaz', src:'Panne base',
+    sym:'Froid insuffisant, bruit compresseur.', dtc:[], sol:'Recharge / compresseur.',
+    veh:null, carbu:'all', kw:['clim','compresseur','froid','gaz','recharge'], prio:9 }
+];
+
+// Pré-calculs
+FICHES.forEach(f => {
+  const vehTxt = f.veh ? [f.veh.marques.join(' '), f.veh.modeles.join(' '), f.veh.mot.join(' ')].join(' ') : '';
+  f._search = norm([f.titre, f.sym, f.sol, f.kw.join(' '), f.dtc.join(' '), f.cat, vehTxt].join(' '));
+  f._titreN = norm(f.titre);
+  f._catN = norm(f.cat).replace(/[^a-z]/g, '');
+  f._label = f.veh ? `${f.veh.marques[0]} ${f.veh.modeles[0]} ${f.veh.mot[0]} — ${f.titre}` : f.titre;
+});
+
+// ============================================================
+// IndexedDB
+// ============================================================
+class DB {
+  open() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VERSION);
+      r.onerror = () => rej(r.error);
+      r.onsuccess = () => { this.db = r.result; res(this.db); };
+      r.onupgradeneeded = e => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains(CONFIG.STORE)) d.createObjectStore(CONFIG.STORE, { keyPath: 'id', autoIncrement: true });
+      };
     });
-
-    // Gestion des onglets
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            tab.classList.add('active');
-            document.getElementById(tab.dataset.tab).classList.add('active');
-        });
+  }
+  count() {
+    return new Promise(res => {
+      const t = this.db.transaction(CONFIG.STORE, 'readonly');
+      const q = t.objectStore(CONFIG.STORE).count();
+      q.onsuccess = () => res(q.result); q.onerror = () => res(0);
     });
+  }
+  seed(list) {
+    return new Promise((res, rej) => {
+      const t = this.db.transaction(CONFIG.STORE, 'readwrite');
+      const s = t.objectStore(CONFIG.STORE);
+      s.clear();
+      list.forEach(f => { const { _search, _titreN, _catN, _label, ...clean } = f; s.add(clean); });
+      t.oncomplete = () => res(list.length); t.onerror = () => rej(t.error);
+    });
+  }
+}
+
+// ============================================================
+// Moteur de recherche prédictif
+// ============================================================
+function buildCtx(q) {
+  const nq = norm(q);
+  const tokens = nq.split(' ').filter(t => t.length >= 2);
+  let veh = null;
+  for (const v of VEH) { if ((' ' + nq + ' ').includes(' ' + v[0] + ' ')) { veh = { marque: v[1], modele: v[2] }; break; } }
+  let marque = veh ? veh.marque : null;
+  if (!marque) for (const m of MARQUES) { if ((' ' + nq + ' ').includes(' ' + m[0] + ' ')) { marque = m[1]; break; } }
+  const cyl = tokens.find(t => /^\d\.\d$/.test(t)) || null;
+  let fam = null, carbu = null;
+  for (const f of FAMILLES) { if (f.tok.some(tk => tokens.includes(tk))) { fam = f.tok; carbu = f.carbu; break; } }
+  if (!carbu && cyl && veh) {
+    const cars = FICHES.filter(f => f.veh && f.veh.marques.includes(veh.marque) && f.veh.modeles.includes(veh.modele) && f.veh.mot.includes(cyl)).map(f => f.carbu);
+    if (cars.length) carbu = cars.sort((a, b) => cars.filter(x => x === a).length - cars.filter(x => x === b).length)[0];
+  }
+  return { nq, tokens, veh, marque, cyl, fam, carbu };
+}
+
+function evalFiche(f, ctx) {
+  if (!ctx.tokens.length) return null;
+  let s = 0;
+  if (ctx.veh) {
+    if (f.veh) {
+      const mOk = f.veh.marques.includes(ctx.veh.marque);
+      const moOk = f.veh.modeles.includes(ctx.veh.modele);
+      if (!(mOk && moOk)) return null;              // fiche d'un autre véhicule → écartée
+      s += 60;
+      if (ctx.cyl) {
+        const cyls = f.veh.mot.filter(m => /^\d\.\d$/.test(m));
+        if (cyls.length && !cyls.includes(ctx.cyl)) return null;  // cylindrée différente → écartée
+        if (f.veh.mot.includes(ctx.cyl)) s += 30;
+      }
+      if (ctx.fam && f.veh.mot.some(m => ctx.fam.includes(m))) s += 20;
+    } else {
+      s += 25;                                       // fiche "base" applicable au véhicule détecté
+      if (ctx.carbu && f.carbu && f.carbu !== 'all' && f.carbu !== ctx.carbu) return null;
+    }
+  } else {
+    if (f.veh) {
+      s += 5;
+      if (ctx.marque) {
+        if (!f.veh.marques.includes(ctx.marque)) return null;
+        s += 25;
+      }
+      if (ctx.cyl) {
+        const cyls = f.veh.mot.filter(m => /^\d\.\d$/.test(m));
+        if (cyls.length && !cyls.includes(ctx.cyl)) return null;
+        if (f.veh.mot.includes(ctx.cyl)) s += 20;
+      }
+    } else {
+      s += 15;
+      if (ctx.marque) s += 5;
+      if (ctx.carbu && f.carbu && f.carbu !== 'all' && f.carbu !== ctx.carbu) return null;
+    }
+  }
+  let hits = 0;
+  ctx.tokens.forEach(tok => {
+    if (f._search.includes(tok)) { s += 8; hits++; }
+    if (f._titreN.includes(tok)) s += 6;
+    if (f.dtc.some(d => d.toLowerCase() === tok)) s += 40;
+    if (tok.length >= 3 && f.kw.some(k => k.startsWith(tok))) s += 6;
+  });
+  if (hits === 0 && !(ctx.veh && !f.veh) && s < 60) return null;
+  return s;
+}
+
+function search(q, origFilter) {
+  const ctx = buildCtx(q);
+  let out = [];
+  FICHES.forEach(f => {
+    const s = evalFiche(f, ctx);
+    if (s === null) return;
+    if (origFilter && origFilter !== 'toutes' && f.veh && ORIG[f.veh.marques[0]] !== origFilter) return;
+    out.push({ f, s });
+  });
+  out.sort((a, b) => b.s - a.s || a.f.prio - b.f.prio);
+  return { ctx, results: out.slice(0, 30) };
+}
+
+function suggestions(ctx, results) {
+  const sugg = [];
+  const last = ctx.tokens[ctx.tokens.length - 1] || '';
+  if (last.length >= 2) {
+    ORGANES.forEach(o => {
+      const on = norm(o);
+      if (on.startsWith(last) && on !== last && sugg.length < 4) sugg.push({ type: 'terme', label: o });
+    });
+  }
+  results.slice(0, 6).forEach(r => sugg.push({ type: 'fiche', label: r.f._label, f: r.f }));
+  return sugg.slice(0, 8);
+}
+
+// ============================================================
+// Rendu UI
+// ============================================================
+const $ = id => document.getElementById(id);
+let currentOrig = 'toutes';
+
+function hl(text, q) {
+  const toks = norm(q).split(' ').filter(t => t.length >= 2);
+  let out = text;
+  toks.forEach(t => { out = out.replace(new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<b>$1</b>'); });
+  return out;
+}
+
+function renderResults(results, ctx, q) {
+  $('resCount').textContent = results.length ? `(${results.length} résultat${results.length > 1 ? 's' : ''})` : '';
+  const dB = $('detectBox');
+  if (ctx.veh) {
+    let label = `${ctx.veh.marque} ${ctx.veh.modele}`;
+    if (ctx.cyl) label += ` ${ctx.cyl}`;
+    if (ctx.carbu) label += ` (${ctx.carbu})`;
+    dB.innerHTML = `<div class="detect">🚗 <b>Véhicule détecté :</b> ${label} — fiches ciblées ci-dessous.</div>`;
+  } else dB.innerHTML = '';
+
+  const box = $('resultsBox');
+  if (!results.length) {
+    box.innerHTML = `<div class="empty">Aucun résultat pour « ${q} ». Essayez : modèle (3008, clio…), organe (courroie, fap, egr…), DTC (p0016)…</div>`;
+    return;
+  }
+  box.innerHTML = results.map(r => {
+    const f = r.f;
+    const catCls = 'cat-' + norm(f.cat).replace(/[^a-z]/g, '').replace('depollution','Depollution').replace('echappement','Echappement').replace('electrique','Electrique').replace('refroidissement','Refroidissement');
+    return `
+    <div class="fiche">
+      <div class="f-head">
+        <span class="cat ${catCls}">${f.cat}</span>
+        <span class="f-titre">${hl(f.titre, q)}</span>
+        <span class="f-src">${f.src}</span>
+      </div>
+      <div class="f-line"><span class="ico">📋</span>${f.sym}</div>
+      <div class="f-line"><span class="ico">🔧</span>DTC : ${f.dtc.length ? f.dtc.join(' • ') : '—'}</div>
+      <div class="f-line"><span class="ico">✅</span>${f.sol}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSugg(list, q) {
+  const box = $('suggBox');
+  if (!list.length) { box.style.display = 'none'; return; }
+  box.innerHTML = list.map((s, i) => `
+    <div class="sugg-item" data-i="${i}">
+      <span class="s-ico">${s.type === 'terme' ? '🔤' : '🩺'}</span>
+      <span>
+        <div class="s-main">${hl(s.label, q)}</div>
+        <div class="s-sub">${s.type === 'terme' ? 'complétion organe' : (s.f.sym)}</div>
+      </span>
+    </div>`).join('');
+  box.style.display = 'block';
+  box.querySelectorAll('.sugg-item').forEach(el => {
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      const s = list[+el.dataset.i];
+      $('searchInput').value = s.label;
+      box.style.display = 'none';
+      runSearch();
+    });
+  });
+}
+
+function runSearch() {
+  const q = $('searchInput').value.trim();
+  if (q.length < 2) {
+    $('suggBox').style.display = 'none';
+    $('resCount').textContent = '';
+    $('detectBox').innerHTML = '';
+    $('resultsBox').innerHTML = '<div class="empty">Tapez un mot-clé : marque, modèle, motorisation, organe (courroie, fap, egr…), symptôme ou code DTC.</div>';
+    return;
+  }
+  const { ctx, results } = search(q, currentOrig);
+  renderSugg(suggestions(ctx, results), q);
+  renderResults(results, ctx, q);
+}
+
+// ============================================================
+// Import / export
+// ============================================================
+const db = new DB();
+
+function setStatus(msg, cls) { const el = $('importStatus'); el.className = 'status ' + cls; el.innerHTML = msg; }
+
+async function importMassive() {
+  const btn = $('btnImportMassive');
+  try {
+    btn.disabled = true; btn.textContent = '⏳ Import en cours…';
+    setStatus('🔌 Connexion IndexedDB…', 'inf');
+    await db.open();
+    setStatus(`📦 Import de ${FICHES.length} fiches depuis appli-aide-technique…`, 'inf');
+    const n = await db.seed(FICHES);
+    setStatus(`✅ <b>Import réussi :</b> ${n} fiches diagnostics importées.<br>Source : <a href="${CONFIG.SOURCE_URL}" target="_blank" style="color:#93c5fd">${CONFIG.SOURCE_URL}</a>`, 'ok');
+    $('ficheCount').textContent = n + ' fiches';
+    $('dataVersion').textContent = '2 (import ' + new Date().toLocaleDateString('fr-FR') + ')';
+    setTimeout(() => { if (confirm('Import terminé ! Recharger la page ?')) location.reload(); }, 1200);
+  } catch (e) {
+    setStatus('❌ Erreur import : ' + e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = '🚀 Importer depuis appli-aide-technique';
+  }
+}
+
+// ============================================================
+// Init
+// ============================================================
+document.addEventListener('DOMContentLoaded', async () => {
+  // Onglets
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tabcontent').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    $('tab-' + t.dataset.tab).classList.add('active');
+  }));
+
+  // Pills origine
+  document.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    currentOrig = p.dataset.orig;
+    runSearch();
+  }));
+
+  // Recherche live + prédictive
+  let timer = null;
+  $('searchInput').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(runSearch, 120); });
+  $('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { $('suggBox').style.display = 'none'; runSearch(); }
+    if (e.key === 'Escape') $('suggBox').style.display = 'none';
+  });
+  document.addEventListener('click', e => { if (!e.target.closest('.searchwrap')) $('suggBox').style.display = 'none'; });
+
+  // Exemples
+  document.querySelectorAll('.ex').forEach(x => x.addEventListener('click', () => {
+    $('searchInput').value = x.textContent; runSearch();
+  }));
+
+  // Header
+  const updNet = () => {
+    const on = navigator.onLine;
+    const et = (navigator.connection && navigator.connection.effectiveType) || '';
+    $('netBadge').textContent = on ? ('En ligne' + (et ? ' • ' + et.toUpperCase() : ' • 4G/5G')) : 'Hors ligne';
+    $('netInfo').textContent = on ? 'En ligne' : 'Hors ligne';
+  };
+  updNet(); window.addEventListener('online', updNet); window.addEventListener('offline', updNet);
+
+  let deferred = null;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; });
+  $('btnInstall').addEventListener('click', async () => {
+    if (deferred) { deferred.prompt(); } else alert('Installation PWA : utilisez le menu du navigateur (« Ajouter à l\'écran d\'accueil »).');
+  });
+  $('btnShare').addEventListener('click', async () => {
+    const data = { title: 'DiagAuto Pro', url: location.href };
+    if (navigator.share) { try { await navigator.share(data); } catch (e) {} }
+    else { try { await navigator.clipboard.writeText(location.href); alert('Lien copié !'); } catch (e) { alert(location.href); } }
+  });
+  $('btnLock').addEventListener('click', () => {
+    const code = prompt('Code propriétaire :');
+    if (code === 'DIAGAUTO-OWNER') { $('btnLock').textContent = '🔓'; alert('Mode propriétaire activé.'); }
+    else if (code !== null) alert('Code invalide.');
+  });
+
+  // Admin
+  $('btnImportMassive').addEventListener('click', importMassive);
+  $('btnReloadData').addEventListener('click', importMassive);
+  $('btnExport').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(FICHES, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'diagauto-base.json'; a.click();
+  });
+  $('btnImportFile').addEventListener('click', () => $('fileJson').click());
+  $('fileJson').addEventListener('change', async e => {
+    const file = e.target.files[0]; if (!file) return;
+    try {
+      const arr = JSON.parse(await file.text());
+      if (!Array.isArray(arr)) throw new Error('format invalide');
+      await db.open(); await db.seed(arr);
+      alert('✅ ' + arr.length + ' fiches importées depuis le fichier.');
+      location.reload();
+    } catch (err) { alert('❌ Fichier invalide : ' + err.message); }
+  });
+
+  // Boot : seed auto si base vide (fonctionne sans action)
+  try {
+    await db.open();
+    const n = await db.count();
+    if (n === 0) await db.seed(FICHES);
+    $('ficheCount').textContent = (await db.count()) + ' fiches';
+  } catch (e) { console.warn('IndexedDB indisponible, mode mémoire.', e); }
+});
 
 })();
