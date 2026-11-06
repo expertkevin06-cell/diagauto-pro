@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="diagauto-version" content="5.3.1-massive">
+<meta name="diagauto-version" content="5.3.2-massive">
 <title>DiagAuto Pro — Mes réponses techniques</title>
 <style>
   :root{
@@ -110,7 +110,7 @@
     <div class="logo">🔧</div>
     <div class="titles">
       <h1>DiagAuto Pro — Mes réponses techniques</h1>
-      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.3.1-massive</p>
+      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.3.2-massive</p>
     </div>
     <div class="hbtns">
       <span class="netbadge" id="netBadge">En ligne • 4G/5G</span>
@@ -228,7 +228,7 @@
 
     <div class="importbox">
       <h3>📥 Import Base Massive INTÉGRALE</h3>
-      <p>Base embarquée générée : <b>toutes marques · tous modèles · toutes motorisations · toutes puissances (22 valeurs) · toutes pannes connues</b> — puis fusion distante depuis <b>https://expertkevin06-cell.github.io/appli-aide-technique/</b> (S1 JSON → S2 analyse HTML/scripts → S3 fallback).</p>
+      <p>Base embarquée générée : <b>toutes marques · tous modèles · toutes motorisations · 22 puissances · toutes pannes connues</b> — génération signée + auto-reseed si base périmée — puis fusion distante <b>appli-aide-technique</b> (S1/S2/S3).</p>
       <input type="text" value="https://expertkevin06-cell.github.io/appli-aide-technique/" readonly style="background:#0b1626;color:var(--muted)">
       <div class="barwrap"><div id="importBar" class="barfill"></div></div>
       <button class="btn btn-green" id="btnImportMassive">🚀 Importer TOUTE la base (embarquée + distante)</button>
@@ -249,8 +249,9 @@
     <div class="section">
       <h3>🔄 Mise à jour</h3>
       <div class="grid">
-        <div class="icard"><h4>Version app</h4>5.3.1-massive</div>
+        <div class="icard"><h4>Version app</h4>5.3.2-massive</div>
         <div class="icard"><h4>Version données</h4><span id="dataVersion">1 (local)</span></div>
+        <div class="icard"><h4>Génération base</h4><span id="genVersion">—</span></div>
         <div class="icard"><h4>Fiches en base</h4><span id="ficheCount">—</span></div>
         <div class="icard"><h4>Mode</h4>📱 Solo (local)</div>
         <div class="icard"><h4>Stockage</h4>🗄️ IndexedDB</div>
@@ -261,17 +262,17 @@
     </div>
   </div>
 
-  <footer>DiagAuto Pro © 2026 — v5.3.1-massive — base massive embarquée + import distant — IndexedDB — auto-vérification 21 checks</footer>
+  <footer>DiagAuto Pro © 2026 — v5.3.2-massive — génération signée + auto-reseed — auto-vérification 22 checks</footer>
 </div>
 
-<script src="import-base-massive.js"></script>
+<script src="import-base-massive.js?v=6.2.0"></script>
 <script>
 // ============================================================
-// MODULE AUTO-VÉRIFICATION — v5.3.1 (21 checks, T20 corrigé)
+// MODULE AUTO-VÉRIFICATION — v5.3.2 (22 checks)
 // ============================================================
 (function () {
 'use strict';
-var VERSION = '5.3.1-massive';
+var VERSION = '5.3.2-massive';
 var bootErrors = [];
 window.addEventListener('error', function (e) { bootErrors.push(e.message); });
 
@@ -306,7 +307,7 @@ async function run() {
   var ids = ['searchInput','suggBox','resCount','detectBox','resultsBox','pills','examples',
     'netBadge','btnInstall','btnShare','btnLock','backendUrl','ownerCode','btnExport',
     'btnImportFile','fileJson','btnImportMassive','importStatus','importLog','importBar',
-    'pin1','pin2','btnReloadData','dataVersion','ficheCount','netInfo','elmTransport',
+    'pin1','pin2','btnReloadData','dataVersion','genVersion','ficheCount','netInfo','elmTransport',
     'stTable','stSummary','stRun','stCopy'];
   var missing = ids.filter(function (i) { return !$(i); });
   check('T1 · DOM — ids requis présents', missing.length === 0,
@@ -421,17 +422,21 @@ async function run() {
   check('T19 · Couverture — toutes pannes connues générées', missP.length === 0,
         missP.length ? 'manquantes : ' + missP.join(', ') : DA.PANNES.length + ' familles de pannes');
 
-  // T20 CORRIGÉ : catalogue puissances étendu (22 uniques ≥ 15)
   var st = DA && DA.stats ? DA.stats : null;
   check('T20 · Couverture — motorisations × puissances × modèles',
         !!st && st.powersCount >= 15 && st.models >= 100 && st.makesCount >= 100,
         st ? (st.makesCount + ' marques · ' + st.models + ' motorisations-modèles · ' + st.powersCount + ' puissances') : 'stats absentes');
 
-  // T21 : recherche par puissance
   await typeSearch('1.5 130');
   check('T21 · Moteur — recherche puissance "1.5 130"', /130 ch/i.test($('resultsBox').textContent),
         $('resultsBox').textContent.trim().slice(0, 90));
   await typeSearch('');
+
+  // T22 : pool réellement chargé = génération courante valide
+  var pool = window.__ALL_FICHES || (DA && DA.FICHES) || null;
+  var poolOk = !!pool && !!DA && typeof DA.validatePool === 'function' && DA.validatePool(pool);
+  check('T22 · Chargement — pool actif valide (génération courante)', poolOk,
+        pool ? (pool.length + ' fiches chargées · gen ' + (DA.GEN || '?')) : 'pool absent');
 
   render(Math.round(performance.now() - t0));
 }
