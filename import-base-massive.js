@@ -1,14 +1,17 @@
 // ============================================================
-// IMPORT-BASE-MASSIVE.JS — v9.2.0-attr2 (FICHIER INTÉGRAL)
-// ATTRIBUTION RÉELLE des motorisations par modèle :
-//  - libellé Renault "Hybride E-Tech" (évite collision Megane E-Tech)
-//  - MODEL_ENERGY ~150 règles (EV-only, hybrid-only, ICE-only, restreints)
-//  - appliquée au générateur ET aux fiches distantes
-//  - T25 satisfait ; génération signée gen-9.2 → auto-reseed
+// IMPORT-BASE-MASSIVE.JS — v9.5.0-jlr (FICHIER INTÉGRAL)
+// INTÈGRE : Land Rover + Range Rover massifs avec :
+//  - Tous modèles (Defender 90/110/130, Discovery, Discovery Sport,
+//    Range Rover L460, RR Sport, RR Velar, RR Evoque, RR Electric)
+//  - Motorisations réelles (Ingenium 2.0/I6, V6 SC, V8 4.4 BMW, V8 5.0 SC)
+//  - Toutes pannes JLR connues (chaînes, turbos, EGR, FAP, arbres,
+//    surchauffes, P400e PHEV, ZF 8HP, suspension pneumatique…)
+//  - Attribution énergie réelle par modèle
+//  - Sauvegarde locale IndexedDB persistante + complément distant
 // ============================================================
 (function () {
 'use strict';
-var VERSION = '9.2.0-attr2';
+var VERSION = '9.5.0-jlr';
 
 var CONFIG = {
   SOURCE_URL: 'https://expertkevin06-cell.github.io/appli-aide-technique/',
@@ -19,9 +22,9 @@ var CONFIG = {
     'https://expertkevin06-cell.github.io/appli-aide-technique/fiches.json',
     'https://expertkevin06-cell.github.io/appli-aide-technique/pannes.json'
   ],
-  MAX_REMOTE: 20000, MAX_EMBEDDED: 18000,
+  MAX_REMOTE: 20000, MAX_EMBEDDED: 22000,
   LS_IMPORT: 'diagauto_last_import',
-  DB_NAME: 'DiagAutoDB', DB_VERSION: 8, STORE: 'fiches'
+  DB_NAME: 'DiagAutoDB', DB_VERSION: 9, STORE: 'fiches'
 };
 
 function norm(s) {
@@ -29,9 +32,10 @@ function norm(s) {
     .replace(/[^a-z0-9.]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+// ---------- 151 MARQUES ----------
 var MARQUES_COMPLETE = [
   ['Aixam','fr'],['Alpine','fr'],['Bolloré','fr'],['Bugatti','fr'],['Citroën','fr'],['DS Automobiles','fr'],['Ligier','fr'],['Microcar','fr'],['Peugeot','fr'],['Renault','fr'],
-  ['Alfa Romeo','eu'],['Aston Martin','eu'],['Audi','eu'],['Bentley','eu'],['BMW','eu'],['CUPRA','eu'],['Dacia','eu'],['Ferrari','eu'],['Fiat','eu'],['Ineos','eu'],['Jaguar','eu'],['Lamborghini','eu'],['Lancia','eu'],['Land Rover','eu'],['Lotus','eu'],['Maserati','eu'],['McLaren','eu'],['Mercedes-Benz','eu'],['MINI','eu'],['Opel','eu'],['Polestar','eu'],['Porsche','eu'],['Rolls-Royce','eu'],['Saab','eu'],['SEAT','eu'],['Škoda','eu'],['Smart','eu'],['Volkswagen','eu'],['Volvo','eu'],
+  ['Alfa Romeo','eu'],['Aston Martin','eu'],['Audi','eu'],['Bentley','eu'],['BMW','eu'],['CUPRA','eu'],['Dacia','eu'],['Ferrari','eu'],['Fiat','eu'],['Ineos','eu'],['Jaguar','eu'],['Lamborghini','eu'],['Lancia','eu'],['Land Rover','eu'],['Lotus','eu'],['Maserati','eu'],['McLaren','eu'],['Mercedes-Benz','eu'],['MINI','eu'],['Opel','eu'],['Polestar','eu'],['Porsche','eu'],['Rolls-Royce','eu'],['Saab','eu'],['SEAT','eu'],['Škoda','eu'],['Smart','eu'],['Volkswagen','eu'],['Volvo','eu'],['Range Rover','eu'],
   ['Acura','as'],['Aion','as'],['AITO','as'],['Aiways','as'],['Arcfox','as'],['Avatr','as'],['BAIC','as'],['Baidu Jiyue','as'],['Baojun','as'],['Beijing','as'],['Bestune','as'],['Borgward','as'],['BYD','as'],['Changan','as'],['Chery','as'],['Daihatsu','as'],['Deepal','as'],['Denza','as'],['DFSK','as'],['Dongfeng','as'],['Enovate','as'],['Exeed','as'],['Fangchengbao','as'],['FAW','as'],['Forthing','as'],['GAC','as'],['Geely','as'],['Geely Galaxy','as'],['Genesis','as'],['Geometry','as'],['Great Wall','as'],['Haima','as'],['Haval','as'],['Hengchi','as'],['HiPhi','as'],['Honda','as'],['Hongqi','as'],['Hozon','as'],['Human Horizons','as'],['Hycan','as'],['Hyundai','as'],['IM Motors','as'],['Infiniti','as'],['Isuzu','as'],['JAC','as'],['Jaecoo','as'],['Jetour','as'],['Kaiyi','as'],['Kandi','as'],['Kia','as'],['Leapmotor','as'],['Lexus','as'],['Li Auto','as'],['Livan','as'],['Luxgen','as'],['Lynk & Co','as'],['Mahindra','as'],['Maxus','as'],['Mazda','as'],['MG','as'],['Mitsubishi','as'],['Neta','as'],['NIO','as'],['Nissan','as'],['Omoda','as'],['Ora','as'],['Qiantu','as'],['Qoros','as'],['Radar','as'],['Rising Auto','as'],['Roewe','as'],['SAIC','as'],['Seres','as'],['Singulato','as'],['Skyworth','as'],['Soueast','as'],['SsangYong','as'],['Subaru','as'],['Suzuki','as'],['SWM','as'],['Tank','as'],['Tata','as'],['Toyota','as'],['VinFast','as'],['Voyah','as'],['Weltmeister','as'],['Wey','as'],['WM Motor','as'],['Wuling','as'],['Xiaomi Auto','as'],['XPeng','as'],['Yangwang','as'],['Yudo','as'],['Zeekr','as'],['Zhiji Auto','as'],['Zotye','as'],
   ['Buick','us'],['Cadillac','us'],['Chevrolet','us'],['Chrysler','us'],['Dodge','us'],['Fisker','us'],['Ford','us'],['GMC','us'],['Hummer','us'],['Jeep','us'],['Lincoln','us'],['Lucid','us'],['Pontiac','us'],['Ram','us'],['Rivian','us'],['Tesla','us']
 ].map(function (a) { return { nom: a[0], orig: a[1] }; });
@@ -43,6 +47,7 @@ MARQUES_COMPLETE.forEach(function (m) {
   var w = nm.split(' ')[0]; (MAKE_FIRST[w] = MAKE_FIRST[w] || []).push(nm);
 });
 
+// ---------- MODÈLES CATALOGUE (étendu avec Land Rover + Range Rover) ----------
 var MODELES_CATALOG = {
   'Peugeot': ['208','2008','308','3008','408','508','5008','Partner','Rifter','Expert','Boxer','e-208','e-2008','e-3008','e-308','e-5008'],
   'Citroën': ['C3','C3 Aircross','C4','C4 X','C5 Aircross','C5 X','Berlingo','Jumpy','SpaceTourer','ë-C3','ë-C4','ë-Berlingo'],
@@ -87,9 +92,14 @@ var MODELES_CATALOG = {
   'Li Auto': ['L6','L7','L8','L9','Mega'],
   'Leapmotor': ['C01','C10','C11','T03','B10'],
   'VinFast': ['VF 5','VF 6','VF 7','VF 8','VF 9'],
-  'Smart': ['Smart #1','Smart #3','Smart #5']
+  'Smart': ['Smart #1','Smart #3','Smart #5'],
+  // ============= LAND ROVER (tous modèles) =============
+  'Land Rover': ['Defender 90','Defender 110','Defender 130','Discovery','Discovery Sport'],
+  // ============= RANGE ROVER (tous modèles) =============
+  'Range Rover': ['Range Rover','Range Rover Sport','Range Rover Velar','Range Rover Evoque','Range Rover Electric']
 };
 
+// ---------- MOTORISATIONS RÉELLES (étendu avec JLR Ingenium / V6 / V8) ----------
 var ENG_RAW = {
   'Peugeot': [['1.2 PureTech','essence',[82,110,130],'EB2'],['1.6 PureTech','essence',[150,180],'EP6'],['1.5 BlueHDi','diesel',[100,130],'DV5'],['2.0 BlueHDi','diesel',[150,180],'DW10'],['Électrique','ev',[136,156],'BEV']],
   'Citroën': [['1.2 PureTech','essence',[82,110,130],'EB2'],['1.5 BlueHDi','diesel',[100,130],'DV5'],['2.0 BlueHDi','diesel',[150,180],'DW10'],['Électrique','ev',[136],'BEV']],
@@ -135,14 +145,71 @@ var ENG_RAW = {
   'Zeekr': [['Électrique','ev',[272,428,544,762],'SEA']],
   'Li Auto': [['1.5 Range Extender','hybride',[330,449,544],'EREV']],
   'Leapmotor': [['Électrique','ev',[170,231,272,544],'BEV']],
-  'VinFast': [['Électrique','ev',[177,201,300,402,550],'BEV']]
+  'VinFast': [['Électrique','ev',[177,201,300,402,550],'BEV']],
+  // ============= LAND ROVER (motorisations Ingenium / V6 / V8 réelles) =============
+  'Land Rover': [
+    ['2.0 Ingenium P200','essence',[200],'Ingenium-I4-P'],
+    ['2.0 Ingenium P250','essence',[249],'Ingenium-I4-P'],
+    ['2.0 Ingenium P300','essence',[300],'Ingenium-I4-P'],
+    ['2.0 Ingenium D200','diesel',[200],'Ingenium-I4-D'],
+    ['2.0 Ingenium D240','diesel',[240],'Ingenium-I4-D'],
+    ['3.0 I6 Ingenium P400 MHEV','essence',[400],'Ingenium-I6-P-MHEV'],
+    ['3.0 I6 Ingenium P500 MHEV','essence',[500],'Ingenium-I6-P-MHEV'],
+    ['3.0 I6 Ingenium D250 MHEV','diesel',[249],'Ingenium-I6-D-MHEV'],
+    ['3.0 I6 Ingenium D300 MHEV','diesel',[300],'Ingenium-I6-D-MHEV'],
+    ['3.0 I6 Ingenium D350 MHEV','diesel',[350],'Ingenium-I6-D-MHEV'],
+    ['2.0 P400e PHEV','hybride',[404],'P400e-PHEV'],
+    ['3.0 V6 SC P340','essence',[340],'V6-SC'],
+    ['3.0 V6 SC P380','essence',[380],'V6-SC'],
+    ['3.0 V6 SDV6 D300','diesel',[300],'SDV6'],
+    ['4.4 V8 BMW P530','essence',[530],'BMW-N63'],
+    ['5.0 V8 SC P525','essence',[525],'V8-SC-AJ'],
+    ['5.0 V8 SC P575 SVR','essence',[575],'V8-SC-AJ-SVR']
+  ],
+  // ============= RANGE ROVER (mêmes familles Ingenium / V6 / V8 + électriques 2026) =============
+  'Range Rover': [
+    ['3.0 I6 Ingenium P400 MHEV','essence',[400],'Ingenium-I6-P-MHEV'],
+    ['3.0 I6 Ingenium P500 MHEV','essence',[500],'Ingenium-I6-P-MHEV'],
+    ['3.0 I6 Ingenium D250 MHEV','diesel',[249],'Ingenium-I6-D-MHEV'],
+    ['3.0 I6 Ingenium D300 MHEV','diesel',[300],'Ingenium-I6-D-MHEV'],
+    ['3.0 I6 Ingenium D350 MHEV','diesel',[350],'Ingenium-I6-D-MHEV'],
+    ['4.4 V8 BMW P530','essence',[530],'BMW-N63'],
+    ['4.4 V8 BMW P615 SV','essence',[615],'BMW-S68'],
+    ['5.0 V8 SC P525','essence',[525],'V8-SC-AJ'],
+    ['5.0 V8 SC P550','essence',[550],'V8-SC-AJ'],
+    ['5.0 V8 SC P575 SVR','essence',[575],'V8-SC-AJ-SVR'],
+    ['2.0 P400e PHEV','hybride',[404],'P400e-PHEV'],
+    ['3.0 P440e PHEV','hybride',[440],'P440e-PHEV'],
+    ['3.0 P460e PHEV','hybride',[460],'P460e-PHEV'],
+    ['3.0 P510e PHEV','hybride',[510],'P510e-PHEV'],
+    ['2.0 Ingenium P200','essence',[200],'Ingenium-I4-P'],
+    ['2.0 Ingenium P250','essence',[249],'Ingenium-I4-P'],
+    ['2.0 Ingenium P300','essence',[300],'Ingenium-I4-P'],
+    ['2.0 Ingenium D200','diesel',[200],'Ingenium-I4-D'],
+    ['2.0 Ingenium D240','diesel',[240],'Ingenium-I4-D'],
+    ['3.0 V6 SC P340','essence',[340],'V6-SC'],
+    ['3.0 V6 SC P380','essence',[380],'V6-SC'],
+    ['3.0 V6 SDV6 D300','diesel',[300],'SDV6'],
+    ['Électrique','ev',[550],'RR-EMA']
+  ],
+  'Jaguar': [
+    ['2.0 Ingenium P200','essence',[200],'Ingenium-I4-P'],
+    ['2.0 Ingenium P250','essence',[249],'Ingenium-I4-P'],
+    ['2.0 Ingenium P300','essence',[300],'Ingenium-I4-P'],
+    ['2.0 Ingenium D200','diesel',[200],'Ingenium-I4-D'],
+    ['3.0 V6 SC P340','essence',[340],'V6-SC'],
+    ['3.0 V6 SC P380','essence',[380],'V6-SC'],
+    ['5.0 V8 SC P450','essence',[450],'V8-SC-AJ'],
+    ['5.0 V8 SC P575 SVR','essence',[575],'V8-SC-AJ-SVR'],
+    ['Électrique I-Pace','ev',[400],'BEV-J']
+  ]
 };
 var MOTORISATIONS_PAR_MARQUE = {};
 Object.keys(ENG_RAW).forEach(function (k) {
   MOTORISATIONS_PAR_MARQUE[k] = ENG_RAW[k].map(function (a) { return { label: a[0], carbu: a[1], powers: a[2], famille: a[3] }; });
 });
 
-// ---------- ATTRIBUTION ÉNERGIE PAR MODÈLE ----------
+// ---------- ATTRIBUTION ÉNERGIE PAR MODÈLE (JLR inclus) ----------
 var EV_ONLY_RAW = [
   'e-208','e-2008','e-3008','e-308','e-5008','e-Rifter','ë-C3','ë-C4','ë-Berlingo',
   'Renault 5 E-Tech','Megane E-Tech','Scenic E-Tech','Zoe','Spring',
@@ -155,7 +222,8 @@ var EV_ONLY_RAW = [
   'Atto 3','Atto 2','Dolphin','Dolphin U','Seal','Seal U','Seagull','MG4','MG4 XPOWER','Cyberster',
   'SU7','SU7 Ultra','YU7','ET7','ET5','ES6','ES8','EL7','G6','G9','P7','MONA M03',
   'Zeekr 001','Zeekr 007','Zeekr 009','Zeekr X','Mega','C01','C10','C11','T03','B10',
-  'VF 5','VF 6','VF 7','VF 8','VF 9','Smart #1','Smart #3','Smart #5','Corsa-e','Mokka-e','Topolino','500e','Galaxy E8','MG S5','Han','Tang'
+  'VF 5','VF 6','VF 7','VF 8','VF 9','Smart #1','Smart #3','Smart #5','Corsa-e','Mokka-e','Topolino','500e','Galaxy E8','MG S5','Han','Tang',
+  'Range Rover Electric'
 ];
 var HYBRID_ONLY_RAW = ['Prius'];
 var ICE_ONLY_RAW = {
@@ -217,7 +285,13 @@ var RESTRICTED_RAW = {
   'MG3': ['hybride'], 'MG5': ['essence','ev'], 'MG HS': ['essence','hybride'], 'MG ZS': ['essence','ev'], 'MG S5': ['ev'],
   'Tiggo 4': ['essence'], 'Tiggo 7': ['essence','hybride'], 'Tiggo 8': ['essence','hybride'], 'Arrizo 8': ['essence'], 'Omoda 5': ['essence','hybride'], 'Jaecoo 7': ['hybride'],
   'Coolray': ['essence'], 'Emgrand': ['essence'], 'Monjaro': ['essence','hybride'], 'Galaxy L7': ['hybride'], 'Galaxy E8': ['ev'],
-  'L6': ['hybride'], 'L7': ['hybride'], 'L8': ['hybride'], 'L9': ['hybride']
+  'L6': ['hybride'], 'L7': ['hybride'], 'L8': ['hybride'], 'L9': ['hybride'],
+  // ============= JLR (Land Rover / Range Rover) attributions réelles =============
+  'Defender 90': ['essence','diesel','hybride'], 'Defender 110': ['essence','diesel','hybride'], 'Defender 130': ['essence','diesel','hybride'],
+  'Discovery': ['diesel','essence','hybride'], 'Discovery Sport': ['diesel','essence','hybride'],
+  'Range Rover': ['essence','diesel','hybride','ev'], 'Range Rover Sport': ['essence','diesel','hybride'],
+  'Range Rover Velar': ['essence','diesel','hybride'], 'Range Rover Evoque': ['essence','diesel','hybride'],
+  'Range Rover Electric': ['ev']
 };
 var MODEL_ENERGY = {};
 EV_ONLY_RAW.forEach(function (n) { MODEL_ENERGY[norm(n)] = ['ev']; });
@@ -225,6 +299,7 @@ HYBRID_ONLY_RAW.forEach(function (n) { MODEL_ENERGY[norm(n)] = ['hybride']; });
 Object.keys(ICE_ONLY_RAW).forEach(function (n) { MODEL_ENERGY[norm(n)] = ICE_ONLY_RAW[n]; });
 Object.keys(RESTRICTED_RAW).forEach(function (n) { MODEL_ENERGY[norm(n)] = RESTRICTED_RAW[n]; });
 
+// ---------- PANNES (communes) ----------
 var PANNES = [
   { id:'fap', cat:'Échappement', carbu:['diesel'], titre:'FAP colmaté', court:'FAP colmaté', sym:'Voyant FAP, mode dégradé.', dtc:['P2002','P242F'], sol:'Régénération forcée, contrôle pression.', kw:['fap','dpf','particules','colmate'], prio:3 },
   { id:'egr', cat:'Dépollution', carbu:['diesel'], titre:'Vanne EGR encrassée', court:'Vanne EGR encrassée', sym:'Perte puissance, ralenti instable.', dtc:['P0401','P0402'], sol:'Nettoyage/remplacement vanne EGR.', kw:['egr','vanne','ralenti'], prio:2 },
@@ -258,6 +333,7 @@ var PANNES = [
 var PANNE_BY_ID = {};
 PANNES.forEach(function (p) { PANNE_BY_ID[p.id] = p; });
 
+// ---------- Préparation fiche ----------
 function computeOrig(f) {
   if (f.veh) return MARQUE_ORIG[f.veh.marques[0]] || null;
   var ml = f.marqueLibre || '';
@@ -280,30 +356,93 @@ function prepFiche(f, remote) {
   f._remote = !!remote;
 }
 
+// ---------- FICHES CURATED (incluant TOUTES les pannes JLR) ----------
 var FICHES_CURATED = [
+  // ============= PSA / STELLANTIS =============
   { cat:'Moteur', titre:'1.5 BlueHDi (DV5) : chaîne arbre à cames', src:'Campagnes Stellantis', sym:'Bruit métallique, casse.', dtc:['P0016'], sol:'Chaîne renforcée.', veh:{marques:['Peugeot','Citroën','DS Automobiles','Opel'], modeles:['3008','5008','208','2008','308','408','508','Partner','Rifter','C3 Aircross','C4','Berlingo','DS 3','DS 4','Grandland','Astra'], mot:['1.5','bluehdi','dv5']}, carbu:'diesel', kw:['chaine','distribution','arbre a cames','bruit metallique','casse','dv5'], prio:0 },
   { cat:'Moteur', titre:'1.2 PureTech : courroie de distribution humide', src:'Campagnes Stellantis', sym:'Usure prématurée, débris dans l\'huile, voyant.', dtc:['P0016'], sol:'Courroie revisitée + intervalle 60 000 km.', veh:{marques:['Peugeot','Citroën','DS Automobiles','Opel'], modeles:['208','2008','308','3008','C3','C3 Aircross','C4','C5 Aircross','DS 3','DS 4','Corsa','Mokka'], mot:['1.2','puretech','eb2']}, carbu:'essence', kw:['courroie','distribution','puretech','humide','usure','eb2'], prio:1 },
   { cat:'Moteur', titre:'1.6 THP : tendeur de chaîne', src:'Campagne PSA', sym:'Claquement à froid, voyant moteur.', dtc:['P0016'], sol:'Tendeur + chaîne revisités.', veh:{marques:['Peugeot','Citroën','DS Automobiles'], modeles:['308','3008','508','C4','C5 Aircross','DS 4','DS 7'], mot:['1.6','thp','ep6']}, carbu:'essence', kw:['chaine','tendeur','thp','claquement','ep6'], prio:2 },
   { cat:'Transmission', titre:'Boîte EAT8 : à-coups basse vitesse', src:'TSB Stellantis', sym:'À-coups, vibrations en manœuvre.', dtc:[], sol:'Mise à jour logiciel boîte.', veh:{marques:['Peugeot','Citroën','DS Automobiles','Opel'], modeles:['3008','5008','308','508','208','C4','C5 Aircross','DS 7','Grandland'], mot:['eat8']}, carbu:'all', kw:['boite','eat8','a coups','vibration'], prio:3 },
+  // ============= RENAULT =============
   { cat:'Injection', titre:'1.5 dCi (K9K) : injecteurs', src:'Campagnes Renault', sym:'Claquement diesel, fumée, ratés.', dtc:['P0201','P0203'], sol:'Injecteurs neufs + codage.', veh:{marques:['Renault','Dacia'], modeles:['Clio','Megane','Scenic','Captur','Kadjar','Kangoo','Trafic','Duster','Sandero','Logan','Jogger'], mot:['1.5','dci','k9k']}, carbu:'diesel', kw:['injecteur','k9k','claquement','fumee','rate'], prio:1 },
   { cat:'Moteur', titre:'1.2 TCe (H5F) : chaîne de distribution', src:'Campagnes Renault', sym:'Bruit de chaîne, voyant, risque casse.', dtc:['P0016'], sol:'Kit chaîne + crépine.', veh:{marques:['Renault','Dacia'], modeles:['Clio','Megane','Captur','Kadjar','Jogger','Duster'], mot:['1.2','tce','h5f']}, carbu:'essence', kw:['chaine','distribution','tce','h5f','bruit'], prio:1 },
   { cat:'Moteur', titre:'1.5 dCi : coussinets de bielle', src:'Problème connu K9K', sym:'Claquement bas moteur, casse.', dtc:[], sol:'Contrôle pression huile, coussinets.', veh:{marques:['Renault','Dacia'], modeles:['Clio','Megane','Scenic','Captur','Kangoo','Duster','Sandero','Logan'], mot:['1.5','dci','k9k']}, carbu:'diesel', kw:['coussinet','bielle','claquement','casse','pression huile'], prio:2 },
+  // ============= VAG =============
   { cat:'Moteur', titre:'TSI (EA888) : tendeur de chaîne', src:'Campagne VAG', sym:'Claquement à froid, voyant.', dtc:['P0016'], sol:'Tendeur revisité + chaîne.', veh:{marques:['Volkswagen','Audi','SEAT','Škoda'], modeles:['Golf','Passat','Tiguan','A3','A4','A5','Q3','Q5','Leon','Ateca','Octavia','Superb','Enyaq','Elroq','Fabia'], mot:['1.8','2.0','tsi','ea888']}, carbu:'essence', kw:['chaine','tendeur','tsi','ea888','claquement'], prio:1 },
   { cat:'Dépollution', titre:'2.0 TDI (EA189) : campagne NOx', src:'Campagne VAG', sym:'Voyant, conso, rappel constructeur.', dtc:[], sol:'Mise à jour calculateur (rappel).', veh:{marques:['Volkswagen','Audi','SEAT','Škoda'], modeles:['Golf','Passat','Tiguan','A3','A4','Q3','Q5','Leon','Octavia','Elroq','Enyaq'], mot:['2.0','tdi','ea189']}, carbu:'diesel', kw:['tdi','ea189','nox','rappel','campagne'], prio:2 },
+  // ============= BMW =============
   { cat:'Moteur', titre:'N47 / B47 : chaîne de distribution', src:'Problème connu BMW', sym:'Bruit métallique arrière moteur, casse.', dtc:['P0016'], sol:'Remplacement préventif chaîne complet.', veh:{marques:['BMW','MINI'], modeles:['Serie 1','Serie 3','Serie 5','X1','X3','X5','Cooper','Countryman'], mot:['n47','b47','2.0']}, carbu:'diesel', kw:['chaine','distribution','n47','b47','bruit metallique','casse'], prio:0 },
   { cat:'Dépollution', titre:'N47 : refroidisseur EGR fissuré', src:'Rappel BMW', sym:'Fuite LDR, fumée blanche, risque incendie.', dtc:['P0401'], sol:'Remplacement refroidisseur EGR (rappel).', veh:{marques:['BMW','MINI'], modeles:['Serie 1','Serie 3','Serie 5','X1','X3','Cooper','Countryman'], mot:['n47','2.0']}, carbu:'diesel', kw:['egr','refroidisseur','fuite','fumee blanche','rappel'], prio:1 },
+  // ============= MERCEDES =============
   { cat:'Injection', titre:'OM651 : injecteurs Delphi', src:'Problème connu Mercedes', sym:'Fumée, claquement, retour gasoil.', dtc:['P0201'], sol:'Injecteurs + rondelles pare-feu.', veh:{marques:['Mercedes-Benz'], modeles:['Classe A','Classe C','Classe E','GLA','GLC'], mot:['om651','2.1','2.2','cdi']}, carbu:'diesel', kw:['injecteur','om651','delphi','fumee','claquement'], prio:1 },
+  // ============= TOYOTA =============
   { cat:'Moteur', titre:'2.2 D-4D (136) : joint de culasse', src:'Problème connu Toyota', sym:'Surchauffe, bulles dans LDR, conso LDR.', dtc:[], sol:'Joint culasse / bloc (campagne).', veh:{marques:['Toyota'], modeles:['RAV4','Corolla','Hilux'], mot:['2.2','d 4d','d4d']}, carbu:'diesel', kw:['joint culasse','surchauffe','ldr','d 4d'], prio:1 },
+  // ============= FORD =============
   { cat:'Moteur', titre:'1.0 EcoBoost : courroie immergée', src:'Campagne Ford', sym:'Usure courroie, débris, pompe à vide HS.', dtc:[], sol:'Kit courroie + huile spécifiée.', veh:{marques:['Ford'], modeles:['Fiesta','Focus','Puma','Kuga'], mot:['1.0','ecoboost']}, carbu:'essence', kw:['courroie','distribution','ecoboost','immergee','usure'], prio:1 },
+  // ============= HYUNDAI / KIA =============
   { cat:'Moteur', titre:'Theta II : coussinets / casse moteur', src:'Rappel Hyundai-Kia', sym:'Claquement, casse moteur, voyant huile.', dtc:['P0520'], sol:'Campagne moteur long block.', veh:{marques:['Hyundai','Kia'], modeles:['Tucson','Santa Fe','Sportage','Sorento'], mot:['2.0','2.4','theta']}, carbu:'essence', kw:['coussinet','casse','theta','claquement','huile'], prio:1 },
+  // ============= ÉLECTRIQUES =============
   { cat:'Électrique', titre:'Škoda Elroq : batterie HT / autonomie', src:'VAG MEB — EV récent', sym:'Autonomie en baisse, voyant HV, cellules déséquilibrées.', dtc:['P0A80','P0A1F'], sol:'Diagnostic modules HT, équilibrage, vérif BMS.', veh:{marques:['Škoda'], modeles:['Elroq','Enyaq','Enyaq Coupé'], mot:['électrique','ht','bev']}, carbu:'ev', kw:['batterie','ht','autonomie','elroq','enyaq','bms'], prio:2 },
   { cat:'Électrique', titre:'Škoda Elroq : recharge lente / chargeur embarqué', src:'VAG MEB', sym:'Recharge AC lente, coupures, défaut chargeur.', dtc:['P0CF0','P0C79'], sol:'Contrôle chargeur embarqué, câble type 2, borne.', veh:{marques:['Škoda'], modeles:['Elroq','Enyaq'], mot:['électrique','chargeur']}, carbu:'ev', kw:['recharge','chargeur','elroq','borne','type 2'], prio:3 },
   { cat:'Électrique', titre:'Renault 5 E-Tech / Megane E-Tech : batterie LFP', src:'Renault AmpR Small', sym:'Autonomie, calibration BMS, préconditionnement.', dtc:['P0A80'], sol:'Calibration BMS, MAJ logicielle, préchauffage.', veh:{marques:['Renault'], modeles:['Renault 5 E-Tech','Megane E-Tech','Scenic E-Tech'], mot:['électrique','lfp']}, carbu:'ev', kw:['batterie','lfp','bms','renault 5','megane e tech'], prio:2 },
   { cat:'Électrique', titre:'Tesla Model 3 Highland / Model Y Juniper : 12V LiFePO4', src:'Tesla', sym:'Batterie 12V faible, défauts électroniques.', dtc:['P0562'], sol:'Remplacement batterie 12V LiFePO4 OEM.', veh:{marques:['Tesla'], modeles:['Model 3','Model 3 Highland','Model Y','Model Y Juniper'], mot:['électrique','12v']}, carbu:'ev', kw:['batterie','12v','lifepo4','tesla'], prio:8 },
-  { cat:'Électrique', titre:'BYD Seal U / Atto 3 : Blade Battery', src:'BYD', sym:'Équilibrage modules, perte autonomie.', dtc:['P0A80'], sol:'Équilibrage cellules Blade, diag BMS.', veh:{marques:['BYD'], modeles:['Atto 3','Atto 2','Seal','Seal U','Dolphin','Dolphin U'], mot:['électrique','blade']}, carbu:'ev', kw:['batterie','blade','bms','byd','seal u','atto 3'], prio:2 }
+  { cat:'Électrique', titre:'BYD Seal U / Atto 3 : Blade Battery', src:'BYD', sym:'Équilibrage modules, perte autonomie.', dtc:['P0A80'], sol:'Équilibrage cellules Blade, diag BMS.', veh:{marques:['BYD'], modeles:['Atto 3','Atto 2','Seal','Seal U','Dolphin','Dolphin U'], mot:['électrique','blade']}, carbu:'ev', kw:['batterie','blade','bms','byd','seal u','atto 3'], prio:2 },
+
+  // ============= JLR — LAND ROVER / RANGE ROVER (toutes pannes massives) =============
+  // --- 2.0 Ingenium (AJ200) ---
+  { cat:'Moteur', titre:'2.0 Ingenium (AJ200) : chaîne de distribution / tendeur', src:'TSB JLR connu', sym:'Bruit métallique à froid, claquement, risque casse moteur.', dtc:['P0016','P0017'], sol:'Remplacement kit chaîne complet (tendeur, guides, chaîne) + crépine + vidange.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Defender 90','Defender 110','Defender 130','Discovery','Discovery Sport','Range Rover','Range Rover Sport','Range Rover Velar','Range Rover Evoque','F-Pace','E-Pace','XE','XF'], mot:['2.0','ingenium','aj200','p200','p250','p300','d200','d240']}, carbu:'all', kw:['chaine','distribution','tendeur','ingenium','aj200','claquement','casse'], prio:0 },
+  { cat:'Moteur', titre:'2.0 Ingenium : chaîne pompe à huile / arbre d\'équilibrage', src:'Campagne JLR', sym:'Bruit sourd bas moteur, pression huile faible, casse possible.', dtc:['P0520','P0522'], sol:'Kit chaîne pompe à huile + arbre d\'équilibrage + crépine.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Defender 90','Defender 110','Discovery','Discovery Sport','Range Rover Velar','Range Rover Evoque','F-Pace','E-Pace','XE','XF'], mot:['2.0','ingenium','aj200']}, carbu:'all', kw:['chaine','pompe huile','arbre equilibrage','pression huile','ingenium'], prio:0 },
+  { cat:'Admission', titre:'2.0 Ingenium : turbo wastegate / actuateur', src:'TSB JLR', sym:'Sifflement, perte puissance, mode dégradé.', dtc:['P0299','P0234'], sol:'Actuateur turbo wastegate + contrôle durites.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Defender','Discovery','Range Rover','Velar','Evoque','F-Pace','XE','XF'], mot:['2.0','ingenium','p200','p250','p300']}, carbu:'essence', kw:['turbo','wastegate','actuateur','sifflement','ingenium'], prio:4 },
+  { cat:'Dépollution', titre:'2.0 Ingenium Diesel : vanne EGR colmatée', src:'Problème connu AJ200D', sym:'Perte puissance, ralenti instable, fumée noire.', dtc:['P0401','P0402','P0404'], sol:'Nettoyage / remplacement EGR + refroidisseur.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Defender','Discovery','Discovery Sport','Range Rover','Velar','Evoque','F-Pace','XE','XF'], mot:['2.0','ingenium','d200','d240','d180']}, carbu:'diesel', kw:['egr','vanne','colmate','ralenti','ingenium'], prio:2 },
+  { cat:'Échappement', titre:'2.0 Ingenium Diesel : FAP colmaté / régénération', src:'TSB JLR', sym:'Voyant FAP, mode dégradé, consommation élevée.', dtc:['P2002','P242F','P2463'], sol:'Régénération forcée + sonde pression + contrôle additif.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Defender','Discovery','Discovery Sport','Range Rover','Velar','Evoque','F-Pace','XE','XF'], mot:['2.0','ingenium','d200','d240']}, carbu:'diesel', kw:['fap','dpf','colmate','regenération','ingenium'], prio:3 },
+  { cat:'Injection', titre:'2.0 Ingenium : injecteurs / pompe HP', src:'Problème connu AJ200', sym:'Ratés, claquement, perte puissance.', dtc:['P0201','P0202','P0087'], sol:'Diagnostic injecteurs + pompe HP + codage.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Defender','Discovery','Range Rover','Velar','Evoque','F-Pace','XE','XF'], mot:['2.0','ingenium']}, carbu:'all', kw:['injecteur','pompe hp','rail','claquement','ingenium'], prio:5 },
+
+  // --- V6 3.0 SC (AJ126 / AJ206) ---
+  { cat:'Moteur', titre:'3.0 V6 SC (AJ126/AJ206) : rupture chaîne distribution', src:'Campagne JLR', sym:'Bruit métallique fort, calage, casse moteur.', dtc:['P0016','P0017','P0018'], sol:'Kit chaînes + tendeurs + guides complet (opération lourde).', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Range Rover','Range Rover Sport','Discovery','Velar','F-Pace','XE','XF','XJ','F-Type'], mot:['3.0','v6','sc','aj126','aj206','p340','p380']}, carbu:'essence', kw:['chaine','distribution','rupture','v6','aj126','aj206'], prio:0 },
+  { cat:'Moteur', titre:'3.0 V6 SC : rupture poulie vilebrequin / damper', src:'Campagne JLR', sym:'Bruit claquement avant, vibration, arrêt moteur.', dtc:[], sol:'Poulie damper + courroies accessoires + contrôle vilebrequin.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Range Rover','Range Rover Sport','Discovery','Velar','F-Pace','XE','XF','XJ'], mot:['3.0','v6','sc']}, carbu:'essence', kw:['poulie','damper','vilebrequin','rupture','v6'], prio:0 },
+  { cat:'Refroidissement', titre:'3.0 V6 SC : surchauffe / joint collecteur admission', src:'TSB JLR', sym:'Surchauffe, fuite LDR, voyant température.', dtc:['P0217'], sol:'Collecteur admission + joints + pompe à eau + thermostat.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Range Rover','Range Rover Sport','Discovery','Velar','F-Pace'], mot:['3.0','v6','sc']}, carbu:'essence', kw:['surchauffe','collecteur','joint','fuite ldr','v6'], prio:2 },
+  { cat:'Admission', titre:'3.0 V6 SC : compresseur / actuateur SC', src:'TSB JLR', sym:'Perte suralimentation, sifflement, puissance.', dtc:['P0299'], sol:'Diagnostic compresseur + embrayage SC + durites.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Range Rover','Range Rover Sport','Discovery','F-Pace','XE','XF','F-Type'], mot:['3.0','v6','sc']}, carbu:'essence', kw:['compresseur','supercharge','sc','v6','sifflement'], prio:4 },
+
+  // --- I6 3.0 Ingenium MHEV (AJ20P6 / AJ20D6) ---
+  { cat:'Moteur', titre:'3.0 I6 Ingenium MHEV : chaîne distribution', src:'Problème connu JLR', sym:'Bruit métallique, déphasage arbres, voyant.', dtc:['P0016','P0017'], sol:'Kit chaînes + tendeurs (opération longue, accès complexe).', veh:{marques:['Land Rover','Range Rover'], modeles:['Defender','Discovery','Range Rover','Range Rover Sport','Range Rover Velar'], mot:['3.0','i6','ingenium','p400','p500','d250','d300','d350','mhev']}, carbu:'all', kw:['chaine','distribution','i6','ingenium','mhev'], prio:0 },
+  { cat:'Électrique', titre:'3.0 I6 Ingenium MHEV : batterie 48V / ISG', src:'TSB JLR', sym:'Voyant MHEV, défaut ISG, mode dégradé.', dtc:['P0A0F','P0A1F'], sol:'Diagnostic batterie 48V + ISG + convertisseur DC/DC.', veh:{marques:['Land Rover','Range Rover'], modeles:['Defender','Discovery','Range Rover','Range Rover Sport','Velar'], mot:['3.0','i6','mhev','p400','d250','d300','d350']}, carbu:'hybride', kw:['mhev','batterie 48v','isg','ingenium'], prio:3 },
+
+  // --- V8 5.0 SC (AJ133 / AJ300) ---
+  { cat:'Moteur', titre:'5.0 V8 SC : chaînes distribution / tendeurs', src:'Campagne JLR', sym:'Bruit claquement à froid, déphasage, casse moteur.', dtc:['P0011','P0014','P0016'], sol:'Kit 4 chaînes + tendeurs + guides (main d\'œuvre lourde).', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Range Rover','Range Rover Sport','Range Rover Sport SVR','F-Pace SVR','F-Type'], mot:['5.0','v8','sc','aj133','p525','p550','p575','svr']}, carbu:'essence', kw:['chaine','distribution','tendeur','v8','svr','aj133'], prio:0 },
+  { cat:'Refroidissement', titre:'5.0 V8 SC : pompe à eau / fuite LDR', src:'Problème connu AJ133', sym:'Surchauffe, fuite LDR, bruit pompe.', dtc:['P0217'], sol:'Pompe à eau + joints + thermostat + vidange LDR.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Range Rover','Range Rover Sport','F-Pace','F-Type','XJ'], mot:['5.0','v8','sc','aj133']}, carbu:'essence', kw:['pompe a eau','fuite ldr','surchauffe','v8'], prio:3 },
+  { cat:'Admission', titre:'5.0 V8 SC : compresseur Eaton / embrayage', src:'TSB JLR', sym:'Bruit, perte suralimentation, à-coups.', dtc:['P0299'], sol:'Embrayage compresseur SC + diagnostic Eaton.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Range Rover','Range Rover Sport','F-Pace SVR','F-Type'], mot:['5.0','v8','sc','svr']}, carbu:'essence', kw:['compresseur','sc','eaton','embrayage','v8','svr'], prio:4 },
+  { cat:'Moteur', titre:'5.0 V8 SC : consommation huile / segments', src:'Problème connu V8 JLR', sym:'Consommation huile élevée, fumée bleue, niveau bas.', dtc:[], sol:'Diagnostic consommation huile, segments, reniflard.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Range Rover','Range Rover Sport','F-Pace','F-Type','XJ'], mot:['5.0','v8','sc']}, carbu:'essence', kw:['consommation huile','segments','reniflard','v8'], prio:5 },
+
+  // --- V8 4.4 BMW N63/S68 (Range Rover L460 récent) ---
+  { cat:'Moteur', titre:'4.4 V8 BMW N63/S68 : chaînes distribution', src:'Problème connu N63/S68', sym:'Bruit métallique, déphasage, casse possible.', dtc:['P0011','P0014'], sol:'Kit chaînes + tendeurs BMW OEM + huile spécifiée.', veh:{marques:['Range Rover'], modeles:['Range Rover','Range Rover Sport'], mot:['4.4','v8','n63','s68','p530','p615','sv']}, carbu:'essence', kw:['chaine','distribution','v8','n63','s68','bmw','p530','p615'], prio:0 },
+  { cat:'Refroidissement', titre:'4.4 V8 BMW : surchauffe / fuite LDR', src:'TSB JLR/BMW', sym:'Surchauffe, voyant, consommation LDR.', dtc:['P0217'], sol:'Diagnostic circuit refroidissement, pompe, thermostat, joints.', veh:{marques:['Range Rover'], modeles:['Range Rover','Range Rover Sport'], mot:['4.4','v8','n63','s68','p530','p615']}, carbu:'essence', kw:['surchauffe','ldr','fuite','v8','n63','s68'], prio:3 },
+  { cat:'Moteur', titre:'4.4 V8 BMW : consommation huile excessive', src:'Problème connu N63', sym:'Conso huile, fumée bleue, catalyseur.', dtc:[], sol:'Segments, reniflard, turbos, diagnostic complet.', veh:{marques:['Range Rover'], modeles:['Range Rover','Range Rover Sport'], mot:['4.4','v8','n63','p530']}, carbu:'essence', kw:['consommation huile','v8','n63','bmw','fumee bleue'], prio:4 },
+  { cat:'Admission', titre:'4.4 V8 BMW : turbos / wastegate', src:'Problème N63', sym:'Perte puissance, défaut suralimentation.', dtc:['P0299','P0234'], sol:'Diagnostic turbos + actuateurs wastegate.', veh:{marques:['Range Rover'], modeles:['Range Rover','Range Rover Sport'], mot:['4.4','v8','n63','s68']}, carbu:'essence', kw:['turbo','wastegate','v8','n63','suralimentation'], prio:4 },
+
+  // --- P400e / P440e / P460e / P510e PHEV ---
+  { cat:'Électrique', titre:'P400e PHEV : batterie HT / perte autonomie', src:'TSB JLR', sym:'Autonomie EV en baisse, voyant HV, déséquilibre cellules.', dtc:['P0A80','P0A1F','P0A0F'], sol:'Diagnostic modules HT, équilibrage, vérification BMS.', veh:{marques:['Land Rover','Range Rover'], modeles:['Range Rover','Range Rover Sport','Range Rover Velar','Discovery','Discovery Sport','F-Pace'], mot:['p400e','p440e','p460e','p510e','phev']}, carbu:'hybride', kw:['batterie','ht','autonomie','p400e','p440e','p460e','phev','bms'], prio:2 },
+  { cat:'Électrique', titre:'P400e PHEV : chargeur embarqué / défaut recharge', src:'TSB JLR', sym:'Recharge AC impossible, défaut chargeur, coupures.', dtc:['P0CF0','P0C79'], sol:'Contrôle chargeur embarqué + câble + borne + MAJ logicielle.', veh:{marques:['Land Rover','Range Rover'], modeles:['Range Rover','Range Rover Sport','Velar','Discovery','F-Pace'], mot:['p400e','p440e','p460e','phev']}, carbu:'hybride', kw:['recharge','chargeur','p400e','phev','borne','defaut'], prio:3 },
+  { cat:'Électrique', titre:'P400e PHEV : système haute tension / onduleur', src:'TSB JLR', sym:'Voyant système HT, mode dégradé, refus EV.', dtc:['P0A0F','P0A80'], sol:'Diagnostic onduleur + câblage HT + isolation.', veh:{marques:['Land Rover','Range Rover'], modeles:['Range Rover','Range Rover Sport','Velar','Discovery'], mot:['p400e','phev']}, carbu:'hybride', kw:['ht','onduleur','p400e','isolation','phev'], prio:2 },
+
+  // --- Transmission ZF 8HP (tous JLR) ---
+  { cat:'Transmission', titre:'Boîte ZF 8HP : à-coups / mécatronique', src:'TSB JLR', sym:'À-coups basse vitesse, mode dégradé boîte, voyant.', dtc:['P17BF','P0730','P0731'], sol:'Huile ZF Lifeguard 8 + MAJ logicielle + diagnostic mécatronique.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Defender','Discovery','Range Rover','Range Rover Sport','Velar','Evoque','F-Pace','XE','XF','F-Type','XJ'], mot:['zf','8hp','8 speed','automatique']}, carbu:'all', kw:['boite','zf','8hp','mecatronique','a coups','automatique'], prio:5 },
+  { cat:'Transmission', titre:'Boîte ZF 8HP : embrayage usé / convertisseur', src:'Problème connu', sym:'Patine, à-coups, vibrations, mode dégradé.', dtc:['P0730'], sol:'Diagnostic convertisseur + embrayage + vidange huile.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Defender','Discovery','Range Rover','Range Rover Sport','Velar','F-Pace'], mot:['zf','8hp']}, carbu:'all', kw:['embrayage','convertisseur','zf','8hp','patinage'], prio:6 },
+
+  // --- Suspension pneumatique JLR ---
+  { cat:'Suspension', titre:'Suspension pneumatique : compresseur HS', src:'Problème connu JLR', sym:'Véhicule affaissé, bruit compresseur, défaut suspension.', dtc:['C0179','C0186'], sol:'Compresseur AMK / WABCO + relais + filtre dessiccateur.', veh:{marques:['Land Rover','Range Rover'], modeles:['Defender','Discovery','Range Rover','Range Rover Sport','Velar'], mot:['suspension','pneumatique','air']}, carbu:'all', kw:['suspension','pneumatique','compresseur','amk','wabco','affaissement'], prio:7 },
+  { cat:'Suspension', titre:'Suspension pneumatique : fuite ballon / capteur hauteur', src:'TSB JLR', sym:'Affaissement d\'un côté, voyant suspension, défaut.', dtc:['C0179','C0191'], sol:'Diagnostic ballon + capteurs hauteur + bloc valves.', veh:{marques:['Land Rover','Range Rover'], modeles:['Defender','Discovery','Range Rover','Range Rover Sport','Velar'], mot:['suspension','pneumatique']}, carbu:'all', kw:['fuite','ballon','capteur','hauteur','suspension','pneumatique'], prio:7 },
+
+  // --- Électronique / Terrain Response / Pivi Pro ---
+  { cat:'Électrique', titre:'Infotainment Pivi Pro : bugs / écran noir / freeze', src:'TSB JLR', sym:'Écran tactile gelé, reboot, perte fonctionnalités.', dtc:[], sol:'MAJ logicielle Pivi Pro + réinitialisation + diagnostic module.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Defender','Discovery','Range Rover','Range Rover Sport','Velar','Evoque','F-Pace','XE','XF'], mot:['pivi','pivi pro','infotainment']}, carbu:'all', kw:['pivi','pivi pro','ecran','freeze','infotainment','bug'], prio:8 },
+  { cat:'Électrique', titre:'Terrain Response : défaut système', src:'TSB JLR', sym:'Modes terrain inopérants, voyant 4x4.', dtc:['C0700'], sol:'Diagnostic module Terrain Response + MAJ + capteurs.', veh:{marques:['Land Rover','Range Rover'], modeles:['Defender','Discovery','Range Rover','Range Rover Sport','Velar','Evoque'], mot:['terrain response','4x4','4wd']}, carbu:'all', kw:['terrain response','4x4','4wd','defaut'], prio:8 },
+  { cat:'Électrique', titre:'Batterie 12V AGM JLR : décharge / codage BMS', src:'TSB JLR', sym:'Défauts électroniques multiples, démarrage difficile.', dtc:['P0562'], sol:'Batterie AGM OEM + codage BMS obligatoire.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Defender','Discovery','Range Rover','Range Rover Sport','Velar','Evoque','F-Pace','XE','XF'], mot:['12v','agm','bms']}, carbu:'all', kw:['batterie','12v','agm','bms','codage','jlr'], prio:8 },
+
+  // --- Freinage / Direction ---
+  { cat:'Freinage', titre:'Freinage : servo-frein / maître-cylindre', src:'TSB JLR', sym:'Pédale dure, perte assistance, voyant.', dtc:['C0100'], sol:'Diagnostic servo-frein + maître-cylindre + capteurs.', veh:{marques:['Land Rover','Range Rover','Jaguar'], modeles:['Defender','Discovery','Range Rover','Range Rover Sport','Velar','Evoque','F-Pace'], mot:['frein','servo']}, carbu:'all', kw:['frein','servo','maitre cylindre','pedale dure'], prio:7 }
 ];
 FICHES_CURATED.forEach(function (f) { prepFiche(f, false); });
 
+// ---------- GÉNÉRATEUR MASSIF ----------
 function getEnginesForBrand(nom) { return MOTORISATIONS_PAR_MARQUE[nom] || null; }
 function subsetFor(carbu) {
   if (carbu === 'diesel') return ['chd', 'fap'];
@@ -377,10 +516,11 @@ function buildMassiveBase() {
 var MASSIVE = buildMassiveBase();
 var FICHES = MASSIVE.fiches;
 var STATS = MASSIVE.stats;
-var GENERATION_ID = 'gen-9.2-attr2-p' + STATS.powersCount + '-m' + STATS.makesCount + '-o' + STATS.overridesCount + '-f' + FICHES.length;
+var GENERATION_ID = 'gen-9.5-jlr-p' + STATS.powersCount + '-m' + STATS.makesCount + '-o' + STATS.overridesCount + '-f' + FICHES.length;
 
-var SAMPLE_MAKES = ['peugeot','renault','bmw','toyota','ford','byd','zeekr','rivian','aixam','maserati','xiaomi','tank','tesla','hyundai','skoda'];
-var REQUIRED_MODELS = ['elroq','enyaq','renault 5 e tech','rafale','e 3008','e 5008','atto 3','seal u','model 3 highland','model y juniper','ev9','ioniq 9','inster'];
+// ---------- VALIDATIONS ----------
+var SAMPLE_MAKES = ['peugeot','renault','bmw','toyota','ford','byd','zeekr','rivian','aixam','maserati','xiaomi','tank','tesla','hyundai','skoda','land rover','range rover','jaguar'];
+var REQUIRED_MODELS = ['elroq','enyaq','renault 5 e tech','rafale','e 3008','e 5008','atto 3','seal u','model 3 highland','model y juniper','ev9','ioniq 9','inster','defender 110','discovery','range rover','range rover sport','range rover velar','range rover evoque','range rover electric'];
 function validatePool(pool) {
   if (!pool || !pool.length || pool.length < 1000) return false;
   var powers = {}, makes = {}, i, m;
@@ -398,6 +538,11 @@ function validatePool(pool) {
   }
   var allTxt = pool.map(function (f) { return (f.marqueLibre || '') + ' ' + (f.titre || ''); }).join(' | ').toLowerCase();
   for (i = 0; i < REQUIRED_MODELS.length; i++) if (allTxt.indexOf(REQUIRED_MODELS[i]) < 0) return false;
+  // Vérification spécifique JLR
+  var hasIngenium = allTxt.indexOf('ingenium') >= 0;
+  var hasJLRpannes = allTxt.indexOf('chaine pompe huile') >= 0 || allTxt.indexOf('arbre equilibrage') >= 0;
+  if (!hasIngenium) return false;
+  if (!hasJLRpannes) return false;
   return true;
 }
 function hasWord(hay, w) {
@@ -407,43 +552,43 @@ function validateEngines() {
   var pool = window.__ALL_FICHES || FICHES;
   if (!pool || !pool.length) return { ok: false, detail: 'Pool vide' };
   var BLACKLIST = {
-    'peugeot': ['tdi','tfsi','dci','tce','tsi','ea888','n47','b47','k9k','ecoboost','skyactiv','vtec'],
-    'citroen': ['tdi','tfsi','dci','tce','tsi','ea888','n47','b47','k9k','ecoboost','skyactiv','vtec'],
-    'ds automobiles': ['tdi','tfsi','dci','tce','tsi','ea888','n47','b47','k9k','ecoboost'],
-    'opel': ['tdi','tfsi','dci','tce','tsi','ea888','n47','b47','k9k','ecoboost'],
-    'renault': ['tdi','tsi','tfsi','ea888','bluehdi','puretech','n47','b47','ecoboost','skyactiv'],
-    'dacia': ['tdi','tsi','tfsi','ea888','bluehdi','puretech','n47','b47'],
-    'volkswagen': ['dci','tce','bluehdi','puretech','k9k','n47','b47','ecoboost','skyactiv','vtec'],
-    'audi': ['dci','tce','bluehdi','puretech','k9k','n47','b47','ecoboost','skyactiv'],
-    'skoda': ['dci','tce','bluehdi','puretech','k9k','n47','b47','ecoboost'],
-    'seat': ['dci','tce','bluehdi','puretech','k9k','n47','b47','ecoboost'],
-    'cupra': ['dci','tce','bluehdi','puretech','k9k','n47','b47','ecoboost'],
-    'bmw': ['dci','tce','bluehdi','puretech','tdi','ea888','ea211','k9k','ecoboost','skyactiv'],
-    'mini': ['dci','tce','bluehdi','puretech','tdi','ea888','k9k','ecoboost'],
-    'mercedes benz': ['dci','tce','puretech','tdi','ea888','n47','k9k','ecoboost'],
-    'toyota': ['tdi','dci','tce','bluehdi','puretech','ea888','n47','tsi','tfsi','ecoboost','vtec'],
-    'lexus': ['tdi','dci','tce','bluehdi','puretech','ea888','n47','tsi','tfsi','ecoboost'],
-    'honda': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','skyactiv'],
-    'nissan': ['tdi','tsi','tfsi','ea888','bluehdi','puretech','skyactiv'],
-    'mazda': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','ecoboost','vtec'],
-    'subaru': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','ecoboost'],
-    'suzuki': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','ecoboost'],
-    'mitsubishi': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','ecoboost'],
-    'hyundai': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','skyactiv','vtec'],
-    'kia': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','skyactiv','vtec'],
-    'ford': ['tdi','dci','bluehdi','puretech','ea888','tsi','tfsi','skyactiv','vtec'],
-    'chevrolet': ['tdi','dci','bluehdi','puretech','ea888','tsi','tfsi','skyactiv'],
-    'jeep': ['tdi','dci','bluehdi','puretech','ea888','tsi','tfsi','skyactiv'],
-    'tesla': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','essence','diesel','hybride','crdi','tdci'],
-    'byd': ['tdi','dci','tce','bluehdi','puretech','ea888','n47','ecoboost','skyactiv','vtec'],
-    'mg': ['tdi','dci','tce','bluehdi','puretech','ea888','n47','ecoboost','skyactiv'],
-    'chery': ['tdi','dci','tce','bluehdi','puretech','ea888','n47','ecoboost'],
-    'geely': ['tdi','dci','tce','bluehdi','puretech','ea888','n47','ecoboost'],
-    'great wall': ['tdi','dci','tce','bluehdi','puretech','ea888','n47','ecoboost'],
-    'xiaomi auto': ['tdi','dci','tce','bluehdi','puretech','ea888','essence','diesel','hybride'],
-    'nio': ['tdi','dci','tce','bluehdi','puretech','ea888','essence','diesel','hybride'],
-    'xpeng': ['tdi','dci','tce','bluehdi','puretech','ea888','essence','diesel','hybride'],
-    'zeekr': ['tdi','dci','tce','bluehdi','puretech','ea888','essence','diesel','hybride']
+    'peugeot': ['tdi','tfsi','dci','tce','tsi','ea888','n47','b47','k9k','ecoboost','skyactiv','vtec','ingenium'],
+    'citroen': ['tdi','tfsi','dci','tce','tsi','ea888','n47','b47','k9k','ecoboost','skyactiv','vtec','ingenium'],
+    'ds automobiles': ['tdi','tfsi','dci','tce','tsi','ea888','n47','b47','k9k','ecoboost','ingenium'],
+    'opel': ['tdi','tfsi','dci','tce','tsi','ea888','n47','b47','k9k','ecoboost','ingenium'],
+    'renault': ['tdi','tsi','tfsi','ea888','bluehdi','puretech','n47','b47','ecoboost','skyactiv','ingenium'],
+    'dacia': ['tdi','tsi','tfsi','ea888','bluehdi','puretech','n47','b47','ingenium'],
+    'volkswagen': ['dci','tce','bluehdi','puretech','k9k','n47','b47','ecoboost','skyactiv','vtec','ingenium'],
+    'audi': ['dci','tce','bluehdi','puretech','k9k','n47','b47','ecoboost','skyactiv','ingenium'],
+    'skoda': ['dci','tce','bluehdi','puretech','k9k','n47','b47','ecoboost','ingenium'],
+    'seat': ['dci','tce','bluehdi','puretech','k9k','n47','b47','ecoboost','ingenium'],
+    'cupra': ['dci','tce','bluehdi','puretech','k9k','n47','b47','ecoboost','ingenium'],
+    'bmw': ['dci','tce','bluehdi','puretech','tdi','ea888','ea211','k9k','ecoboost','skyactiv','ingenium'],
+    'mini': ['dci','tce','bluehdi','puretech','tdi','ea888','k9k','ecoboost','ingenium'],
+    'mercedes benz': ['dci','tce','puretech','tdi','ea888','n47','k9k','ecoboost','ingenium'],
+    'toyota': ['tdi','dci','tce','bluehdi','puretech','ea888','n47','tsi','tfsi','ecoboost','vtec','ingenium'],
+    'lexus': ['tdi','dci','tce','bluehdi','puretech','ea888','n47','tsi','tfsi','ecoboost','ingenium'],
+    'honda': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','skyactiv','ingenium'],
+    'nissan': ['tdi','tsi','tfsi','ea888','bluehdi','puretech','skyactiv','ingenium'],
+    'mazda': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','ecoboost','vtec','ingenium'],
+    'subaru': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','ecoboost','ingenium'],
+    'suzuki': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','ecoboost','ingenium'],
+    'mitsubishi': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','ecoboost','ingenium'],
+    'hyundai': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','skyactiv','vtec','ingenium'],
+    'kia': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','skyactiv','vtec','ingenium'],
+    'ford': ['tdi','dci','bluehdi','puretech','ea888','tsi','tfsi','skyactiv','vtec','ingenium'],
+    'chevrolet': ['tdi','dci','bluehdi','puretech','ea888','tsi','tfsi','skyactiv','ingenium'],
+    'jeep': ['tdi','dci','bluehdi','puretech','ea888','tsi','tfsi','skyactiv','ingenium'],
+    'tesla': ['tdi','dci','tce','bluehdi','puretech','ea888','tsi','tfsi','essence','diesel','hybride','crdi','tdci','ingenium'],
+    'byd': ['tdi','dci','tce','bluehdi','puretech','ea888','n47','ecoboost','skyactiv','vtec','ingenium'],
+    'mg': ['tdi','dci','tce','bluehdi','puretech','ea888','n47','ecoboost','skyactiv','ingenium'],
+    'chery': ['tdi','dci','tce','bluehdi','puretech','ea888','n47','ecoboost','ingenium'],
+    'geely': ['tdi','dci','tce','bluehdi','puretech','ea888','n47','ecoboost','ingenium'],
+    'great wall': ['tdi','dci','tce','bluehdi','puretech','ea888','n47','ecoboost','ingenium'],
+    'xiaomi auto': ['tdi','dci','tce','bluehdi','puretech','ea888','essence','diesel','hybride','ingenium'],
+    'nio': ['tdi','dci','tce','bluehdi','puretech','ea888','essence','diesel','hybride','ingenium'],
+    'xpeng': ['tdi','dci','tce','bluehdi','puretech','ea888','essence','diesel','hybride','ingenium'],
+    'zeekr': ['tdi','dci','tce','bluehdi','puretech','ea888','essence','diesel','hybride','ingenium']
   };
   var POSITIVE = [
     ['peugeot', ['puretech','bluehdi']],
@@ -451,7 +596,9 @@ function validateEngines() {
     ['volkswagen', ['tsi','tdi']],
     ['bmw', ['b47','b48']],
     ['toyota', ['hybrid','d 4d']],
-    ['tesla', ['electrique']]
+    ['tesla', ['electrique']],
+    ['land rover', ['ingenium','aj200']],
+    ['range rover', ['v8','p530','p400e']]
   ];
   var bad = [];
   pool.forEach(function (f, idx) {
@@ -472,9 +619,10 @@ function validateEngines() {
   });
   if (bad.length > 0) return { ok: false, detail: bad.length + ' violations : ' + bad.slice(0, 3).join(' | ') };
   if (posOk < POSITIVE.length) return { ok: false, detail: 'Moteurs réels absents : ' + posOk + '/' + POSITIVE.length };
-  return { ok: true, detail: '0 violation · ' + posOk + '/' + POSITIVE.length + ' moteurs réels · ' + STATS.enginesCount + ' motorisations · ' + STATS.overridesCount + ' attributions modèle' };
+  return { ok: true, detail: '0 violation · ' + posOk + '/' + POSITIVE.length + ' moteurs réels (incl. JLR) · ' + STATS.enginesCount + ' motorisations · ' + STATS.overridesCount + ' attributions modèle' };
 }
 
+// ---------- IndexedDB ----------
 function DB() {}
 DB.prototype.open = function () {
   var self = this;
@@ -557,6 +705,7 @@ async function loadOrSeed() {
   return pool.length;
 }
 
+// ---------- IMPORT DISTANT S1/S2/S3 ----------
 function fetchText(url, timeout) {
   var ctrl = new AbortController();
   var t = setTimeout(function () { ctrl.abort(); }, timeout || 12000);
@@ -668,7 +817,7 @@ async function importRemote(onLog, onProg) {
   var log = onLog || function () {};
   var prog = onProg || function () {};
   var report = { date: new Date().toISOString(), source: CONFIG.SOURCE_URL, strategy: null, remoteCount: 0, totalCount: 0, errors: [] };
-  log('📦 Base embarquée : ' + FICHES.length + ' fiches (' + STATS.makesCount + ' marques · ' + STATS.modelsCatalogCount + ' modèles · ' + STATS.enginesCount + ' motorisations · ' + STATS.overridesCount + ' attributions · ' + STATS.pannesCount + ' pannes) · gen ' + GENERATION_ID);
+  log('📦 Base embarquée JLR : ' + FICHES.length + ' fiches (' + STATS.makesCount + ' marques · ' + STATS.modelsCatalogCount + ' modèles · ' + STATS.enginesCount + ' motorisations · ' + STATS.overridesCount + ' attributions · ' + STATS.pannesCount + ' pannes + ~30 fiches curated JLR) · gen ' + GENERATION_ID);
   var remote = [];
   log('S1 · Endpoints JSON directs…'); prog(10);
   for (var u = 0; u < CONFIG.JSON_ENDPOINTS.length; u++) {
@@ -710,8 +859,8 @@ async function importRemote(onLog, onProg) {
     mergedExtra = rf.filter(function (f) { return !keys[f._key]; });
     log('🧬 ' + rf.length + ' fiches distantes · ' + mergedExtra.length + ' nouvelles');
   } else {
-    report.strategy = 'S3:base-embarquée-massive';
-    log('⚠️ Distant injoignable → S3 : base embarquée conservée (' + FICHES.length + ' fiches)');
+    report.strategy = 'S3:base-embarquée-massive-jlr';
+    log('⚠️ Distant injoignable → S3 : base JLR embarquée conservée (' + FICHES.length + ' fiches)');
   }
   prog(80);
   var all = FICHES.concat(mergedExtra);
@@ -722,10 +871,11 @@ async function importRemote(onLog, onProg) {
   report.totalCount = n;
   prog(100);
   try { localStorage.setItem(CONFIG.LS_IMPORT, JSON.stringify(report)); } catch (e5) {}
-  log('✅ IndexedDB mise à jour : ' + n + ' fiches au total');
+  log('✅ IndexedDB mise à jour : ' + n + ' fiches au total (sauvegarde locale persistante)');
   return report;
 }
 
+// ---------- RECHERCHE (JLR inclus) ----------
 var VEH = [
   ['3008','Peugeot','3008'],['e 3008','Peugeot','e-3008'],['2008','Peugeot','2008'],['5008','Peugeot','5008'],['e 5008','Peugeot','e-5008'],['408','Peugeot','408'],['208','Peugeot','208'],['e 208','Peugeot','e-208'],['308','Peugeot','308'],['e 308','Peugeot','e-308'],['508','Peugeot','508'],['partner','Peugeot','Partner'],['rifter','Peugeot','Rifter'],['expert','Peugeot','Expert'],['boxer','Peugeot','Boxer'],
   ['clio','Renault','Clio'],['megane e tech','Renault','Megane E-Tech'],['megane','Renault','Megane'],['scenic e tech','Renault','Scenic E-Tech'],['scenic','Renault','Scenic'],['captur','Renault','Captur'],['kadjar','Renault','Kadjar'],['austral','Renault','Austral'],['espace','Renault','Espace'],['renault 5 e tech','Renault','Renault 5 E-Tech'],['renault 5','Renault','Renault 5 E-Tech'],['5 e tech','Renault','Renault 5 E-Tech'],['rafale','Renault','Rafale'],['symbioz','Renault','Symbioz'],['zoe','Renault','Zoe'],['twingo','Renault','Twingo'],['kangoo','Renault','Kangoo'],['trafic','Renault','Trafic'],['master','Renault','Master'],
@@ -769,7 +919,14 @@ var VEH = [
   ['l9','Li Auto','L9'],['l8','Li Auto','L8'],['l7','Li Auto','L7'],
   ['c10','Leapmotor','C10'],['c11','Leapmotor','C11'],['b10','Leapmotor','B10'],
   ['vf 8','VinFast','VF 8'],['vf 9','VinFast','VF 9'],['vf 7','VinFast','VF 7'],
-  ['smart 1','Smart','Smart #1'],['smart 3','Smart','Smart #3'],['smart 5','Smart','Smart #5']
+  ['smart 1','Smart','Smart #1'],['smart 3','Smart','Smart #3'],['smart 5','Smart','Smart #5'],
+  // ============= LAND ROVER (tous modèles détectés) =============
+  ['defender 90','Land Rover','Defender 90'],['defender 110','Land Rover','Defender 110'],['defender 130','Land Rover','Defender 130'],['defender','Land Rover','Defender 110'],
+  ['discovery sport','Land Rover','Discovery Sport'],['discovery','Land Rover','Discovery'],
+  // ============= RANGE ROVER (tous modèles détectés) =============
+  ['range rover sport svr','Range Rover','Range Rover Sport SVR'],['range rover sport','Range Rover','Range Rover Sport'],
+  ['range rover velar','Range Rover','Range Rover Velar'],['range rover evoque','Range Rover','Range Rover Evoque'],
+  ['range rover electric','Range Rover','Range Rover Electric'],['range rover','Range Rover','Range Rover']
 ].sort(function (a, b) { return b[0].length - a[0].length; });
 
 var MARQUES = [
@@ -779,7 +936,8 @@ var MARQUES = [
   ['toyota','Toyota'],['lexus','Lexus'],['honda','Honda'],['nissan','Nissan'],['mazda','Mazda'],['subaru','Subaru'],['suzuki','Suzuki'],['mitsubishi','Mitsubishi'],
   ['hyundai','Hyundai'],['kia','Kia'],['ford','Ford'],['jeep','Jeep'],['chevrolet','Chevrolet'],['tesla','Tesla'],
   ['byd','BYD'],['mg','MG'],['chery','Chery'],['geely','Geely'],['great wall','Great Wall'],['xiaomi','Xiaomi Auto'],['nio','NIO'],['xpeng','XPeng'],['zeekr','Zeekr'],['li auto','Li Auto'],['leapmotor','Leapmotor'],['vinfast','VinFast'],['smart','Smart'],
-  ['rivian','Rivian'],['lucid','Lucid'],['fisker','Fisker'],['aixam','Aixam'],['maserati','Maserati'],['tank','Tank'],['fiat','Fiat']
+  ['rivian','Rivian'],['lucid','Lucid'],['fisker','Fisker'],['aixam','Aixam'],['maserati','Maserati'],['tank','Tank'],['fiat','Fiat'],
+  ['land rover','Land Rover'],['range rover','Range Rover'],['jaguar','Jaguar']
 ].sort(function (a, b) { return b[0].length - a[0].length; });
 
 var FAMILLES = [
@@ -791,14 +949,22 @@ var FAMILLES = [
   { tok: ['d 4d','d4d'], carbu: 'diesel' },
   { tok: ['puretech','eb2','thp','ep6','tsi','tfsi','ea888','ea211','tce','ecoboost','vti'], carbu: 'essence' },
   { tok: ['hybride','hsd'], carbu: 'hybride' },
-  { tok: ['ev','electrique','bev'], carbu: 'ev' }
+  { tok: ['ev','electrique','bev'], carbu: 'ev' },
+  // ============= JLR Ingenium / V6 / V8 =============
+  { tok: ['ingenium','aj200','p200','p250','p300','d200','d240','d250','d300','d350'], carbu: 'all' },
+  { tok: ['p400','p500','p400e','p440e','p460e','p510e','mhev'], carbu: 'all' },
+  { tok: ['v6','sc','sdv6','aj126','aj206'], carbu: 'all' },
+  { tok: ['v8','aj133','p525','p550','p575','svr','n63','s68','p530','p615'], carbu: 'essence' }
 ];
 var ORGANES = [
   'courroie de distribution','courroie d\'accessoire','chaîne de distribution','fap (filtre à particules)',
   'vanne egr','turbo','injecteurs','pompe haute pression','pompe à eau','alternateur','démarreur',
   'embrayage','volant moteur','sonde lambda','catalyseur','débitmètre','bobines d\'allumage','bougies',
   'amortisseurs','plaquettes de frein','disques de frein','capteur abs','crémaillère direction',
-  'radiateur','thermostat','compresseur clim','batterie','système adblue scr'
+  'radiateur','thermostat','compresseur clim','batterie','système adblue scr',
+  // JLR spécifiques
+  'chaîne distribution ingenium','tendeur chaîne','compresseur supercharged','pompe à huile','arbre d\'équilibrage',
+  'suspension pneumatique','boîte zf 8hp','batterie 48v mhev','pivi pro','terrain response'
 ];
 
 function buildCtx(q) {
@@ -917,7 +1083,7 @@ function renderResults(results, ctx, q) {
   } else dB.innerHTML = '';
   var box = $('resultsBox');
   if (!results.length) {
-    box.innerHTML = '<div class="empty">Aucun résultat pour « ' + q + ' ». Essayez : modèle (3008, elroq, clio…), organe (courroie, fap, egr…), DTC (p0016)…</div>';
+    box.innerHTML = '<div class="empty">Aucun résultat pour « ' + q + ' ». Essayez : modèle (3008, elroq, defender, range rover sport…), organe (courroie, fap, egr, ingenium, zf 8hp…), DTC (p0016)…</div>';
     return;
   }
   box.innerHTML = results.map(function (r) {
@@ -950,7 +1116,7 @@ function runSearch() {
     $('suggBox').style.display = 'none';
     $('resCount').textContent = '';
     $('detectBox').innerHTML = '';
-    $('resultsBox').innerHTML = '<div class="empty">Tapez un mot-clé : marque, modèle, motorisation, puissance, organe (courroie, fap, egr…), symptôme ou code DTC.</div>';
+    $('resultsBox').innerHTML = '<div class="empty">Tapez un mot-clé : marque, modèle, motorisation, puissance, organe (courroie, fap, egr, ingenium…), symptôme ou code DTC.</div>';
     return;
   }
   var r = search(q, window.__ORIG_FILTER || 'toutes');
@@ -968,14 +1134,14 @@ async function importMassiveUI() {
   try {
     btn.disabled = true; btn.textContent = '⏳ Import en cours…';
     bar.style.width = '5%';
-    st.className = 'status inf'; st.innerHTML = '🔄 Import base massive (embarquée + distante)…';
+    st.className = 'status inf'; st.innerHTML = '🔄 Import base massive JLR (embarquée + distante)…';
     var rep = await importRemote(log, function (p) { bar.style.width = p + '%'; });
     st.className = 'status ok';
     st.innerHTML = '✅ <b>Import terminé</b> · stratégie ' + rep.strategy + ' · ' + rep.remoteCount + ' fiches distantes · base totale ' + rep.totalCount + ' · ' + new Date(rep.date).toLocaleString('fr-FR');
     $('ficheCount').textContent = rep.totalCount + ' fiches';
     $('genVersion').textContent = GENERATION_ID;
     $('modelCount').textContent = STATS.modelsCatalogCount + ' modèles';
-    $('dataVersion').textContent = (rep.remoteCount ? '3 (import distant ' : '2 (massive local ') + new Date(rep.date).toLocaleDateString('fr-FR') + ')';
+    $('dataVersion').textContent = (rep.remoteCount ? '3 (import distant ' : '2 (massive JLR local ') + new Date(rep.date).toLocaleDateString('fr-FR') + ')';
     setTimeout(function () { if (confirm('Import terminé (' + rep.totalCount + ' fiches). Recharger la page ?')) location.reload(); }, 800);
   } catch (e) {
     st.className = 'status err'; st.innerHTML = '❌ Erreur import : ' + e.message; log('❌ ' + e.message);
@@ -1044,7 +1210,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
     var blob = new Blob([JSON.stringify(clean, null, 2)], { type: 'application/json' });
     var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = 'diagauto-base-massive.json'; a.click();
+    a.href = URL.createObjectURL(blob); a.download = 'diagauto-base-massive-jlr.json'; a.click();
   });
   $('btnImportFile').addEventListener('click', function () { $('fileJson').click(); });
   $('fileJson').addEventListener('change', async function (e) {
@@ -1063,11 +1229,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     var loaded = await loadOrSeed();
     $('ficheCount').textContent = loaded + ' fiches';
     $('genVersion').textContent = GENERATION_ID;
-    $('modelCount').textContent = STATS.modelsCatalogCount + ' modèles';
+    $('modelCount').textContent = STATS.modelsCatalogCount + ' modèles (incl. JLR massifs)';
     var rep = null;
     try { rep = JSON.parse(localStorage.getItem(CONFIG.LS_IMPORT) || 'null'); } catch (e) {}
     if (rep && rep.remoteCount) $('dataVersion').textContent = '3 (import distant ' + new Date(rep.date).toLocaleDateString('fr-FR') + ')';
-    else $('dataVersion').textContent = '2 (massive local — ' + STATS.makesCount + ' marques)';
+    else $('dataVersion').textContent = '2 (massive JLR local — ' + STATS.makesCount + ' marques · ' + FICHES_CURATED.length + ' curated)';
   } catch (e) {
     console.warn('IndexedDB indisponible, mode mémoire.', e);
     window.__ALL_FICHES = FICHES;
