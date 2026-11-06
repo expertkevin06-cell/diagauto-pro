@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="diagauto-version" content="5.4.0-elroq">
+<meta name="diagauto-version" content="5.5.0-real-engines">
 <title>DiagAuto Pro — Mes réponses techniques</title>
 <style>
   :root{
@@ -110,7 +110,7 @@
     <div class="logo">🔧</div>
     <div class="titles">
       <h1>DiagAuto Pro — Mes réponses techniques</h1>
-      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.4.0-elroq</p>
+      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.5.0-real-engines</p>
     </div>
     <div class="hbtns">
       <span class="netbadge" id="netBadge">En ligne • 4G/5G</span>
@@ -229,7 +229,7 @@
 
     <div class="importbox">
       <h3>📥 Import Base Massive INTÉGRALE</h3>
-      <p>Base embarquée générée : <b>toutes marques · tous modèles (2024-2026 inclus) · toutes motorisations · 22 puissances · toutes pannes connues</b> — puis scan distant <b>appli-aide-technique</b> en parallèle + fusion S1/S2/S3.</p>
+      <p>Base embarquée générée : <b>toutes marques · tous modèles · motorisations RÉELLES par constructeur · pannes corrélées</b> — puis scan distant <b>appli-aide-technique</b> en parallèle + fusion S1/S2/S3.</p>
       <input type="text" value="https://expertkevin06-cell.github.io/appli-aide-technique/" readonly style="background:#0b1626;color:var(--muted)">
       <div class="barwrap"><div id="importBar" class="barfill"></div></div>
       <button class="btn btn-green" id="btnImportMassive">🚀 Importer TOUTE la base (embarquée + distante)</button>
@@ -250,7 +250,7 @@
     <div class="section">
       <h3>🔄 Mise à jour</h3>
       <div class="grid">
-        <div class="icard"><h4>Version app</h4>5.4.0-elroq</div>
+        <div class="icard"><h4>Version app</h4>5.5.0-real-engines</div>
         <div class="icard"><h4>Version données</h4><span id="dataVersion">1 (local)</span></div>
         <div class="icard"><h4>Génération base</h4><span id="genVersion">—</span></div>
         <div class="icard"><h4>Fiches en base</h4><span id="ficheCount">—</span></div>
@@ -264,17 +264,17 @@
     </div>
   </div>
 
-  <footer>DiagAuto Pro © 2026 — v5.4.0-elroq — catalogue modèles 2024-2026 · génération signée · auto-vérification 23 checks</footer>
+  <footer>DiagAuto Pro © 2026 — v5.5.0-real-engines — motorisations réelles par constructeur · auto-vérification 24 checks</footer>
 </div>
 
-<script src="import-base-massive.js?v=7.0.0-elroq"></script>
+<script src="import-base-massive.js?v=8.0.0-real-engines"></script>
 <script>
 // ============================================================
-// MODULE AUTO-VÉRIFICATION — v5.4.0 (23 checks)
+// MODULE AUTO-VÉRIFICATION — v5.5.0 (24 checks)
 // ============================================================
 (function () {
 'use strict';
-var VERSION = '5.4.0-elroq';
+var VERSION = '5.5.0-real-engines';
 var bootErrors = [];
 window.addEventListener('error', function (e) { bootErrors.push(e.message); });
 
@@ -405,7 +405,7 @@ async function run() {
   } else det17 = 'window.DiagAuto absent';
   check('T17 · Intégrité — base MASSIVE cohérente (≥1000 fiches)', integ, det17);
 
-  var sample = ['Peugeot','Renault','BMW','Toyota','Ford','BYD','Zeekr','Rivian','Aixam','Maserati','Xiaomi Auto','Tank','Tesla','Hyundai'];
+  var sample = ['Peugeot','Renault','BMW','Toyota','Ford','BYD','Zeekr','Rivian','Aixam','Maserati','Xiaomi Auto','Tank','Tesla','Hyundai','Škoda'];
   var missM = [];
   if (DA && DA.FICHES) {
     sample.forEach(function (m) {
@@ -414,7 +414,7 @@ async function run() {
       if (!found) missM.push(m);
     });
   } else missM = sample.slice();
-  check('T18 · Couverture — toutes marques (échantillon 14)', missM.length === 0,
+  check('T18 · Couverture — toutes marques (échantillon 15)', missM.length === 0,
         missM.length ? 'manquantes : ' + missM.join(', ') : sample.length + ' marques couvertes');
 
   var missP = [];
@@ -439,7 +439,6 @@ async function run() {
   check('T22 · Chargement — pool actif valide (génération courante)', poolOk,
         pool ? (pool.length + ' fiches chargées · gen ' + (DA.GEN || '?')) : 'pool absent');
 
-  // T23 DÉDIÉ : Škoda Elroq + pannes associées (modèles 2024-2026)
   await typeSearch('skoda elroq');
   var t23 = $('resultsBox').textContent;
   var t23det = $('detectBox').textContent;
@@ -447,6 +446,18 @@ async function run() {
         /elroq/i.test(t23) && /Škoda/i.test(t23det || ''),
         'détection : ' + (t23det || '(vide)') + ' · résultats : ' + t23.trim().slice(0, 100));
   await typeSearch('');
+
+  // T24 : cohérence motorisations réelles par constructeur
+  var DA2 = window.DiagAuto;
+  var coherenceOk = false, det24 = '';
+  if (DA2 && typeof DA2.validateEngines === 'function') {
+    var val = DA2.validateEngines();
+    coherenceOk = val.ok;
+    det24 = val.detail || (val.ok ? 'OK' : 'échec');
+  } else {
+    det24 = 'validateEngines() absent';
+  }
+  check('T24 · Cohérence — motorisations RÉELLES par constructeur', coherenceOk, det24);
 
   render(Math.round(performance.now() - t0));
 }
