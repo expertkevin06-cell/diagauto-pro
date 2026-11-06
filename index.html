@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="diagauto-version" content="5.2.1-engineer">
+<meta name="diagauto-version" content="5.3.0-massive">
 <title>DiagAuto Pro — Mes réponses techniques</title>
 <style>
   :root{
@@ -65,6 +65,7 @@
   .cat-Refroidissement{background:#0e7490;color:#cffafe}
   .cat-Entretien{background:#115e59;color:#99f6e4}
   .cat-Direction{background:#581c87;color:#f3e8ff}
+  .cat-Suspension{background:#3f3f46;color:#e4e4e7}
   .f-titre{font-size:16px;font-weight:700;flex:1}
   .f-src{color:var(--muted);font-size:12px;margin-left:auto}
   .f-line{font-size:14px;margin:6px 0;color:#d7e3f4}
@@ -77,7 +78,7 @@
   .importbox p{color:var(--muted);font-size:13px;margin-bottom:12px}
   .barwrap{height:8px;background:#0b1626;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin:10px 0}
   .barfill{height:100%;background:var(--green);transition:width .3s;width:0%}
-  .importlog{background:#0b1626;border:1px solid var(--border);border-radius:8px;padding:10px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:12px;color:#9fb6d4;max-height:200px;overflow-y:auto;margin-top:10px;white-space:pre-wrap}
+  .importlog{background:#0b1626;border:1px solid var(--border);border-radius:8px;padding:10px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:12px;color:#9fb6d4;max-height:220px;overflow-y:auto;margin-top:10px;white-space:pre-wrap}
   input[type=text],input[type=password],select{width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--txt);margin-bottom:10px;font-size:14px}
   button.btn{border:none;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;margin:3px}
   .btn-green{background:var(--green);color:#052e16}
@@ -109,7 +110,7 @@
     <div class="logo">🔧</div>
     <div class="titles">
       <h1>DiagAuto Pro — Mes réponses techniques</h1>
-      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.2.1-engineer</p>
+      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.3.0-massive</p>
     </div>
     <div class="hbtns">
       <span class="netbadge" id="netBadge">En ligne • 4G/5G</span>
@@ -140,7 +141,7 @@
 
     <div class="searchwrap">
       <input type="text" id="searchInput" autocomplete="off"
-             placeholder="Tapez : 3008 1.5 • courr • clio 1.5 dci • bmw n47 • p0016 • fap…">
+             placeholder="Tapez : 3008 1.5 • courr • clio 1.5 dci • bmw n47 • p0016 • fap • byd atto 3…">
       <div class="sugg" id="suggBox"></div>
     </div>
 
@@ -149,12 +150,13 @@
       <span class="ex">peugeot fap</span><span class="ex">clio 1.5 dci</span>
       <span class="ex">bmw n47</span><span class="ex">golf 2.0 tdi</span>
       <span class="ex">p0016</span><span class="ex">egr</span>
+      <span class="ex">tesla model 3</span><span class="ex">byd atto 3</span>
     </div>
 
     <div class="respanel">
       <div class="reshead">🤖 Réponse automatisée &amp; résultats <span class="count" id="resCount"></span></div>
       <div id="detectBox"></div>
-      <div id="resultsBox"><div class="empty">Tapez un mot-clé : marque, modèle, motorisation, organe (courroie, fap, egr…), symptôme ou code DTC.</div></div>
+      <div id="resultsBox"><div class="empty">Tapez un mot-clé : marque, modèle, motorisation, puissance, organe (courroie, fap, egr…), symptôme ou code DTC.</div></div>
     </div>
   </div>
 
@@ -206,7 +208,7 @@
       <h3>🧪 Auto-vérification (mode ingénieur) <span style="color:var(--muted);font-weight:400;font-size:12px" id="stTime"></span></h3>
       <div class="stsummary" id="stSummary">⏳ En attente d'exécution…</div>
       <table class="sttable">
-        <thead><tr><th style="width:34px">✓</th><th style="width:360px">Check</th><th>Détail</th></tr></thead>
+        <thead><tr><th style="width:34px">✓</th><th style="width:380px">Check</th><th>Détail</th></tr></thead>
         <tbody id="stTable"></tbody>
       </table>
       <button class="btn btn-blue" id="stRun">▶ Relancer les tests</button>
@@ -224,11 +226,11 @@
     </div>
 
     <div class="importbox">
-      <h3>📥 Import Base Massive (distant)</h3>
-      <p>Source : <b>https://expertkevin06-cell.github.io/appli-aide-technique/</b> — stratégies S1 (JSON direct) → S2 (analyse HTML/scripts) → S3 (base embarquée). Fusion dédupliquée dans IndexedDB.</p>
+      <h3>📥 Import Base Massive INTÉGRALE</h3>
+      <p>Base embarquée générée : <b>toutes marques · tous modèles · toutes motorisations · toutes puissances · toutes pannes connues</b> — puis fusion distante depuis <b>https://expertkevin06-cell.github.io/appli-aide-technique/</b> (S1 JSON → S2 analyse HTML/scripts → S3 fallback).</p>
       <input type="text" value="https://expertkevin06-cell.github.io/appli-aide-technique/" readonly style="background:#0b1626;color:var(--muted)">
       <div class="barwrap"><div id="importBar" class="barfill"></div></div>
-      <button class="btn btn-green" id="btnImportMassive">🚀 Importer depuis appli-aide-technique</button>
+      <button class="btn btn-green" id="btnImportMassive">🚀 Importer TOUTE la base (embarquée + distante)</button>
       <div class="status" id="importStatus"></div>
       <div class="importlog" id="importLog">— aucun import lancé —</div>
     </div>
@@ -246,7 +248,7 @@
     <div class="section">
       <h3>🔄 Mise à jour</h3>
       <div class="grid">
-        <div class="icard"><h4>Version app</h4>5.2.1-engineer</div>
+        <div class="icard"><h4>Version app</h4>5.3.0-massive</div>
         <div class="icard"><h4>Version données</h4><span id="dataVersion">1 (local)</span></div>
         <div class="icard"><h4>Fiches en base</h4><span id="ficheCount">—</span></div>
         <div class="icard"><h4>Mode</h4>📱 Solo (local)</div>
@@ -254,21 +256,21 @@
         <div class="icard"><h4>Réseau</h4><span id="netInfo">En ligne</span></div>
       </div>
       <br>
-      <button class="btn btn-blue" id="btnReloadData">Vérifier / recharger données embarquées</button>
+      <button class="btn btn-blue" id="btnReloadData">Vérifier / recharger TOUTE la base</button>
     </div>
   </div>
 
-  <footer>DiagAuto Pro © 2026 — v5.2.1-engineer — mode solo (local) — IndexedDB — auto-vérification intégrée</footer>
+  <footer>DiagAuto Pro © 2026 — v5.3.0-massive — base massive embarquée + import distant — IndexedDB — auto-vérification 20 checks</footer>
 </div>
 
 <script src="import-base-massive.js"></script>
 <script>
 // ============================================================
-// MODULE AUTO-VÉRIFICATION — v5.2.1 (T8 corrigé : textContent)
+// MODULE AUTO-VÉRIFICATION — v5.3.0 (20 checks, T17 corrigé)
 // ============================================================
 (function () {
 'use strict';
-var VERSION = '5.2.1-engineer';
+var VERSION = '5.3.0-massive';
 var bootErrors = [];
 window.addEventListener('error', function (e) { bootErrors.push(e.message); });
 
@@ -285,11 +287,11 @@ async function typeSearch(q) {
   var i = $('searchInput');
   i.value = q;
   i.dispatchEvent(new Event('input', { bubbles: true }));
-  await sleep(320);
+  await sleep(340);
 }
 
 async function waitBoot() {
-  for (var i = 0; i < 30; i++) {
+  for (var i = 0; i < 40; i++) {
     if (($('ficheCount').textContent || '').trim() !== '—') return true;
     await sleep(100);
   }
@@ -336,7 +338,6 @@ async function run() {
 
   await typeSearch('courr');
   check('T7 · Moteur — "courr" remonte les courroies', /courroie/i.test($('resultsBox').textContent));
-  // T8 CORRIGÉ : assertion sur textContent (le surlignage <b> cassait innerHTML)
   check('T8 · Prédictif — suggestion "courroie de distribution"',
         $('suggBox').style.display === 'block' && /courroie de distribution/i.test($('suggBox').textContent),
         $('suggBox').textContent.trim().slice(0, 90));
@@ -354,13 +355,13 @@ async function run() {
 
   var ex = document.querySelector('.ex');
   if (ex) ex.click();
-  await sleep(320);
+  await sleep(340);
   check('T12 · UI — chips exemples fonctionnels',
         !!ex && $('searchInput').value === ex.textContent && $('resultsBox').textContent.length > 100);
   await typeSearch('');
 
   var booted = await waitBoot();
-  var dbOk = false, det = '';
+  var dbOk = false, det = '', dbCount = 0;
   try {
     var d = await new Promise(function (res, rej) {
       var r = indexedDB.open('DiagAutoDB');
@@ -369,31 +370,64 @@ async function run() {
       r.onblocked = function () { rej(new Error('blocked')); };
     });
     dbOk = d.objectStoreNames.contains('fiches');
-    det = 'boot=' + (booted ? 'ok' : 'timeout') + ' · stores : ' + Array.from(d.objectStoreNames).join(',');
+    if (dbOk) {
+      dbCount = await new Promise(function (res) {
+        var q = d.transaction('fiches', 'readonly').objectStore('fiches').count();
+        q.onsuccess = function () { res(q.result); }; q.onerror = function () { res(0); };
+      });
+    }
+    det = 'boot=' + (booted ? 'ok' : 'timeout') + ' · ' + dbCount + ' fiches en base';
     d.close();
   } catch (e) { det = 'boot=' + (booted ? 'ok' : 'timeout') + ' · ' + (e.message || e); }
-  check('T13 · Stockage — IndexedDB DiagAutoDB/fiches', dbOk, det);
+  check('T13 · Stockage — IndexedDB DiagAutoDB/fiches', dbOk && dbCount >= 1000, det);
 
   check('T14 · UI — badge réseau renseigné', ($('netBadge').textContent || '').trim().length > 3, $('netBadge').textContent);
   check('T15 · Stabilité — aucune erreur JS au boot', bootErrors.length === 0, bootErrors.join(' | ') || 'aucune');
-
   check('T16 · Module — window.DiagImporter exposé',
         !!(window.DiagImporter && typeof window.DiagImporter.importRemote === 'function'),
         window.DiagImporter ? 'importRemote() disponible' : 'module absent');
 
+  // T17 CORRIGÉ : la base est désormais MASSIVE (>= 1000 fiches)
   var DA = window.DiagAuto, integ = false, det17 = '';
   if (DA && Array.isArray(DA.FICHES)) {
     var keys = {}, bad = 0;
     DA.FICHES.forEach(function (f) {
       if (!f.titre || !f.cat || !f.sym || !f.sol || !Array.isArray(f.kw) || !Array.isArray(f.dtc)) bad++;
-      var k = String(f.titre).toLowerCase();
+      var k = String(f.titre).toLowerCase() + '|' + String(f.marqueLibre || '');
       if (keys[k]) bad++;
       keys[k] = 1;
     });
-    integ = DA.FICHES.length >= 40 && bad === 0;
+    integ = DA.FICHES.length >= 1000 && bad === 0;
     det17 = DA.FICHES.length + ' fiches, ' + bad + ' anomalie(s)';
   } else det17 = 'window.DiagAuto absent';
-  check('T17 · Intégrité — base embarquée cohérente', integ, det17);
+  check('T17 · Intégrité — base MASSIVE cohérente (≥1000 fiches)', integ, det17);
+
+  // T18 : couverture marques (échantillon toutes origines)
+  var sample = ['Peugeot','Renault','BMW','Toyota','Ford','BYD','Zeekr','Rivian','Aixam','Maserati','Xiaomi Auto','Tank','Tesla','Hyundai'];
+  var missM = [];
+  if (DA && DA.FICHES) {
+    sample.forEach(function (m) {
+      var nm = m.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      var found = DA.FICHES.some(function (f) { return (f.marqueLibre || '').indexOf(nm) === 0 || (f._search || '').indexOf(nm) >= 0; });
+      if (!found) missM.push(m);
+    });
+  } else missM = sample.slice();
+  check('T18 · Couverture — toutes marques (échantillon 14)', missM.length === 0,
+        missM.length ? 'manquantes : ' + missM.join(', ') : sample.length + ' marques couvertes');
+
+  // T19 : couverture pannes (toutes les familles générées)
+  var missP = [];
+  if (DA && DA.PANNES && DA.stats) {
+    DA.PANNES.forEach(function (p) { if (!DA.stats.pannes[p.id]) missP.push(p.id); });
+  } else missP = ['?'];
+  check('T19 · Couverture — toutes pannes connues générées', missP.length === 0,
+        missP.length ? 'manquantes : ' + missP.join(', ') : DA.PANNES.length + ' familles de pannes');
+
+  // T20 : couverture motorisations / puissances / modèles
+  var st = DA && DA.stats ? DA.stats : null;
+  check('T20 · Couverture — motorisations × puissances × modèles',
+        !!st && st.powersCount >= 15 && st.models >= 100 && st.makesCount >= 100,
+        st ? (st.makesCount + ' marques · ' + st.models + ' motorisations-modèles · ' + st.powersCount + ' puissances') : 'stats absentes');
 
   render(Math.round(performance.now() - t0));
 }
@@ -429,12 +463,12 @@ document.addEventListener('DOMContentLoaded', function () {
       .then(function () { alert('Rapport copié.'); })
       .catch(function () { alert('Copie impossible.'); });
   });
-  setTimeout(function () { run(); }, 700);
+  setTimeout(function () { run(); }, 900);
   if (new URLSearchParams(location.search).has('check')) {
     setTimeout(function () {
       var t = document.querySelector('.tab[data-tab="admin"]');
       if (t) t.click();
-    }, 1000);
+    }, 1200);
   }
 });
 })();
