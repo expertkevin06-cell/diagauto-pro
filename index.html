@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="diagauto-version" content="5.5.1-full">
+<meta name="diagauto-version" content="5.6.0-model-engines">
 <title>DiagAuto Pro — Mes réponses techniques</title>
 <style>
   :root{--bg:#0b1220;--panel:#101a2c;--card:#16233a;--border:#22344f;--txt:#e5eefb;--muted:#8fa3bf;--blue:#3b82f6;--green:#22c55e;--red:#ef4444}
@@ -13,9 +13,7 @@
   .booterror{background:#2b1212;border:1px solid var(--red);color:#fca5a5;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:14px}
   noscript div{background:#2b1212;border:1px solid var(--red);color:#fca5a5;border-radius:10px;padding:12px 16px;margin-bottom:16px}
   header{display:flex;align-items:center;gap:15px;flex-wrap:wrap;margin-bottom:20px}
-  .logo{font-size:34px}
-  .titles h1{font-size:22px}
-  .titles p{color:var(--muted);font-size:13px}
+  .logo{font-size:34px}.titles h1{font-size:22px}.titles p{color:var(--muted);font-size:13px}
   .hbtns{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .netbadge{border:1px solid var(--green);color:var(--green);border-radius:20px;padding:8px 14px;font-size:13px}
   .hbtn{background:var(--card);border:1px solid var(--border);color:var(--txt);border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer}
@@ -23,23 +21,17 @@
   .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
   .tab{background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:9px 16px;cursor:pointer;font-size:13px}
   .tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
-  .tabcontent{display:none}
-  .tabcontent.active{display:block}
+  .tabcontent{display:none}.tabcontent.active{display:block}
   .pills{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
   .pill{background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:22px;padding:10px 18px;cursor:pointer;font-size:14px}
   .pill.active{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:600}
   .searchwrap{position:relative;margin-bottom:20px}
   #searchInput{width:100%;padding:18px 20px;font-size:18px;background:var(--panel);border:1px solid var(--border);border-radius:12px;color:var(--txt)}
-  #searchInput:focus{outline:none;border-color:var(--blue)}
-  #searchInput::placeholder{color:#5b6c86}
+  #searchInput:focus{outline:none;border-color:var(--blue)}#searchInput::placeholder{color:#5b6c86}
   .sugg{position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--card);border:1px solid var(--blue);border-top:none;border-radius:0 0 12px 12px;max-height:380px;overflow-y:auto;display:none}
   .sugg-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start}
-  .sugg-item:last-child{border-bottom:none}
-  .sugg-item:hover{background:#1d2c47}
-  .sugg-item .s-ico{font-size:16px}
-  .sugg-item .s-main{font-size:14px;font-weight:600}
-  .sugg-item .s-main b{color:#fbbf24}
-  .sugg-item .s-sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .sugg-item:last-child{border-bottom:none}.sugg-item:hover{background:#1d2c47}
+  .sugg-item .s-ico{font-size:16px}.sugg-item .s-main{font-size:14px;font-weight:600}.sugg-item .s-main b{color:#fbbf24}.sugg-item .s-sub{font-size:12px;color:var(--muted);margin-top:2px}
   .examples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
   .ex{background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:16px;padding:6px 14px;font-size:12px;cursor:pointer}
   .ex:hover{border-color:var(--blue);color:var(--txt)}
@@ -52,16 +44,13 @@
   .f-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
   .cat{border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700}
   .cat-Moteur{background:#4c1d95;color:#e9d5ff}.cat-Injection{background:#7c2d12;color:#fed7aa}.cat-Depollution{background:#14532d;color:#bbf7d0}.cat-Echappement{background:#374151;color:#e5e7eb}.cat-Admission{background:#164e63;color:#a5f3fc}.cat-Transmission{background:#1e3a8a;color:#bfdbfe}.cat-Electrique{background:#713f12;color:#fde68a}.cat-Freinage{background:#7f1d1d;color:#fecaca}.cat-Refroidissement{background:#0e7490;color:#cffafe}.cat-Entretien{background:#115e59;color:#99f6e4}.cat-Direction{background:#581c87;color:#f3e8ff}.cat-Suspension{background:#3f3f46;color:#e4e4e7}
-  .f-titre{font-size:16px;font-weight:700;flex:1}
-  .f-src{color:var(--muted);font-size:12px;margin-left:auto}
-  .f-line{font-size:14px;margin:6px 0;color:#d7e3f4}
-  .f-line .ico{margin-right:8px}
+  .f-titre{font-size:16px;font-weight:700;flex:1}.f-src{color:var(--muted);font-size:12px;margin-left:auto}
+  .f-line{font-size:14px;margin:6px 0;color:#d7e3f4}.f-line .ico{margin-right:8px}
   .empty{color:var(--muted);text-align:center;padding:40px 0;font-size:15px}
   .section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px}
   .section h3{margin-bottom:14px;font-size:16px}
   .importbox{background:#0f2036;border:1px solid var(--blue);border-radius:12px;padding:20px;margin-bottom:18px}
-  .importbox h3{color:#93c5fd;margin-bottom:8px}
-  .importbox p{color:var(--muted);font-size:13px;margin-bottom:12px}
+  .importbox h3{color:#93c5fd;margin-bottom:8px}.importbox p{color:var(--muted);font-size:13px;margin-bottom:12px}
   .barwrap{height:8px;background:#0b1626;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin:10px 0}
   .barfill{height:100%;background:var(--green);transition:width .3s;width:0%}
   .importlog{background:#0b1626;border:1px solid var(--border);border-radius:8px;padding:10px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:12px;color:#9fb6d4;max-height:220px;overflow-y:auto;margin-top:10px;white-space:pre-wrap}
@@ -87,12 +76,11 @@
 <div class="wrap">
   <div id="bootError" class="booterror" style="display:none"></div>
   <noscript><div>⚠️ JavaScript est désactivé : l'application ne peut pas fonctionner.</div></noscript>
-
   <header>
     <div class="logo">🔧</div>
     <div class="titles">
       <h1>DiagAuto Pro — Mes réponses techniques</h1>
-      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.5.1-full</p>
+      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.6.0-model-engines</p>
     </div>
     <div class="hbtns">
       <span class="netbadge" id="netBadge">En ligne • 4G/5G</span>
@@ -101,7 +89,6 @@
       <button class="hbtn" id="btnLock">🔒</button>
     </div>
   </header>
-
   <div class="tabs">
     <button class="tab active" data-tab="diag">🔍 Diagnostic</button>
     <button class="tab" data-tab="acces">🔐 Accès</button>
@@ -110,7 +97,6 @@
     <button class="tab" data-tab="admin">🛡️ Admin</button>
     <button class="tab" data-tab="maj">🔄 MAJ</button>
   </div>
-
   <div class="tabcontent active" id="tab-diag">
     <div class="pills" id="pills">
       <button class="pill active" data-orig="toutes">🌍 Toutes</button>
@@ -120,7 +106,7 @@
       <button class="pill" data-orig="us">US Américaines</button>
     </div>
     <div class="searchwrap">
-      <input type="text" id="searchInput" autocomplete="off" placeholder="Tapez : 3008 1.5 • 1.5 130 • skoda elroq • clio 1.5 dci • bmw n47 • p0016 • fap • byd seal u…">
+      <input type="text" id="searchInput" autocomplete="off" placeholder="Tapez : 3008 1.5 • skoda elroq • clio 1.5 dci • bmw n47 • p0016 • fap • byd seal u…">
       <div class="sugg" id="suggBox"></div>
     </div>
     <div class="examples" id="examples">
@@ -136,7 +122,6 @@
       <div id="resultsBox"><div class="empty">Tapez un mot-clé : marque, modèle, motorisation, puissance, organe (courroie, fap, egr…), symptôme ou code DTC.</div></div>
     </div>
   </div>
-
   <div class="tabcontent" id="tab-acces">
     <div class="section">
       <h3>🔐 Contrôle d'accès</h3>
@@ -145,7 +130,6 @@
       <button class="btn btn-blue" onclick="alert('Demande enregistrée localement (mode solo).')">Demander l'accès</button>
     </div>
   </div>
-
   <div class="tabcontent" id="tab-atelier">
     <div class="section">
       <h3>🧰 Profil atelier</h3>
@@ -163,7 +147,6 @@
       <button class="btn btn-green" onclick="alert('Véhicule enregistré localement.')">Enregistrer le véhicule</button>
     </div>
   </div>
-
   <div class="tabcontent" id="tab-elm">
     <div class="section">
       <h3>📡 Connexion ELM327 / OBD</h3>
@@ -174,7 +157,6 @@
       <button class="btn btn-blue" onclick="alert('Mode démo : connexion simulée.')">Connecter</button>
     </div>
   </div>
-
   <div class="tabcontent" id="tab-admin">
     <div class="section" id="selftestPanel">
       <h3>🧪 Auto-vérification (mode ingénieur) <span style="color:var(--muted);font-weight:400;font-size:12px" id="stTime"></span></h3>
@@ -197,7 +179,7 @@
     </div>
     <div class="importbox">
       <h3>📥 Import Base Massive INTÉGRALE</h3>
-      <p>Base embarquée : <b>toutes marques · tous modèles 2024-2026 · motorisations RÉELLES par constructeur · pannes corrélées</b> + fusion distante <b>appli-aide-technique</b> (S1/S2/S3).</p>
+      <p>Base embarquée : <b>motorisations attribuées par MODÈLE</b> (Elroq = électrique uniquement, R5 E-Tech = EV, 3008 = PureTech/BlueHDi…) + pannes corrélées + fusion distante appli-aide-technique (S1/S2/S3).</p>
       <input type="text" value="https://expertkevin06-cell.github.io/appli-aide-technique/" readonly style="background:#0b1626;color:var(--muted)">
       <div class="barwrap"><div id="importBar" class="barfill"></div></div>
       <button class="btn btn-green" id="btnImportMassive">🚀 Importer TOUTE la base (embarquée + distante)</button>
@@ -211,12 +193,11 @@
       <button class="btn btn-green" onclick="alert('PIN activé (démo locale).')">Activer PIN et chiffrer</button>
     </div>
   </div>
-
   <div class="tabcontent" id="tab-maj">
     <div class="section">
       <h3>🔄 Mise à jour</h3>
       <div class="grid">
-        <div class="icard"><h4>Version app</h4>5.5.1-full</div>
+        <div class="icard"><h4>Version app</h4>5.6.0-model-engines</div>
         <div class="icard"><h4>Version données</h4><span id="dataVersion">1 (local)</span></div>
         <div class="icard"><h4>Génération base</h4><span id="genVersion">—</span></div>
         <div class="icard"><h4>Fiches en base</h4><span id="ficheCount">—</span></div>
@@ -229,18 +210,16 @@
       <button class="btn btn-blue" id="btnReloadData">Vérifier / recharger TOUTE la base</button>
     </div>
   </div>
-
-  <footer>DiagAuto Pro © 2026 — v5.5.1-full — fichiers complets sans placeholder — auto-vérification 24 checks</footer>
+  <footer>DiagAuto Pro © 2026 — v5.6.0-model-engines — attribution motorisation par modèle — auto-vérification 25 checks</footer>
 </div>
-
-<script src="import-base-massive.js?v=8.1.0-full"></script>
+<script src="import-base-massive.js?v=9.0.0-model-engines"></script>
 <script>
 // ============================================================
-// AUTO-VÉRIFICATION — v5.5.1 — 24 checks — AUCUN trou
+// AUTO-VÉRIFICATION v5.6.0 — 25 checks (T25 attribution modèle)
 // ============================================================
 (function () {
 'use strict';
-var VERSION = '5.5.1-full';
+var VERSION = '5.6.0-model-engines';
 var bootErrors = [];
 window.addEventListener('error', function (e) { bootErrors.push(e.message); });
 function $(id) { return document.getElementById(id); }
@@ -249,7 +228,6 @@ var results = [];
 function check(name, ok, detail) { results.push({ name: name, ok: ok ? 'pass' : 'fail', detail: detail || '' }); return !!ok; }
 async function typeSearch(q) { var i = $('searchInput'); i.value = q; i.dispatchEvent(new Event('input', { bubbles: true })); await sleep(360); }
 async function waitBoot() { for (var i = 0; i < 60; i++) { if (($('ficheCount').textContent || '').trim() !== '—') return true; await sleep(100); } return false; }
-
 async function run() {
   results.length = 0;
   var t0 = performance.now();
@@ -334,9 +312,11 @@ async function run() {
   var coherenceOk = false, det24 = '';
   if (DA && typeof DA.validateEngines === 'function') { var val = DA.validateEngines(); coherenceOk = val.ok; det24 = val.detail || (val.ok ? 'OK' : 'échec'); } else det24 = 'validateEngines() absent';
   check('T24 · Cohérence — motorisations RÉELLES par constructeur', coherenceOk, det24);
+  var attrOk = false, det25 = '';
+  if (DA && typeof DA.validateModelEngines === 'function') { var v25 = DA.validateModelEngines(); attrOk = v25.ok; det25 = v25.detail || (v25.ok ? 'OK' : 'échec'); } else det25 = 'validateModelEngines() absent';
+  check('T25 · Attribution — motorisation CORRECTE par modèle (Elroq=EV…)', attrOk, det25);
   render(Math.round(performance.now() - t0));
 }
-
 function render(dt) {
   var pass = results.filter(function (r) { return r.ok === 'pass'; }).length;
   var fail = results.length - pass;
