@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="diagauto-version" content="5.7.1-fix">
+<meta name="diagauto-version" content="5.8.0-fullcheck">
 <title>DiagAuto Pro — Mes réponses techniques</title>
 <style>
   :root{--bg:#0b1220;--panel:#101a2c;--card:#16233a;--border:#22344f;--txt:#e5eefb;--muted:#8fa3bf;--blue:#3b82f6;--green:#22c55e;--red:#ef4444}
@@ -92,7 +92,7 @@
     <div class="logo">🔧</div>
     <div class="titles">
       <h1>DiagAuto Pro — Mes réponses techniques</h1>
-      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.7.1-fix (JLR + carburant 'all' corrigés)</p>
+      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.8.0-fullcheck (auto-vérification TOTALE 30 checks)</p>
     </div>
     <div class="hbtns">
       <span class="netbadge" id="netBadge">En ligne • 4G/5G</span>
@@ -120,7 +120,7 @@
       <button class="pill" data-orig="us">US Américaines</button>
     </div>
     <div class="searchwrap">
-      <input type="text" id="searchInput" autocomplete="off" placeholder="Tapez : defender 2.0 ingenium • range rover sport v8 • discovery p400e • 3008 1.5 • skoda elroq…">
+      <input type="text" id="searchInput" autocomplete="off" placeholder="Tapez : defender 2.0 ingenium • range rover sport v8 • 3008 1.5 • skoda elroq • fap • p0016…">
       <div class="sugg" id="suggBox"></div>
     </div>
     <div class="examples" id="examples">
@@ -179,7 +179,7 @@
 
   <div class="tabcontent" id="tab-admin">
     <div class="section" id="selftestPanel">
-      <h3>🧪 Auto-vérification (mode ingénieur) <span style="color:var(--muted);font-weight:400;font-size:12px" id="stTime"></span></h3>
+      <h3>🧪 Auto-vérification TOTALE (mode ingénieur) <span style="color:var(--muted);font-weight:400;font-size:12px" id="stTime"></span></h3>
       <div class="stsummary" id="stSummary">⏳ En attente d'exécution…</div>
       <table class="sttable">
         <thead><tr><th style="width:34px">✓</th><th style="width:380px">Check</th><th>Détail</th></tr></thead>
@@ -199,7 +199,7 @@
     </div>
     <div class="importbox">
       <h3>📥 Import Base Massive INTÉGRALE</h3>
-      <p>Base embarquée : <b>toutes marques · Land Rover &amp; Range Rover massifs · attribution énergie réelle · carburant 'all' = multi-énergie</b> + fusion distante <b>appli-aide-technique</b> (S1/S2/S3) + sauvegarde locale IndexedDB persistante.</p>
+      <p>Base embarquée : <b>toutes marques · Land Rover &amp; Range Rover massifs · attribution énergie réelle · JLR Ingenium/V6/V8/PHEV</b> + fusion distante <b>appli-aide-technique</b> (S1/S2/S3) + sauvegarde locale IndexedDB persistante (meta.gen).</p>
       <input type="text" value="https://expertkevin06-cell.github.io/appli-aide-technique/" readonly style="background:#0b1626;color:var(--muted)">
       <div class="barwrap"><div id="importBar" class="barfill"></div></div>
       <button class="btn btn-green" id="btnImportMassive">🚀 Importer TOUTE la base (embarquée + distante)</button>
@@ -218,7 +218,7 @@
     <div class="section">
       <h3>🔄 Mise à jour</h3>
       <div class="grid">
-        <div class="icard"><h4>Version app</h4>5.7.1-fix</div>
+        <div class="icard"><h4>Version app</h4>5.8.0-fullcheck</div>
         <div class="icard"><h4>Version données</h4><span id="dataVersion">1 (local)</span></div>
         <div class="icard"><h4>Génération base</h4><span id="genVersion">—</span></div>
         <div class="icard"><h4>Fiches en base</h4><span id="ficheCount">—</span></div>
@@ -232,17 +232,19 @@
     </div>
   </div>
 
-  <footer>DiagAuto Pro © 2026 — v5.7.1-fix — carburant 'all' multi-énergie + validatePool corrigés · auto-vérification 26 checks</footer>
+  <footer>DiagAuto Pro © 2026 — v5.8.0-fullcheck — validatePool normalisé + raisons d'échec · auto-vérification TOTALE 30 checks</footer>
 </div>
 
-<script src="import-base-massive.js?v=9.6.0-fix"></script>
+<script src="import-base-massive.js?v=9.7.0-fullcheck"></script>
 <script>
 // ============================================================
-// AUTO-VÉRIFICATION — v5.7.1 — 26 checks
+// AUTO-VÉRIFICATION TOTALE — v5.8.0 — 30 checks
+// (T1-T26 historiques + T27 persistance meta.gen + T28 API search
+//  + T29 prédictif organes + T30 filtre origine API)
 // ============================================================
 (function () {
 'use strict';
-var VERSION = '5.7.1-fix';
+var VERSION = '5.8.0-fullcheck';
 var bootErrors = [];
 window.addEventListener('error', function (e) { bootErrors.push(e.message); });
 function $(id) { return document.getElementById(id); }
@@ -326,9 +328,16 @@ async function run() {
   await typeSearch('1.5 130');
   check('T21 · Moteur — recherche puissance "1.5 130"', /130 ch/i.test($('resultsBox').textContent), $('resultsBox').textContent.trim().slice(0, 90));
   await typeSearch('');
+
+  // T22 CORRIGÉ : raisons d'échec exposées via validatePoolDetail
   var pool = window.__ALL_FICHES || (DA && DA.FICHES) || null;
-  var poolOk = !!pool && !!DA && typeof DA.validatePool === 'function' && DA.validatePool(pool);
-  check('T22 · Chargement — pool actif valide (génération courante)', poolOk, pool ? (pool.length + ' fiches chargées · gen ' + (DA.GEN || '?')) : 'pool absent');
+  var vd = null;
+  if (pool && DA) {
+    vd = (typeof DA.validatePoolDetail === 'function') ? DA.validatePoolDetail(pool) : { ok: (typeof DA.validatePool === 'function' ? DA.validatePool(pool) : false), reasons: ['validatePoolDetail absent'] };
+  }
+  check('T22 · Chargement — pool actif valide (génération courante)', !!(vd && vd.ok),
+        pool ? (pool.length + ' fiches · gen ' + (DA.GEN || '?') + ((vd && vd.ok) ? '' : ' · échecs : ' + (vd.reasons || []).slice(0, 6).join(', '))) : 'pool absent');
+
   await typeSearch('skoda elroq');
   var t23 = $('resultsBox').textContent, t23det = $('detectBox').textContent;
   check('T23 · Modèles 2024-2026 — "skoda elroq" trouvé + détecté', /elroq/i.test(t23) && /Škoda/i.test(t23det || ''), 'détection : ' + (t23det || '(vide)') + ' · résultats : ' + t23.trim().slice(0, 100));
@@ -375,6 +384,34 @@ async function run() {
   check('T26b · JLR — Range Rover Sport V8 / P400e / SDV6 présents',
         hasRRV8 && hasP400e && hasSDV6,
         'V8 : ' + (hasRRV8 ? '✓' : '✗') + ' · P400e : ' + (hasP400e ? '✓' : '✗') + ' · SDV6 : ' + (hasSDV6 ? '✓' : '✗'));
+
+  // T27 — Persistance locale : meta.gen === génération courante
+  var metaGen = null;
+  try {
+    var dd = await new Promise(function (res, rej) { var r = indexedDB.open('DiagAutoDB'); r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); }; });
+    metaGen = await new Promise(function (res) {
+      try { var q = dd.transaction('meta', 'readonly').objectStore('meta').get('gen'); q.onsuccess = function () { res(q.result ? q.result.gen : null); }; q.onerror = function () { res(null); }; }
+      catch (e) { res(null); }
+    });
+    dd.close();
+  } catch (e) { metaGen = null; }
+  check('T27 · Persistance — meta.gen = génération courante (sauvegarde locale)', metaGen !== null && DA && metaGen === DA.GEN, 'meta.gen=' + metaGen + ' · DA.GEN=' + (DA ? DA.GEN : '?'));
+
+  // T28 — API search fonctionnelle
+  var sr = (DA && typeof DA.search === 'function') ? DA.search('fap', 'toutes') : null;
+  check('T28 · API — search("fap") retourne résultats', !!sr && sr.results && sr.results.length > 0, sr ? sr.results.length + ' résultats' : 'API absente');
+
+  // T29 — Prédictif organe "fap"
+  await typeSearch('fap');
+  var s29 = $('suggBox').textContent;
+  check('T29 · Prédictif organe — "fap" suggère FAP', /filtre à particules/i.test(s29) || /fap/i.test(s29), s29.trim().slice(0, 80));
+  await typeSearch('');
+
+  // T30 — Filtre origine via API
+  var r30 = (DA && typeof DA.search === 'function') ? DA.search('3008 1.5', 'fr') : null;
+  var ok30 = !!r30 && r30.results && r30.results.length > 0 && r30.results.every(function (x) { return !x.f._orig || x.f._orig === 'fr'; });
+  check('T30 · Filtre origine API — "fr" ne retourne que FR/génériques', ok30, r30 ? r30.results.length + ' résultats filtrés' : 'API absente');
+
   render(Math.round(performance.now() - t0));
 }
 
@@ -386,7 +423,7 @@ function render(dt) {
   s.style.borderLeftColor = fail ? '#ef4444' : '#22c55e';
   $('stTable').innerHTML = results.map(function (r) { return '<tr><td>' + (r.ok === 'pass' ? '✅' : '❌') + '</td><td>' + r.name + '</td><td style="color:#8fa3bf">' + r.detail + '</td></tr>'; }).join('');
   $('stTime').textContent = '· ' + new Date().toLocaleTimeString('fr-FR');
-  console.group('%c DiagAuto Pro · Auto-vérification v' + VERSION + ' ', 'background:#16a34a;color:#fff;border-radius:3px');
+  console.group('%c DiagAuto Pro · Auto-vérification TOTALE v' + VERSION + ' ', 'background:#16a34a;color:#fff;border-radius:3px');
   console.table(results); console.groupEnd();
   var b = $('bootError');
   if (fail > 0) { b.style.display = 'block'; b.innerHTML = '⚠️ Auto-vérification : ' + fail + ' check(s) en échec — voir Admin → Auto-vérification.'; }
