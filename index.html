@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="diagauto-version" content="5.7.0-jlr">
+<meta name="diagauto-version" content="5.7.1-fix">
 <title>DiagAuto Pro — Mes réponses techniques</title>
 <style>
   :root{--bg:#0b1220;--panel:#101a2c;--card:#16233a;--border:#22344f;--txt:#e5eefb;--muted:#8fa3bf;--blue:#3b82f6;--green:#22c55e;--red:#ef4444}
@@ -92,7 +92,7 @@
     <div class="logo">🔧</div>
     <div class="titles">
       <h1>DiagAuto Pro — Mes réponses techniques</h1>
-      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.7.0-jlr (Land Rover / Range Rover intégrés)</p>
+      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.7.1-fix (JLR + carburant 'all' corrigés)</p>
     </div>
     <div class="hbtns">
       <span class="netbadge" id="netBadge">En ligne • 4G/5G</span>
@@ -120,7 +120,7 @@
       <button class="pill" data-orig="us">US Américaines</button>
     </div>
     <div class="searchwrap">
-      <input type="text" id="searchInput" autocomplete="off" placeholder="Tapez : defender 2.0 ingenium • range rover v8 • discovery p400e • 2.0 ingenium chaine • range rover sport…">
+      <input type="text" id="searchInput" autocomplete="off" placeholder="Tapez : defender 2.0 ingenium • range rover sport v8 • discovery p400e • 3008 1.5 • skoda elroq…">
       <div class="sugg" id="suggBox"></div>
     </div>
     <div class="examples" id="examples">
@@ -135,7 +135,7 @@
     <div class="respanel">
       <div class="reshead">🤖 Réponse automatisée &amp; résultats <span class="count" id="resCount"></span></div>
       <div id="detectBox"></div>
-      <div id="resultsBox"><div class="empty">Tapez un mot-clé : marque, modèle, motorisation, puissance, organe (courroie, fap, egr…), symptôme ou code DTC.</div></div>
+      <div id="resultsBox"><div class="empty">Tapez un mot-clé : marque, modèle, motorisation, puissance, organe (courroie, fap, egr, ingenium…), symptôme ou code DTC.</div></div>
     </div>
   </div>
 
@@ -199,7 +199,7 @@
     </div>
     <div class="importbox">
       <h3>📥 Import Base Massive INTÉGRALE</h3>
-      <p>Base embarquée : <b>toutes marques · Land Rover &amp; Range Rover (tous modèles, Ingenium, V6/V8, P400e, PHEV) · attribution énergie par modèle</b> + fusion distante <b>appli-aide-technique</b> (S1/S2/S3).</p>
+      <p>Base embarquée : <b>toutes marques · Land Rover &amp; Range Rover massifs · attribution énergie réelle · carburant 'all' = multi-énergie</b> + fusion distante <b>appli-aide-technique</b> (S1/S2/S3) + sauvegarde locale IndexedDB persistante.</p>
       <input type="text" value="https://expertkevin06-cell.github.io/appli-aide-technique/" readonly style="background:#0b1626;color:var(--muted)">
       <div class="barwrap"><div id="importBar" class="barfill"></div></div>
       <button class="btn btn-green" id="btnImportMassive">🚀 Importer TOUTE la base (embarquée + distante)</button>
@@ -218,7 +218,7 @@
     <div class="section">
       <h3>🔄 Mise à jour</h3>
       <div class="grid">
-        <div class="icard"><h4>Version app</h4>5.7.0-jlr</div>
+        <div class="icard"><h4>Version app</h4>5.7.1-fix</div>
         <div class="icard"><h4>Version données</h4><span id="dataVersion">1 (local)</span></div>
         <div class="icard"><h4>Génération base</h4><span id="genVersion">—</span></div>
         <div class="icard"><h4>Fiches en base</h4><span id="ficheCount">—</span></div>
@@ -232,17 +232,17 @@
     </div>
   </div>
 
-  <footer>DiagAuto Pro © 2026 — v5.7.0-jlr — Land Rover + Range Rover massifs · attribution réelle · auto-vérification 26 checks</footer>
+  <footer>DiagAuto Pro © 2026 — v5.7.1-fix — carburant 'all' multi-énergie + validatePool corrigés · auto-vérification 26 checks</footer>
 </div>
 
-<script src="import-base-massive.js?v=9.5.0-jlr"></script>
+<script src="import-base-massive.js?v=9.6.0-fix"></script>
 <script>
 // ============================================================
-// AUTO-VÉRIFICATION — v5.7.0 — 26 checks (T26 JLR dédié)
+// AUTO-VÉRIFICATION — v5.7.1 — 26 checks
 // ============================================================
 (function () {
 'use strict';
-var VERSION = '5.7.0-jlr';
+var VERSION = '5.7.1-fix';
 var bootErrors = [];
 window.addEventListener('error', function (e) { bootErrors.push(e.message); });
 function $(id) { return document.getElementById(id); }
@@ -357,8 +357,6 @@ async function run() {
         viol.length ? (viol.length + ' attributions impossibles : ' + viol.slice(0, 4).join(' | '))
                     : ('0 violation · 3008 diesel ✓ · 208 essence ✓ · Clio hybride ✓ · EV-only respectés'));
   await typeSearch('');
-
-  // T26 — JLR spécifique
   await typeSearch('defender 2.0 ingenium');
   var t26res = $('resultsBox').textContent, t26det = $('detectBox').textContent;
   check('T26 · JLR — "defender 2.0 ingenium" + pannes Ingenium',
@@ -377,7 +375,6 @@ async function run() {
   check('T26b · JLR — Range Rover Sport V8 / P400e / SDV6 présents',
         hasRRV8 && hasP400e && hasSDV6,
         'V8 : ' + (hasRRV8 ? '✓' : '✗') + ' · P400e : ' + (hasP400e ? '✓' : '✗') + ' · SDV6 : ' + (hasSDV6 ? '✓' : '✗'));
-
   render(Math.round(performance.now() - t0));
 }
 
