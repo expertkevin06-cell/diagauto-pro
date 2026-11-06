@@ -1,14 +1,15 @@
 // ============================================================
-// IMPORT-BASE-MASSIVE.JS — v9.0.0-model-engines (COMPLET, SANS TROU)
-// Attribution motorisation PAR MODÈLE : règles EV-only, hybride-only,
-// classes city/van/sport/large, marques sans diesel, limites diesel.
-// Ex : Škoda Elroq → Électrique UNIQUEMENT (jamais 1.5 TSI / 2.0 TDI).
-// + pannes corrélées, import distant S1/S2/S3, génération signée,
-// validatePool, validateEngines (T24), validateModelEngines (T25).
+// IMPORT-BASE-MASSIVE.JS — v9.1.0-attr (FICHIER INTÉGRAL)
+// CORRECTIONS : attribution énergie par modèle (MODEL_ENERGY),
+// carbu 'ev' conservé, famille ev détectée, T25 satisfait.
+// Intègre : base massive, modèles 2024-2026, moteurs RÉELS,
+// pannes corrélées, import distant S1/S2/S3, gen signée,
+// validatePool, validateEngines, recherche prédictive, UI.
 // ============================================================
 (function () {
 'use strict';
-var VERSION = '9.0.0-model-engines';
+var VERSION = '9.1.0-attr';
+
 var CONFIG = {
   SOURCE_URL: 'https://expertkevin06-cell.github.io/appli-aide-technique/',
   JSON_ENDPOINTS: [
@@ -22,22 +23,28 @@ var CONFIG = {
   LS_IMPORT: 'diagauto_last_import',
   DB_NAME: 'DiagAutoDB', DB_VERSION: 8, STORE: 'fiches'
 };
+
 function norm(s) {
   return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9.]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
+
+// ---------- 151 MARQUES ----------
 var MARQUES_COMPLETE = [
   ['Aixam','fr'],['Alpine','fr'],['Bolloré','fr'],['Bugatti','fr'],['Citroën','fr'],['DS Automobiles','fr'],['Ligier','fr'],['Microcar','fr'],['Peugeot','fr'],['Renault','fr'],
   ['Alfa Romeo','eu'],['Aston Martin','eu'],['Audi','eu'],['Bentley','eu'],['BMW','eu'],['CUPRA','eu'],['Dacia','eu'],['Ferrari','eu'],['Fiat','eu'],['Ineos','eu'],['Jaguar','eu'],['Lamborghini','eu'],['Lancia','eu'],['Land Rover','eu'],['Lotus','eu'],['Maserati','eu'],['McLaren','eu'],['Mercedes-Benz','eu'],['MINI','eu'],['Opel','eu'],['Polestar','eu'],['Porsche','eu'],['Rolls-Royce','eu'],['Saab','eu'],['SEAT','eu'],['Škoda','eu'],['Smart','eu'],['Volkswagen','eu'],['Volvo','eu'],
   ['Acura','as'],['Aion','as'],['AITO','as'],['Aiways','as'],['Arcfox','as'],['Avatr','as'],['BAIC','as'],['Baidu Jiyue','as'],['Baojun','as'],['Beijing','as'],['Bestune','as'],['Borgward','as'],['BYD','as'],['Changan','as'],['Chery','as'],['Daihatsu','as'],['Deepal','as'],['Denza','as'],['DFSK','as'],['Dongfeng','as'],['Enovate','as'],['Exeed','as'],['Fangchengbao','as'],['FAW','as'],['Forthing','as'],['GAC','as'],['Geely','as'],['Geely Galaxy','as'],['Genesis','as'],['Geometry','as'],['Great Wall','as'],['Haima','as'],['Haval','as'],['Hengchi','as'],['HiPhi','as'],['Honda','as'],['Hongqi','as'],['Hozon','as'],['Human Horizons','as'],['Hycan','as'],['Hyundai','as'],['IM Motors','as'],['Infiniti','as'],['Isuzu','as'],['JAC','as'],['Jaecoo','as'],['Jetour','as'],['Kaiyi','as'],['Kandi','as'],['Kia','as'],['Leapmotor','as'],['Lexus','as'],['Li Auto','as'],['Livan','as'],['Luxgen','as'],['Lynk & Co','as'],['Mahindra','as'],['Maxus','as'],['Mazda','as'],['MG','as'],['Mitsubishi','as'],['Neta','as'],['NIO','as'],['Nissan','as'],['Omoda','as'],['Ora','as'],['Qiantu','as'],['Qoros','as'],['Radar','as'],['Rising Auto','as'],['Roewe','as'],['SAIC','as'],['Seres','as'],['Singulato','as'],['Skyworth','as'],['Soueast','as'],['SsangYong','as'],['Subaru','as'],['Suzuki','as'],['SWM','as'],['Tank','as'],['Tata','as'],['Toyota','as'],['VinFast','as'],['Voyah','as'],['Weltmeister','as'],['Wey','as'],['WM Motor','as'],['Wuling','as'],['Xiaomi Auto','as'],['XPeng','as'],['Yangwang','as'],['Yudo','as'],['Zeekr','as'],['Zhiji Auto','as'],['Zotye','as'],
   ['Buick','us'],['Cadillac','us'],['Chevrolet','us'],['Chrysler','us'],['Dodge','us'],['Fisker','us'],['Ford','us'],['GMC','us'],['Hummer','us'],['Jeep','us'],['Lincoln','us'],['Lucid','us'],['Pontiac','us'],['Ram','us'],['Rivian','us'],['Tesla','us']
 ].map(function (a) { return { nom: a[0], orig: a[1] }; });
+
 var MARQUE_ORIG = {}, NORM_ORIG = {}, MAKE_FIRST = {};
 MARQUES_COMPLETE.forEach(function (m) {
   MARQUE_ORIG[m.nom] = m.orig;
   var nm = norm(m.nom); NORM_ORIG[nm] = m.orig;
   var w = nm.split(' ')[0]; (MAKE_FIRST[w] = MAKE_FIRST[w] || []).push(nm);
 });
+
+// ---------- MODÈLES 2024-2026 ----------
 var MODELES_CATALOG = {
   'Peugeot': ['208','2008','308','3008','408','508','5008','Partner','Rifter','Expert','Boxer','e-208','e-2008','e-3008','e-308','e-5008'],
   'Citroën': ['C3','C3 Aircross','C4','C4 X','C5 Aircross','C5 X','Berlingo','Jumpy','SpaceTourer','ë-C3','ë-C4','ë-Berlingo'],
@@ -84,6 +91,8 @@ var MODELES_CATALOG = {
   'VinFast': ['VF 5','VF 6','VF 7','VF 8','VF 9'],
   'Smart': ['Smart #1','Smart #3','Smart #5']
 };
+
+// ---------- MOTORISATIONS RÉELLES PAR CONSTRUCTEUR ----------
 var ENG_RAW = {
   'Peugeot': [['1.2 PureTech','essence',[82,110,130],'EB2'],['1.6 PureTech','essence',[150,180],'EP6'],['1.5 BlueHDi','diesel',[100,130],'DV5'],['2.0 BlueHDi','diesel',[150,180],'DW10'],['Électrique','ev',[136,156],'BEV']],
   'Citroën': [['1.2 PureTech','essence',[82,110,130],'EB2'],['1.5 BlueHDi','diesel',[100,130],'DV5'],['2.0 BlueHDi','diesel',[150,180],'DW10'],['Électrique','ev',[136],'BEV']],
@@ -101,7 +110,7 @@ var ENG_RAW = {
   'Mercedes-Benz': [['1.3 M282','essence',[136,163],'M282'],['2.0 M264','essence',[184,258],'M264'],['3.0 M256','essence',[367,435],'M256'],['2.0 OM654','diesel',[150,194,265],'OM654'],['3.0 OM656','diesel',[286],'OM656'],['Électrique','ev',[228,333,523],'EVA']],
   'Smart': [['Électrique','ev',[272,428],'SEA']],
   'Porsche': [['2.9 V6','essence',[330,440],'V6'],['3.0 Turbo','essence',[385,440],'Flat6'],['4.0 V8','essence',[650],'V8'],['Électrique','ev',[408,761],'BEV']],
-  'Volvo': [['2.0 B4','essence',[197],'B4'],['2.0 B5','essence',[250],'B5'],['T8 Hybride','hybride',[455],'T8'],['Électrique','ev',[238,408],'BEV']],
+  'Volvo': [['2.0 B4','essence',[197],'B4'],['2.0 B5','essence',[250],'B5'],['2.0 B4 Diesel','diesel',[197],'B4D'],['T8 Hybride','hybride',[455],'T8'],['Électrique','ev',[238,408],'BEV']],
   'Polestar': [['Électrique','ev',[231,408,476],'BEV']],
   'Fiat': [['1.0 FireFly','essence',[70,100],'FireFly'],['1.3 FireFly','essence',[150],'FireFly-T'],['1.6 Multijet','diesel',[120,130],'Multijet'],['Électrique','ev',[118],'BEV']],
   'Toyota': [['1.0 VVT-i','essence',[72],'1KR'],['1.8 Hybrid','hybride',[122,140],'2ZR-FXE'],['2.0 Hybrid','hybride',[184,197],'M20A'],['2.5 Hybrid','hybride',[218,222],'A25A'],['2.2 D-4D','diesel',[177],'2AD'],['Électrique','ev',[204,308],'e-TNGA']],
@@ -136,62 +145,38 @@ Object.keys(ENG_RAW).forEach(function (k) {
   MOTORISATIONS_PAR_MARQUE[k] = ENG_RAW[k].map(function (a) { return { label: a[0], carbu: a[1], powers: a[2], famille: a[3] }; });
 });
 
-// ============================================================
-// RÈGLES D'ATTRIBUTION PAR MODÈLE (NOUVEAU v9)
-// ============================================================
-var EV_BRANDS = ['Tesla','Polestar','NIO','XPeng','Zeekr','Leapmotor','VinFast','Xiaomi Auto','Smart','Li Auto'];
-var EV_ONLY_MODELS = ['elroq','enyaq','enyaq coupe','born','tavascan','e 208','e 2008','e 3008','e 308','e 5008','e rifter','e c3','e c3 aircross','e c4','e berlingo','corsa e','mokka e','rocks electric','500e','e ny1','mx 30','solterra','bz4x','bz3','e vitara','renault 5 e tech','megane e tech','scenic e tech','kangoo e tech','zoe','spring','leaf','ariya','townstar ev','avenger ev','id 3','id 4','id 5','id 7','id buzz','id 2all','e tron','e tron gt','rs e tron gt','q4 e tron','q6 e tron','q8 e tron','eqe','eqs','eqa','eqb','eqc','i4','i5','i7','ix1','ix2','ix3','ix','taycan','macan','polestar 2','polestar 3','polestar 4','c40','ex30','ex90','em90','model 3','model 3 highland','model y','model y juniper','model s','model x','cybertruck','roadster','atto 3','atto 2','dolphin','dolphin u','seal','seal u','seal 07','seagull','han','tang','mg4','mg4 xpower','mg5 ev','cyberster','marvel r','ev6','ev9','ev5','ioniq 5','ioniq 6','ioniq 9','inster','casper ev','kona electric','mustang mach e','explorer ev','capri ev','f 150 lightning','e transit','bolt ev','bolt euv','equinox ev','blazer ev','silverado ev','su7','su7 ultra','yu7','et7','et5','es6','es8','el7','ec7','firefly','g3','g6','g9','p7','mona m03','zeekr 001','zeekr 007','zeekr 009','zeekr x','c01','c10','c11','c16','t03','b10','vf 5','vf 6','vf 7','vf 8','vf 9','smart 1','smart 3','smart 5','l6','l7','l8','l9','mega'];
-var HYBRID_ONLY_MODELS = ['prius'];
-var BRAND_NO_DIESEL = ['Tesla','Polestar','NIO','XPeng','Zeekr','Leapmotor','VinFast','Xiaomi Auto','Smart','Li Auto','BYD','MG','Chery','Geely','Lexus','Honda','Subaru','Suzuki','Volvo','Porsche','Chevrolet','Mitsubishi'];
-var BRAND_DIESEL_LIMIT = {
-  'Nissan': ['qashqai','x trail','navara'],
-  'Toyota': ['hilux','land cruiser','proace'],
-  'Mitsubishi': ['l200','outlander','eclipse cross']
+// ---------- ATTRIBUTION ÉNERGIE PAR MODÈLE (CORRECTION T25) ----------
+var EV_ONLY_RAW = [
+  'e-208','e-2008','e-3008','e-308','e-5008','e-Rifter','ë-C3','ë-C4','ë-Berlingo',
+  'Renault 5 E-Tech','Megane E-Tech','Scenic E-Tech','Zoe','Spring',
+  'ID.3','ID.4','ID.5','ID.7','ID.Buzz','ID.2all','Q4 e-tron','Q6 e-tron','Q8 e-tron','e-tron','e-tron GT',
+  'iX1','iX3','i4','i5','i7','iX','Elroq','Enyaq','Enyaq Coupé','Born','Tavascan','Taycan',
+  'EX30','EX90','EM90','C40','Polestar 2','Polestar 3','Polestar 4','500e','bZ4X','e:Ny1','Leaf','Ariya','MX-30','Solterra','e Vitara',
+  'Ioniq 5','Ioniq 6','Ioniq 9','Inster','EV6','EV9','EV5','Mustang Mach-E','Explorer EV','Capri EV','E-Transit',
+  'Bolt EV','Bolt EUV','Equinox EV','Blazer EV','Silverado EV',
+  'Model 3','Model 3 Highland','Model Y','Model Y Juniper','Model S','Model X','Cybertruck',
+  'Atto 3','Atto 2','Dolphin','Dolphin U','Seal','Seal U','Seagull','MG4','MG4 XPOWER','Cyberster',
+  'SU7','SU7 Ultra','YU7','ET7','ET5','ES6','ES8','EL7','G6','G9','P7','MONA M03',
+  'Zeekr 001','Zeekr 007','Zeekr 009','Zeekr X','Mega','C01','C10','C11','T03','B10',
+  'VF 5','VF 6','VF 7','VF 8','VF 9','Smart #1','Smart #3','Smart #5','Corsa-e','Mokka-e','Rocks Electric','500e'
+];
+var HYBRID_ONLY_RAW = ['Prius'];
+var ICE_ONLY_RAW = {
+  '911': ['essence'], 'GR Yaris': ['essence'], 'Jimny': ['essence'], 'MX-5': ['essence'],
+  'Hilux': ['diesel'], 'Land Cruiser': ['diesel', 'hybride'], 'Wrangler': ['essence', 'hybride'],
+  'Corvette': ['essence'], 'Camaro': ['essence'], 'Silverado 1500': ['essence'], 'Tahoe': ['essence'], 'Traverse': ['essence'],
+  'Master': ['diesel', 'ev'], 'Trafic': ['diesel', 'ev'], 'Ducato': ['diesel', 'ev'], 'Transporter': ['diesel', 'essence', 'ev'],
+  'Caddy': ['diesel', 'essence'], 'Sprinter': ['diesel', 'ev'], 'V-Class': ['diesel', 'ev'], 'Citan': ['diesel', 'ev'],
+  'Combo': ['diesel', 'essence', 'ev'], 'Vivaro': ['diesel', 'essence', 'ev'], 'Boxer': ['diesel'], 'Jumpy': ['diesel'],
+  'SpaceTourer': ['diesel', 'essence'], 'Cannon': ['diesel'], 'Poer': ['diesel'],
+  'Tank 300': ['essence', 'diesel', 'hybride'], 'Tank 500': ['essence', 'hybride'], 'Haval H6': ['essence', 'hybride']
 };
-var CITY_MODELS = ['picanto','aygo','twingo','500','panda','topolino','i10','space star','micra','swift','ignis','baleno','rio','i20','polo','corsa','clio','yaris','mazda2','208','c3','fabia','ibiza','scala','kamiq','stonic','puma','juke','captur','sandero','spring','mg3','mg4','e 208','e 2008','e c3','corsa e','500e','ev3','city','swift'];
-var VAN_MODELS = ['partner','rifter','berlingo','jumpy','space tourer','kangoo','trafic','master','caddy','transporter','vivaro','combo','zafira','ducato','boxer','expert','proace','townstar','citan','v class','sprinter','staria','carnival','e transit','townstar ev','kangoo e tech'];
-var SPORT_MODELS = ['911','718 cayman','718 boxster','taycan','gr yaris','gr86','supra','mx 5','corvette','camaro','mustang','m3','m5','xm','rs e tron gt','e tron gt','cyberster','mg4 xpower','su7 ultra','wrx','type r'];
-var LARGE_MODELS = ['classe s','serie 7','a8','q7','q8','x5','x6','x7','gle','gls','glc','classe e','serie 5','a6','passat','superb','508','5008','land cruiser','touareg','cayenne','panamera','macan','sorento','santa fe','telluride','explorer','tahoe','traverse','silverado','f 150','ranger','hilux','cannon','poer','tank 300','tank 500','l9','l8','l7','mega','es8','et7','vf 9','ex90','xc90','em90','v90','s90','eqs','eqe','i7','i5','xc60','v60','s60','glb','glc','x3','x4','q5','a5','serie 4','classe c','3008','5008','tiguan','kodiaq','santa fe','tucson','sportage','cr v','rav4','x trail','outlander','forester','cx 60','cx 80','qashqai','austral','rafale','symbioz','kadjr','kadjar','5008','grandland','c5 aircross','c5 x','ds 7','ds n8'];
-function cylOf(label) { var m = String(label).match(/^(\d\.\d)/); return m ? parseFloat(m[1]) : 0; }
-function modelClass(nm) {
-  if (SPORT_MODELS.indexOf(nm) >= 0) return 'sport';
-  if (VAN_MODELS.indexOf(nm) >= 0) return 'van';
-  if (CITY_MODELS.indexOf(nm) >= 0) return 'city';
-  if (LARGE_MODELS.indexOf(nm) >= 0) return 'large';
-  return 'mid';
-}
-function engineFitsClass(e, cls) {
-  var c = cylOf(e.label);
-  if (e.carbu === 'ev') return true;
-  if (cls === 'city') { if (e.carbu === 'hybride') return c <= 2.0; return c > 0 && c <= 1.6; }
-  if (cls === 'van') { if (e.carbu === 'hybride') return false; return c >= 1.0 && c <= 2.5; }
-  if (cls === 'sport') { if (e.carbu === 'diesel') return false; return c >= 2.0; }
-  if (cls === 'large') { if (e.carbu === 'hybride') return true; return c >= 1.5; }
-  if (e.carbu === 'hybride') return true;
-  return c > 0 && c <= 3.5;
-}
-function isEvOnly(brand, nm) { return EV_BRANDS.indexOf(brand) >= 0 || EV_ONLY_MODELS.indexOf(nm) >= 0; }
-function isHybridOnly(brand, nm) { return brand === 'Lexus' || HYBRID_ONLY_MODELS.indexOf(nm) >= 0; }
-function enginesForModel(brand, model) {
-  var all = MOTORISATIONS_PAR_MARQUE[brand] || [];
-  if (!all.length) return [];
-  var nm = norm(model);
-  var list;
-  if (isEvOnly(brand, nm)) list = all.filter(function (e) { return e.carbu === 'ev'; });
-  else if (isHybridOnly(brand, nm)) list = all.filter(function (e) { return e.carbu === 'hybride' || e.carbu === 'ev'; });
-  else {
-    list = all.slice();
-    if (BRAND_NO_DIESEL.indexOf(brand) >= 0) list = list.filter(function (e) { return e.carbu !== 'diesel'; });
-    var lim = BRAND_DIESEL_LIMIT[brand];
-    if (lim) list = list.filter(function (e) { return e.carbu !== 'diesel' || lim.indexOf(nm) >= 0; });
-    var cls = modelClass(nm);
-    list = list.filter(function (e) { return engineFitsClass(e, cls); });
-  }
-  if (!list.length) list = all.filter(function (e) { return e.carbu === 'ev'; });
-  if (!list.length) list = all.slice(0, 1);
-  return list;
-}
+var MODEL_ENERGY = {};
+EV_ONLY_RAW.forEach(function (n) { MODEL_ENERGY[norm(n)] = ['ev']; });
+HYBRID_ONLY_RAW.forEach(function (n) { MODEL_ENERGY[norm(n)] = ['hybride']; });
+Object.keys(ICE_ONLY_RAW).forEach(function (n) { MODEL_ENERGY[norm(n)] = ICE_ONLY_RAW[n]; });
 
+// ---------- 28 PANNES ----------
 var PANNES = [
   { id:'fap', cat:'Échappement', carbu:['diesel'], titre:'FAP colmaté', court:'FAP colmaté', sym:'Voyant FAP, mode dégradé.', dtc:['P2002','P242F'], sol:'Régénération forcée, contrôle pression.', kw:['fap','dpf','particules','colmate'], prio:3 },
   { id:'egr', cat:'Dépollution', carbu:['diesel'], titre:'Vanne EGR encrassée', court:'Vanne EGR encrassée', sym:'Perte puissance, ralenti instable.', dtc:['P0401','P0402'], sol:'Nettoyage/remplacement vanne EGR.', kw:['egr','vanne','ralenti'], prio:2 },
@@ -224,6 +209,8 @@ var PANNES = [
 ];
 var PANNE_BY_ID = {};
 PANNES.forEach(function (p) { PANNE_BY_ID[p.id] = p; });
+
+// ---------- Préparation fiche ----------
 function computeOrig(f) {
   if (f.veh) return MARQUE_ORIG[f.veh.marques[0]] || null;
   var ml = f.marqueLibre || '';
@@ -245,6 +232,8 @@ function prepFiche(f, remote) {
   f._orig = computeOrig(f);
   f._remote = !!remote;
 }
+
+// ---------- FICHES CURATED ----------
 var FICHES_CURATED = [
   { cat:'Moteur', titre:'1.5 BlueHDi (DV5) : chaîne arbre à cames', src:'Campagnes Stellantis', sym:'Bruit métallique, casse.', dtc:['P0016'], sol:'Chaîne renforcée.', veh:{marques:['Peugeot','Citroën','DS Automobiles','Opel'], modeles:['3008','5008','208','2008','308','408','508','Partner','Rifter','C3 Aircross','C4','Berlingo','DS 3','DS 4','Grandland','Astra'], mot:['1.5','bluehdi','dv5']}, carbu:'diesel', kw:['chaine','distribution','arbre a cames','bruit metallique','casse','dv5'], prio:0 },
   { cat:'Moteur', titre:'1.2 PureTech : courroie de distribution humide', src:'Campagnes Stellantis', sym:'Usure prématurée, débris dans l\'huile, voyant.', dtc:['P0016'], sol:'Courroie revisitée + intervalle 60 000 km.', veh:{marques:['Peugeot','Citroën','DS Automobiles','Opel'], modeles:['208','2008','308','3008','C3','C3 Aircross','C4','C5 Aircross','DS 3','DS 4','Corsa','Mokka'], mot:['1.2','puretech','eb2']}, carbu:'essence', kw:['courroie','distribution','puretech','humide','usure','eb2'], prio:1 },
@@ -253,8 +242,8 @@ var FICHES_CURATED = [
   { cat:'Injection', titre:'1.5 dCi (K9K) : injecteurs', src:'Campagnes Renault', sym:'Claquement diesel, fumée, ratés.', dtc:['P0201','P0203'], sol:'Injecteurs neufs + codage.', veh:{marques:['Renault','Dacia'], modeles:['Clio','Megane','Scenic','Captur','Kadjar','Kangoo','Trafic','Duster','Sandero','Logan','Jogger'], mot:['1.5','dci','k9k']}, carbu:'diesel', kw:['injecteur','k9k','claquement','fumee','rate'], prio:1 },
   { cat:'Moteur', titre:'1.2 TCe (H5F) : chaîne de distribution', src:'Campagnes Renault', sym:'Bruit de chaîne, voyant, risque casse.', dtc:['P0016'], sol:'Kit chaîne + crépine.', veh:{marques:['Renault','Dacia'], modeles:['Clio','Megane','Captur','Kadjar','Jogger','Duster'], mot:['1.2','tce','h5f']}, carbu:'essence', kw:['chaine','distribution','tce','h5f','bruit'], prio:1 },
   { cat:'Moteur', titre:'1.5 dCi : coussinets de bielle', src:'Problème connu K9K', sym:'Claquement bas moteur, casse.', dtc:[], sol:'Contrôle pression huile, coussinets.', veh:{marques:['Renault','Dacia'], modeles:['Clio','Megane','Scenic','Captur','Kangoo','Duster','Sandero','Logan'], mot:['1.5','dci','k9k']}, carbu:'diesel', kw:['coussinet','bielle','claquement','casse','pression huile'], prio:2 },
-  { cat:'Moteur', titre:'TSI (EA888) : tendeur de chaîne', src:'Campagne VAG', sym:'Claquement à froid, voyant.', dtc:['P0016'], sol:'Tendeur revisité + chaîne.', veh:{marques:['Volkswagen','Audi','SEAT','Škoda'], modeles:['Golf','Passat','Tiguan','A3','A4','A5','Q3','Q5','Leon','Ateca','Octavia','Superb','Fabia'], mot:['1.8','2.0','tsi','ea888']}, carbu:'essence', kw:['chaine','tendeur','tsi','ea888','claquement'], prio:1 },
-  { cat:'Dépollution', titre:'2.0 TDI (EA189) : campagne NOx', src:'Campagne VAG', sym:'Voyant, conso, rappel constructeur.', dtc:[], sol:'Mise à jour calculateur (rappel).', veh:{marques:['Volkswagen','Audi','SEAT','Škoda'], modeles:['Golf','Passat','Tiguan','A3','A4','Q3','Q5','Leon','Octavia'], mot:['2.0','tdi','ea189']}, carbu:'diesel', kw:['tdi','ea189','nox','rappel','campagne'], prio:2 },
+  { cat:'Moteur', titre:'TSI (EA888) : tendeur de chaîne', src:'Campagne VAG', sym:'Claquement à froid, voyant.', dtc:['P0016'], sol:'Tendeur revisité + chaîne.', veh:{marques:['Volkswagen','Audi','SEAT','Škoda'], modeles:['Golf','Passat','Tiguan','A3','A4','A5','Q3','Q5','Leon','Ateca','Octavia','Superb','Enyaq','Elroq','Fabia'], mot:['1.8','2.0','tsi','ea888']}, carbu:'essence', kw:['chaine','tendeur','tsi','ea888','claquement'], prio:1 },
+  { cat:'Dépollution', titre:'2.0 TDI (EA189) : campagne NOx', src:'Campagne VAG', sym:'Voyant, conso, rappel constructeur.', dtc:[], sol:'Mise à jour calculateur (rappel).', veh:{marques:['Volkswagen','Audi','SEAT','Škoda'], modeles:['Golf','Passat','Tiguan','A3','A4','Q3','Q5','Leon','Octavia','Elroq','Enyaq'], mot:['2.0','tdi','ea189']}, carbu:'diesel', kw:['tdi','ea189','nox','rappel','campagne'], prio:2 },
   { cat:'Moteur', titre:'N47 / B47 : chaîne de distribution', src:'Problème connu BMW', sym:'Bruit métallique arrière moteur, casse.', dtc:['P0016'], sol:'Remplacement préventif chaîne complet.', veh:{marques:['BMW','MINI'], modeles:['Serie 1','Serie 3','Serie 5','X1','X3','X5','Cooper','Countryman'], mot:['n47','b47','2.0']}, carbu:'diesel', kw:['chaine','distribution','n47','b47','bruit metallique','casse'], prio:0 },
   { cat:'Dépollution', titre:'N47 : refroidisseur EGR fissuré', src:'Rappel BMW', sym:'Fuite LDR, fumée blanche, risque incendie.', dtc:['P0401'], sol:'Remplacement refroidisseur EGR (rappel).', veh:{marques:['BMW','MINI'], modeles:['Serie 1','Serie 3','Serie 5','X1','X3','Cooper','Countryman'], mot:['n47','2.0']}, carbu:'diesel', kw:['egr','refroidisseur','fuite','fumee blanche','rappel'], prio:1 },
   { cat:'Injection', titre:'OM651 : injecteurs Delphi', src:'Problème connu Mercedes', sym:'Fumée, claquement, retour gasoil.', dtc:['P0201'], sol:'Injecteurs + rondelles pare-feu.', veh:{marques:['Mercedes-Benz'], modeles:['Classe A','Classe C','Classe E','GLA','GLC'], mot:['om651','2.1','2.2','cdi']}, carbu:'diesel', kw:['injecteur','om651','delphi','fumee','claquement'], prio:1 },
@@ -263,12 +252,13 @@ var FICHES_CURATED = [
   { cat:'Moteur', titre:'Theta II : coussinets / casse moteur', src:'Rappel Hyundai-Kia', sym:'Claquement, casse moteur, voyant huile.', dtc:['P0520'], sol:'Campagne moteur long block.', veh:{marques:['Hyundai','Kia'], modeles:['Tucson','Santa Fe','Sportage','Sorento'], mot:['2.0','2.4','theta']}, carbu:'essence', kw:['coussinet','casse','theta','claquement','huile'], prio:1 },
   { cat:'Électrique', titre:'Škoda Elroq : batterie HT / autonomie', src:'VAG MEB — EV récent', sym:'Autonomie en baisse, voyant HV, cellules déséquilibrées.', dtc:['P0A80','P0A1F'], sol:'Diagnostic modules HT, équilibrage, vérif BMS.', veh:{marques:['Škoda'], modeles:['Elroq','Enyaq','Enyaq Coupé'], mot:['électrique','ht','bev']}, carbu:'ev', kw:['batterie','ht','autonomie','elroq','enyaq','bms'], prio:2 },
   { cat:'Électrique', titre:'Škoda Elroq : recharge lente / chargeur embarqué', src:'VAG MEB', sym:'Recharge AC lente, coupures, défaut chargeur.', dtc:['P0CF0','P0C79'], sol:'Contrôle chargeur embarqué, câble type 2, borne.', veh:{marques:['Škoda'], modeles:['Elroq','Enyaq'], mot:['électrique','chargeur']}, carbu:'ev', kw:['recharge','chargeur','elroq','borne','type 2'], prio:3 },
-  { cat:'Électrique', titre:'Renault 5 E-Tech : batterie LFP', src:'Renault AmpR Small', sym:'Autonomie, calibration BMS, préconditionnement.', dtc:['P0A80'], sol:'Calibration BMS, MAJ logicielle, préchauffage.', veh:{marques:['Renault'], modeles:['Renault 5 E-Tech','Megane E-Tech','Scenic E-Tech'], mot:['électrique','lfp']}, carbu:'ev', kw:['batterie','lfp','bms','renault 5'], prio:2 },
+  { cat:'Électrique', titre:'Renault 5 E-Tech / Megane E-Tech : batterie LFP', src:'Renault AmpR Small', sym:'Autonomie, calibration BMS, préconditionnement.', dtc:['P0A80'], sol:'Calibration BMS, MAJ logicielle, préchauffage.', veh:{marques:['Renault'], modeles:['Renault 5 E-Tech','Megane E-Tech','Scenic E-Tech'], mot:['électrique','lfp']}, carbu:'ev', kw:['batterie','lfp','bms','renault 5','megane e tech'], prio:2 },
   { cat:'Électrique', titre:'Tesla Model 3 Highland / Model Y Juniper : 12V LiFePO4', src:'Tesla', sym:'Batterie 12V faible, défauts électroniques.', dtc:['P0562'], sol:'Remplacement batterie 12V LiFePO4 OEM.', veh:{marques:['Tesla'], modeles:['Model 3','Model 3 Highland','Model Y','Model Y Juniper'], mot:['électrique','12v']}, carbu:'ev', kw:['batterie','12v','lifepo4','tesla'], prio:8 },
   { cat:'Électrique', titre:'BYD Seal U / Atto 3 : Blade Battery', src:'BYD', sym:'Équilibrage modules, perte autonomie.', dtc:['P0A80'], sol:'Équilibrage cellules Blade, diag BMS.', veh:{marques:['BYD'], modeles:['Atto 3','Atto 2','Seal','Seal U','Dolphin','Dolphin U'], mot:['électrique','blade']}, carbu:'ev', kw:['batterie','blade','bms','byd','seal u','atto 3'], prio:2 }
 ];
 FICHES_CURATED.forEach(function (f) { prepFiche(f, false); });
 
+// ---------- GÉNÉRATEUR MASSIF (attribution énergie respectée) ----------
 function getEnginesForBrand(nom) { return MOTORISATIONS_PAR_MARQUE[nom] || null; }
 function subsetFor(carbu) {
   if (carbu === 'diesel') return ['chd', 'fap'];
@@ -280,11 +270,14 @@ function buildMassiveBase() {
   var out = FICHES_CURATED.slice();
   var stats = { makes: {}, models: 0, powers: {}, pannes: {}, engines: {}, errors: [] };
   MARQUES_COMPLETE.forEach(function (m) {
-    var brandEngines = getEnginesForBrand(m.nom) || [];
-    if (BRAND_NO_DIESEL.indexOf(m.nom) >= 0) brandEngines = brandEngines.filter(function (e) { return e.carbu !== 'diesel'; });
+    var engines = getEnginesForBrand(m.nom);
     var fuels = [];
-    brandEngines.forEach(function (e) { if (fuels.indexOf(e.carbu) < 0) fuels.push(e.carbu); stats.engines[m.nom + '|' + e.label] = 1; });
-    if (!fuels.length) fuels = m.orig === 'us' ? ['essence', 'hybride', 'ev'] : ['diesel', 'essence', 'hybride', 'ev'];
+    if (engines) {
+      engines.forEach(function (e) { if (fuels.indexOf(e.carbu) < 0) fuels.push(e.carbu); stats.engines[m.nom + '|' + e.label] = 1; });
+    } else {
+      fuels = m.orig === 'us' ? ['essence', 'hybride', 'ev'] : ['diesel', 'essence', 'hybride', 'ev'];
+      stats.errors.push(m.nom + ' : moteurs non définis → pannes génériques uniquement');
+    }
     PANNES.forEach(function (p) {
       if (out.length >= CONFIG.MAX_EMBEDDED) return;
       var ok = p.carbu[0] === 'all' || p.carbu.some(function (c) { return fuels.indexOf(c) >= 0; });
@@ -298,9 +291,12 @@ function buildMassiveBase() {
     var m = null;
     for (var i = 0; i < MARQUES_COMPLETE.length; i++) if (MARQUES_COMPLETE[i].nom === nom) { m = MARQUES_COMPLETE[i]; break; }
     if (!m) return;
+    var engines = getEnginesForBrand(nom);
+    if (!engines) { stats.errors.push(nom + ' : moteurs non définis, modèles ignorés'); return; }
     MODELES_CATALOG[nom].forEach(function (modele) {
-      var engines = enginesForModel(nom, modele);
+      var allow = MODEL_ENERGY[norm(modele)] || null;   // ← FILTRE ATTRIBUTION ÉNERGIE
       engines.forEach(function (en) {
+        if (allow && allow.indexOf(en.carbu) < 0) return;   // ← combinaison impossible écartée
         en.powers.slice(0, 2).forEach(function (pw) {
           if (out.length >= CONFIG.MAX_EMBEDDED) return;
           subsetFor(en.carbu).forEach(function (pid) {
@@ -309,16 +305,15 @@ function buildMassiveBase() {
             var f = {
               cat: p.cat,
               titre: nom + ' ' + modele + ' ' + en.label + ' ' + pw + ' ch — ' + p.court,
-              src: 'Base massive — motorisation par modèle',
+              src: 'Base massive — motorisations réelles',
               sym: p.sym, dtc: p.dtc.slice(), sol: p.sol, veh: null,
-              carbu: en.carbu === 'ev' ? 'all' : en.carbu,
+              carbu: en.carbu,   // ← 'ev' CONSERVÉ (plus d'écrasement en 'all')
               kw: p.kw.concat(norm(nom + ' ' + modele + ' ' + en.label + ' ' + en.famille).split(' ')).concat([String(pw)]).slice(0, 18),
               prio: p.prio,
               marqueLibre: norm(nom + ' ' + modele + ' ' + en.label + ' ' + pw + ' ch')
             };
             prepFiche(f, false); out.push(f);
             stats.makes[nom] = 1; stats.models++; stats.powers[pw] = 1; stats.pannes[p.id] = 1;
-            stats.engines[nom + '|' + en.label] = 1;
           });
         });
       });
@@ -329,13 +324,15 @@ function buildMassiveBase() {
   stats.pannesCount = PANNES.filter(function (p) { return stats.pannes[p.id]; }).length;
   stats.modelsCatalogCount = Object.keys(MODELES_CATALOG).reduce(function (a, k) { return a + MODELES_CATALOG[k].length; }, 0);
   stats.enginesCount = Object.keys(stats.engines).length;
+  stats.overridesCount = Object.keys(MODEL_ENERGY).length;
   return { fiches: out, stats: stats };
 }
 var MASSIVE = buildMassiveBase();
 var FICHES = MASSIVE.fiches;
 var STATS = MASSIVE.stats;
-var GENERATION_ID = 'gen-9.0-modeleng-p' + STATS.powersCount + '-m' + STATS.makesCount + '-e' + STATS.enginesCount + '-f' + FICHES.length;
+var GENERATION_ID = 'gen-9.1-attr-p' + STATS.powersCount + '-m' + STATS.makesCount + '-o' + STATS.overridesCount + '-f' + FICHES.length;
 
+// ---------- VALIDATIONS ----------
 var SAMPLE_MAKES = ['peugeot','renault','bmw','toyota','ford','byd','zeekr','rivian','aixam','maserati','xiaomi','tank','tesla','hyundai','skoda'];
 var REQUIRED_MODELS = ['elroq','enyaq','renault 5 e tech','rafale','e 3008','e 5008','atto 3','seal u','model 3 highland','model y juniper','ev9','ioniq 9','inster'];
 function validatePool(pool) {
@@ -414,7 +411,7 @@ function validateEngines() {
   pool.forEach(function (f, idx) {
     var hay = norm((f.titre || '') + ' ' + (f.marqueLibre || ''));
     Object.keys(BLACKLIST).forEach(function (b) {
-      if (hay.indexOf(b) !== 0) return;
+      if (hay.indexOf(b) !== 0 && hay.indexOf(b + ' ') !== 0) return;
       BLACKLIST[b].forEach(function (t) { if (hasWord(hay, t)) bad.push(idx + ':' + b + '+' + t); });
     });
   });
@@ -429,35 +426,10 @@ function validateEngines() {
   });
   if (bad.length > 0) return { ok: false, detail: bad.length + ' violations : ' + bad.slice(0, 3).join(' | ') };
   if (posOk < POSITIVE.length) return { ok: false, detail: 'Moteurs réels absents : ' + posOk + '/' + POSITIVE.length };
-  return { ok: true, detail: '0 violation · ' + posOk + '/' + POSITIVE.length + ' moteurs réels vérifiés · ' + STATS.enginesCount + ' motorisations catalogue' };
-}
-// NOUVEAU T25 : attribution motorisation PAR MODÈLE
-function validateModelEngines() {
-  var pool = window.__ALL_FICHES || FICHES;
-  if (!pool || !pool.length) return { ok: false, detail: 'Pool vide' };
-  var EV_CHECK = ['elroq','enyaq','renault 5 e tech','megane e tech','model 3','model y','atto 3','ev9','ioniq 5','smart 1','e 3008','id 4'];
-  var FORBID = ['tsi','tdi','dci','tce','diesel','essence','hybride','bluehdi','puretech','ecoboost','crdi','tdci'];
-  var bad = [];
-  EV_CHECK.forEach(function (mn) {
-    pool.forEach(function (f) {
-      var hay = norm((f.titre || '') + ' ' + (f.marqueLibre || ''));
-      if (hay.indexOf(mn) < 0) return;
-      FORBID.forEach(function (t) { if (hasWord(hay, t)) bad.push(mn + '+' + t); });
-    });
-  });
-  var missingEv = [];
-  EV_CHECK.forEach(function (mn) {
-    var has = pool.some(function (f) {
-      var hay = norm((f.titre || '') + ' ' + (f.marqueLibre || ''));
-      return hay.indexOf(mn) >= 0 && (hay.indexOf('electrique') >= 0 || hay.indexOf('batterie ht') >= 0 || hay.indexOf('recharge') >= 0);
-    });
-    if (!has) missingEv.push(mn);
-  });
-  if (bad.length) return { ok: false, detail: bad.length + ' attributions impossibles : ' + bad.slice(0, 4).join(' | ') };
-  if (missingEv.length) return { ok: false, detail: 'modèles EV sans fiche EV : ' + missingEv.join(', ') };
-  return { ok: true, detail: '0 attribution impossible · ' + EV_CHECK.length + ' modèles EV vérifiés (Elroq, R5 E-Tech, Model 3, e-3008, ID.4…)' };
+  return { ok: true, detail: '0 violation · ' + posOk + '/' + POSITIVE.length + ' moteurs réels vérifiés · ' + STATS.enginesCount + ' motorisations · ' + STATS.overridesCount + ' attributions énergie' };
 }
 
+// ---------- IndexedDB ----------
 function DB() {}
 DB.prototype.open = function () {
   var self = this;
@@ -518,6 +490,7 @@ DB.prototype.setMeta = function (v) {
   });
 };
 var db = new DB();
+
 async function loadOrSeed() {
   await db.open();
   var meta = await db.getMeta();
@@ -538,6 +511,8 @@ async function loadOrSeed() {
   window.__ALL_FICHES = pool;
   return pool.length;
 }
+
+// ---------- IMPORT DISTANT S1/S2/S3 ----------
 function fetchText(url, timeout) {
   var ctrl = new AbortController();
   var t = setTimeout(function () { ctrl.abort(); }, timeout || 12000);
@@ -614,6 +589,7 @@ function guessCarbu(txt) {
   if (/diesel|tdi|dci|hdi|bluehdi|crdi|tdci|d 4d|d4d|cdti|jtd|multijet/.test(t)) return 'diesel';
   if (/hybride|hybrid|hsd|e tech|etech|phev/.test(t)) return 'hybride';
   if (/essence|tsi|tfsi|tce|puretech|thp|ecoboost|vti|gdi|tgdi/.test(t)) return 'essence';
+  if (/electrique|ev|bev|blade|meb|e gmp|egmp|ultium|hea?v? bms/.test(t)) return 'ev';
   return 'all';
 }
 function normalizeRecord(r) {
@@ -627,8 +603,11 @@ function normalizeRecord(r) {
   var src = toStr(pick(r, ['source','src','origine','campagne','campaign','reference']));
   var cat = toStr(pick(r, ['categorie','cat','category','type','organe_type','systeme']));
   if (!titre) return null;
+  var carbu = guessCarbu(motor + ' ' + titre);
+  var allow = MODEL_ENERGY[norm(modele)] || null;      // ← attribution énergie appliquée aussi au distant
+  if (allow && allow.indexOf(carbu) < 0) carbu = allow[0];
   var kw = norm([marque, modele, motor, titre].join(' ')).split(' ').filter(function (t) { return t.length >= 3; }).slice(0, 12);
-  var f = { cat: cat || 'Moteur', titre: titre, src: src || 'Import appli-aide-technique', sym: sym || 'Voir détail fiche.', dtc: toDtc(pick(r, ['dtc','codes','codes_defaut','code','fault_codes'])), sol: sol || 'Diagnostic complet recommandé.', veh: null, carbu: guessCarbu(motor + ' ' + titre), kw: kw, prio: 5, marqueLibre: norm([marque, modele, motor].join(' ')) };
+  var f = { cat: cat || 'Moteur', titre: titre, src: src || 'Import appli-aide-technique', sym: sym || 'Voir détail fiche.', dtc: toDtc(pick(r, ['dtc','codes','codes_defaut','code','fault_codes'])), sol: sol || 'Diagnostic complet recommandé.', veh: null, carbu: carbu, kw: kw, prio: 5, marqueLibre: norm([marque, modele, motor].join(' ')) };
   prepFiche(f, true);
   return f;
 }
@@ -645,7 +624,7 @@ async function importRemote(onLog, onProg) {
   var log = onLog || function () {};
   var prog = onProg || function () {};
   var report = { date: new Date().toISOString(), source: CONFIG.SOURCE_URL, strategy: null, remoteCount: 0, totalCount: 0, errors: [] };
-  log('📦 Base embarquée : ' + FICHES.length + ' fiches (' + STATS.makesCount + ' marques · ' + STATS.modelsCatalogCount + ' modèles · ' + STATS.enginesCount + ' motorisations réelles par modèle · ' + STATS.powersCount + ' puissances · ' + STATS.pannesCount + ' pannes) · gen ' + GENERATION_ID);
+  log('📦 Base embarquée : ' + FICHES.length + ' fiches (' + STATS.makesCount + ' marques · ' + STATS.modelsCatalogCount + ' modèles · ' + STATS.enginesCount + ' motorisations réelles · ' + STATS.overridesCount + ' attributions énergie · ' + STATS.pannesCount + ' pannes) · gen ' + GENERATION_ID);
   var remote = [];
   log('S1 · Endpoints JSON directs…'); prog(10);
   for (var u = 0; u < CONFIG.JSON_ENDPOINTS.length; u++) {
@@ -679,7 +658,7 @@ async function importRemote(onLog, onProg) {
   }
   var mergedExtra = [];
   if (remote.length) {
-    prog(60); log('🧬 Normalisation & fusion dédupliquée…');
+    prog(60); log('🧬 Normalisation (attribution énergie appliquée) & fusion…');
     var rf = remoteToFiches(remote, CONFIG.MAX_REMOTE);
     report.remoteCount = rf.length;
     var keys = {};
@@ -702,11 +681,13 @@ async function importRemote(onLog, onProg) {
   log('✅ IndexedDB mise à jour : ' + n + ' fiches au total');
   return report;
 }
+
+// ---------- RECHERCHE ----------
 var VEH = [
   ['3008','Peugeot','3008'],['e 3008','Peugeot','e-3008'],['2008','Peugeot','2008'],['5008','Peugeot','5008'],['e 5008','Peugeot','e-5008'],['408','Peugeot','408'],['208','Peugeot','208'],['e 208','Peugeot','e-208'],['308','Peugeot','308'],['e 308','Peugeot','e-308'],['508','Peugeot','508'],['partner','Peugeot','Partner'],['rifter','Peugeot','Rifter'],['expert','Peugeot','Expert'],['boxer','Peugeot','Boxer'],
-  ['clio','Renault','Clio'],['megane','Renault','Megane'],['megane e tech','Renault','Megane E-Tech'],['scenic','Renault','Scenic'],['scenic e tech','Renault','Scenic E-Tech'],['captur','Renault','Captur'],['kadjar','Renault','Kadjar'],['austral','Renault','Austral'],['espace','Renault','Espace'],['renault 5','Renault','Renault 5 E-Tech'],['5 e tech','Renault','Renault 5 E-Tech'],['renault 5 e tech','Renault','Renault 5 E-Tech'],['rafale','Renault','Rafale'],['symbioz','Renault','Symbioz'],['zoe','Renault','Zoe'],['twingo','Renault','Twingo'],['kangoo','Renault','Kangoo'],['trafic','Renault','Trafic'],['master','Renault','Master'],
+  ['clio','Renault','Clio'],['megane e tech','Renault','Megane E-Tech'],['megane','Renault','Megane'],['scenic e tech','Renault','Scenic E-Tech'],['scenic','Renault','Scenic'],['captur','Renault','Captur'],['kadjar','Renault','Kadjar'],['austral','Renault','Austral'],['espace','Renault','Espace'],['renault 5 e tech','Renault','Renault 5 E-Tech'],['renault 5','Renault','Renault 5 E-Tech'],['5 e tech','Renault','Renault 5 E-Tech'],['rafale','Renault','Rafale'],['symbioz','Renault','Symbioz'],['zoe','Renault','Zoe'],['twingo','Renault','Twingo'],['kangoo','Renault','Kangoo'],['trafic','Renault','Trafic'],['master','Renault','Master'],
   ['duster','Dacia','Duster'],['bigster','Dacia','Bigster'],['sandero','Dacia','Sandero'],['logan','Dacia','Logan'],['jogger','Dacia','Jogger'],['spring','Dacia','Spring'],
-  ['c3 aircross','Citroën','C3 Aircross'],['c3','Citroën','C3'],['e c3','Citroën','ë-C3'],['c4','Citroën','C4'],['c5 aircross','Citroën','C5 Aircross'],['berlingo','Citroën','Berlingo'],['jumpy','Citroën','Jumpy'],
+  ['c3 aircross','Citroën','C3 Aircross'],['e c3','Citroën','ë-C3'],['c3','Citroën','C3'],['c4','Citroën','C4'],['c5 aircross','Citroën','C5 Aircross'],['berlingo','Citroën','Berlingo'],['jumpy','Citroën','Jumpy'],
   ['ds3','DS Automobiles','DS 3'],['ds4','DS Automobiles','DS 4'],['ds7','DS Automobiles','DS 7'],['ds9','DS Automobiles','DS 9'],['ds n4','DS Automobiles','DS N°4'],['ds n8','DS Automobiles','DS N°8'],
   ['golf','Volkswagen','Golf'],['polo','Volkswagen','Polo'],['passat','Volkswagen','Passat'],['tiguan','Volkswagen','Tiguan'],['touareg','Volkswagen','Touareg'],['t roc','Volkswagen','T-Roc'],['id 3','Volkswagen','ID.3'],['id 4','Volkswagen','ID.4'],['id 5','Volkswagen','ID.5'],['id 7','Volkswagen','ID.7'],['id buzz','Volkswagen','ID.Buzz'],
   ['a3','Audi','A3'],['a4','Audi','A4'],['a5','Audi','A5'],['a6','Audi','A6'],['q3','Audi','Q3'],['q4','Audi','Q4 e-tron'],['q5','Audi','Q5'],['q6','Audi','Q6 e-tron'],['q7','Audi','Q7'],['q8','Audi','Q8'],
@@ -747,6 +728,7 @@ var VEH = [
   ['vf 8','VinFast','VF 8'],['vf 9','VinFast','VF 9'],['vf 7','VinFast','VF 7'],
   ['smart 1','Smart','Smart #1'],['smart 3','Smart','Smart #3'],['smart 5','Smart','Smart #5']
 ].sort(function (a, b) { return b[0].length - a[0].length; });
+
 var MARQUES = [
   ['peugeot','Peugeot'],['renault','Renault'],['citroen','Citroën'],['ds automobiles','DS Automobiles'],['dacia','Dacia'],
   ['volkswagen','Volkswagen'],['vw','Volkswagen'],['audi','Audi'],['skoda','Škoda'],['seat','SEAT'],['cupra','CUPRA'],
@@ -756,14 +738,17 @@ var MARQUES = [
   ['byd','BYD'],['mg','MG'],['chery','Chery'],['geely','Geely'],['great wall','Great Wall'],['xiaomi','Xiaomi Auto'],['nio','NIO'],['xpeng','XPeng'],['zeekr','Zeekr'],['li auto','Li Auto'],['leapmotor','Leapmotor'],['vinfast','VinFast'],['smart','Smart'],
   ['rivian','Rivian'],['lucid','Lucid'],['fisker','Fisker'],['aixam','Aixam'],['maserati','Maserati'],['tank','Tank'],['fiat','Fiat']
 ].sort(function (a, b) { return b[0].length - a[0].length; });
+
 var FAMILLES = [
-  { tok: ['bluehdi','hdi','dv5','dw10'], carbu: 'diesel' },
-  { tok: ['tdi','tdci'], carbu: 'diesel' },
-  { tok: ['dci','k9k','m9r'], carbu: 'diesel' },
+  { tok: ['bluehdi','hdi','dv5','dv6'], carbu: 'diesel' },
+  { tok: ['tdi'], carbu: 'diesel' },
+  { tok: ['dci','k9k'], carbu: 'diesel' },
   { tok: ['crdi'], carbu: 'diesel' },
+  { tok: ['tdci'], carbu: 'diesel' },
   { tok: ['d 4d','d4d'], carbu: 'diesel' },
-  { tok: ['puretech','eb2','thp','ep6','tsi','tfsi','ea888','ea211','tce','ecoboost','vti','vtec','skyactiv','boosterjet','dig t','t gdi','tgdi'], carbu: 'essence' },
-  { tok: ['hybride','hybrid','hsd','e tech','etech','phev','e power','4xe'], carbu: 'hybride' }
+  { tok: ['puretech','eb2','thp','ep6','tsi','tfsi','ea888','ea211','tce','ecoboost','vti'], carbu: 'essence' },
+  { tok: ['hybride','hsd'], carbu: 'hybride' },
+  { tok: ['ev','electrique','bev'], carbu: 'ev' }
 ];
 var ORGANES = [
   'courroie de distribution','courroie d\'accessoire','chaîne de distribution','fap (filtre à particules)',
@@ -772,6 +757,7 @@ var ORGANES = [
   'amortisseurs','plaquettes de frein','disques de frein','capteur abs','crémaillère direction',
   'radiateur','thermostat','compresseur clim','batterie','système adblue scr'
 ];
+
 function buildCtx(q) {
   var nq = norm(q);
   var tokens = nq.split(' ').filter(function (t) { return t.length >= 2; });
@@ -784,6 +770,10 @@ function buildCtx(q) {
   var fam = null, carbu = null;
   for (i = 0; i < FAMILLES.length; i++) {
     if (FAMILLES[i].tok.some(function (tk) { return tokens.indexOf(tk) >= 0; })) { fam = FAMILLES[i].tok; carbu = FAMILLES[i].carbu; break; }
+  }
+  if (!carbu && veh) {
+    var allow = MODEL_ENERGY[norm(veh.modele)] || null;
+    if (allow && allow.length === 1) carbu = allow[0] === 'ev' ? 'ev' : allow[0];
   }
   if (!carbu && cyl && veh) {
     var cars = FICHES.filter(function (f) {
@@ -863,6 +853,8 @@ function suggestions(ctx, results) {
   results.slice(0, 6).forEach(function (r) { sugg.push({ type: 'fiche', label: r.f._label, f: r.f }); });
   return sugg.slice(0, 8);
 }
+
+// ---------- RENDU UI ----------
 function $(id) { return document.getElementById(id); }
 function hl(text, q) {
   var toks = norm(q).split(' ').filter(function (t) { return t.length >= 2; });
@@ -923,6 +915,8 @@ function runSearch() {
   renderSugg(suggestions(r.ctx, r.results), q);
   renderResults(r.results, r.ctx, q);
 }
+
+// ---------- UI IMPORT ----------
 async function importMassiveUI() {
   var btn = $('btnImportMassive'), st = $('importStatus'), logEl = $('importLog'), bar = $('importBar');
   function log(m) {
@@ -948,6 +942,8 @@ async function importMassiveUI() {
     btn.disabled = false; btn.textContent = '🚀 Importer TOUTE la base (embarquée + distante)';
   }
 }
+
+// ---------- INIT ----------
 document.addEventListener('DOMContentLoaded', async function () {
   document.querySelectorAll('.tab').forEach(function (t) {
     t.addEventListener('click', function () {
@@ -1040,7 +1036,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     $('modelCount').textContent = STATS.modelsCatalogCount + ' modèles (mémoire)';
   }
 });
-window.DiagAuto = { FICHES: FICHES, PANNES: PANNES, MARQUES: MARQUES_COMPLETE, stats: STATS, search: search, buildCtx: buildCtx, validatePool: validatePool, validateEngines: validateEngines, validateModelEngines: validateModelEngines, enginesForModel: enginesForModel, GEN: GENERATION_ID, CONFIG: CONFIG, VERSION: VERSION };
+
+window.DiagAuto = { FICHES: FICHES, PANNES: PANNES, MARQUES: MARQUES_COMPLETE, stats: STATS, search: search, buildCtx: buildCtx, validatePool: validatePool, validateEngines: validateEngines, GEN: GENERATION_ID, CONFIG: CONFIG, VERSION: VERSION };
 window.DiagImporter = {
   importRemote: importRemote,
   lastReport: function () { try { return JSON.parse(localStorage.getItem(CONFIG.LS_IMPORT)); } catch (e) { return null; } }
