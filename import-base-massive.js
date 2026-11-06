@@ -1,13 +1,14 @@
 // ============================================================
-// IMPORT-BASE-MASSIVE.JS — v6.0-massive
-// Base MASSIVE générée : TOUTES marques × TOUS modèles ×
-// TOUTES motorisations × TOUTES puissances × TOUTES pannes
+// IMPORT-BASE-MASSIVE.JS — v6.1-massive
+// Base MASSIVE : TOUTES marques × TOUS modèles × TOUTES
+// motorisations × 22 PUISSANCES × TOUTES pannes connues
 // + import distant S1/S2/S3 depuis appli-aide-technique
+// + filtre origine optimisé (_orig précalculé)
 // ============================================================
 (function () {
 'use strict';
 
-var VERSION = '6.0.0-massive';
+var VERSION = '6.1.0-massive';
 
 var CONFIG = {
   SOURCE_URL: 'https://expertkevin06-cell.github.io/appli-aide-technique/',
@@ -19,7 +20,7 @@ var CONFIG = {
     'https://expertkevin06-cell.github.io/appli-aide-technique/pannes.json'
   ],
   MAX_REMOTE: 20000,
-  MAX_EMBEDDED: 12000,
+  MAX_EMBEDDED: 16000,
   LS_IMPORT: 'diagauto_last_import',
   DB_NAME: 'DiagAutoDB', DB_VERSION: 4, STORE: 'fiches'
 };
@@ -30,7 +31,7 @@ function norm(s) {
     .replace(/[^a-z0-9.]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-// ---------- 150 MARQUES COMPLÈTES [nom, origine] ----------
+// ---------- 151 MARQUES COMPLÈTES [nom, origine] ----------
 var MARQUES_COMPLETE = [
   ['Aixam','fr'],['Alpine','fr'],['Bolloré','fr'],['Bugatti','fr'],['Citroën','fr'],['DS Automobiles','fr'],['Ligier','fr'],['Microcar','fr'],['Peugeot','fr'],['Renault','fr'],
   ['Alfa Romeo','eu'],['Aston Martin','eu'],['Audi','eu'],['Bentley','eu'],['BMW','eu'],['CUPRA','eu'],['Dacia','eu'],['Ferrari','eu'],['Fiat','eu'],['Ineos','eu'],['Jaguar','eu'],['Lamborghini','eu'],['Lancia','eu'],['Land Rover','eu'],['Lotus','eu'],['Maserati','eu'],['McLaren','eu'],['Mercedes-Benz','eu'],['MINI','eu'],['Opel','eu'],['Polestar','eu'],['Porsche','eu'],['Rolls-Royce','eu'],['Saab','eu'],['SEAT','eu'],['Škoda','eu'],['Smart','eu'],['Volkswagen','eu'],['Volvo','eu'],
@@ -38,9 +39,16 @@ var MARQUES_COMPLETE = [
   ['Buick','us'],['Cadillac','us'],['Chevrolet','us'],['Chrysler','us'],['Dodge','us'],['Fisker','us'],['Ford','us'],['GMC','us'],['Hummer','us'],['Jeep','us'],['Lincoln','us'],['Lucid','us'],['Pontiac','us'],['Ram','us'],['Rivian','us'],['Tesla','us']
 ].map(function (a) { return { nom: a[0], orig: a[1] }; });
 
-var ORIG = { fr:'fr', eu:'eu', as:'as', us:'us' };
 var MARQUE_ORIG = {};
-MARQUES_COMPLETE.forEach(function (m) { MARQUE_ORIG[m.nom] = m.orig; });
+var NORM_ORIG = {};
+var MAKE_FIRST = {};
+MARQUES_COMPLETE.forEach(function (m) {
+  MARQUE_ORIG[m.nom] = m.orig;
+  var nm = norm(m.nom);
+  NORM_ORIG[nm] = m.orig;
+  var w = nm.split(' ')[0];
+  (MAKE_FIRST[w] = MAKE_FIRST[w] || []).push(nm);
+});
 
 // ---------- CATALOGUE MODÈLES ----------
 var MODELES_CATALOG = {
@@ -116,6 +124,29 @@ var PANNES = [
 var PANNE_BY_ID = {};
 PANNES.forEach(function (p) { PANNE_BY_ID[p.id] = p; });
 
+// ---------- Préparation fiche (+ _orig précalculé) ----------
+function computeOrig(f) {
+  if (f.veh) return MARQUE_ORIG[f.veh.marques[0]] || null;
+  var ml = f.marqueLibre || '';
+  if (!ml) return null;
+  var cands = MAKE_FIRST[ml.split(' ')[0]] || [];
+  for (var i = 0; i < cands.length; i++) {
+    var nm = cands[i];
+    if (ml === nm || ml.indexOf(nm + ' ') === 0) return NORM_ORIG[nm];
+  }
+  return null;
+}
+function prepFiche(f, remote) {
+  var vehTxt = f.veh ? [f.veh.marques.join(' '), f.veh.modeles.join(' '), f.veh.mot.join(' ')].join(' ') : '';
+  f._search = norm([f.titre, f.sym, f.sol, f.kw.join(' '), f.dtc.join(' '), f.cat, vehTxt, f.marqueLibre || ''].join(' '));
+  f._titreN = norm(f.titre);
+  f._catN = norm(f.cat).replace(/[^a-z]/g, '');
+  f._label = f.veh ? (f.veh.marques[0] + ' ' + f.veh.modeles[0] + ' ' + f.veh.mot[0] + ' — ' + f.titre) : f.titre;
+  f._key = norm(f.titre) + '|' + (f.veh ? norm(f.veh.marques[0]) + '|' + norm(f.veh.modeles[0]) : norm(f.marqueLibre || ''));
+  f._orig = computeOrig(f);
+  f._remote = !!remote;
+}
+
 // ---------- FICHES CURATED (campagnes réelles) ----------
 var FICHES_CURATED = [
   { cat:'Moteur', titre:'1.5 BlueHDi (DV5) : chaîne arbre à cames', src:'Campagnes Stellantis', sym:'Bruit métallique, casse.', dtc:['P0016'], sol:'Chaîne renforcée.', veh:{marques:['Peugeot','Citroën','DS Automobiles','Opel'], modeles:['3008','5008','208','2008','308','408','508','Partner','Rifter','C3 Aircross','C4','Berlingo','DS 3','DS 4','Grandland','Astra'], mot:['1.5','bluehdi','dv5']}, carbu:'diesel', kw:['chaine','distribution','arbre a cames','bruit metallique','casse','dv5'], prio:0 },
@@ -134,29 +165,19 @@ var FICHES_CURATED = [
   { cat:'Moteur', titre:'1.0 EcoBoost : courroie immergée', src:'Campagne Ford', sym:'Usure courroie, débris, pompe à vide HS.', dtc:[], sol:'Kit courroie + huile spécifiée.', veh:{marques:['Ford'], modeles:['Fiesta','Focus','Puma','Kuga'], mot:['1.0','ecoboost']}, carbu:'essence', kw:['courroie','distribution','ecoboost','immergee','usure'], prio:1 },
   { cat:'Moteur', titre:'Theta II : coussinets / casse moteur', src:'Rappel Hyundai-Kia', sym:'Claquement, casse moteur, voyant huile.', dtc:['P0520'], sol:'Campagne moteur long block.', veh:{marques:['Hyundai','Kia'], modeles:['Tucson','Santa Fe','Sportage','Sorento'], mot:['2.0','2.4','theta']}, carbu:'essence', kw:['coussinet','casse','theta','claquement','huile'], prio:1 }
 ];
-
-function prepFiche(f, remote) {
-  var vehTxt = f.veh ? [f.veh.marques.join(' '), f.veh.modeles.join(' '), f.veh.mot.join(' ')].join(' ') : '';
-  f._search = norm([f.titre, f.sym, f.sol, f.kw.join(' '), f.dtc.join(' '), f.cat, vehTxt, f.marqueLibre || ''].join(' '));
-  f._titreN = norm(f.titre);
-  f._catN = norm(f.cat).replace(/[^a-z]/g, '');
-  f._label = f.veh ? (f.veh.marques[0] + ' ' + f.veh.modeles[0] + ' ' + f.veh.mot[0] + ' — ' + f.titre) : f.titre;
-  f._key = norm(f.titre) + '|' + (f.veh ? norm(f.veh.marques[0]) + '|' + norm(f.veh.modeles[0]) : norm(f.marqueLibre || ''));
-  f._remote = !!remote;
-}
 FICHES_CURATED.forEach(function (f) { prepFiche(f, false); });
 
-// ---------- GÉNÉRATEUR BASE MASSIVE ----------
+// ---------- GÉNÉRATEUR BASE MASSIVE (22 puissances uniques) ----------
 function enginesFor(m) {
   var out = [];
   if (m.orig !== 'us') {
-    out.push({ label: '1.5 Diesel', carbu: 'diesel', powers: [100, 115, 130] });
-    out.push({ label: '2.0 Diesel', carbu: 'diesel', powers: [150, 190] });
+    out.push({ label: '1.5 Diesel', carbu: 'diesel', powers: [75, 100, 115, 130] });
+    out.push({ label: '2.0 Diesel', carbu: 'diesel', powers: [140, 150, 177, 190] });
   }
-  out.push({ label: '1.2 Essence', carbu: 'essence', powers: [82, 110, 130] });
-  out.push({ label: '1.6 Essence', carbu: 'essence', powers: [150, 180] });
-  if (m.orig !== 'us') out.push({ label: '1.5 Hybride', carbu: 'hybride', powers: [116, 145] });
-  out.push({ label: 'Électrique', carbu: 'ev', powers: [136, 204] });
+  out.push({ label: '1.2 Essence', carbu: 'essence', powers: [72, 82, 110, 130] });
+  out.push({ label: '1.6 Essence', carbu: 'essence', powers: [120, 150, 165, 180] });
+  if (m.orig !== 'us') out.push({ label: '1.5 Hybride', carbu: 'hybride', powers: [116, 140, 145, 160] });
+  out.push({ label: 'Électrique', carbu: 'ev', powers: [109, 136, 156, 204, 286] });
   return out;
 }
 function subsetFor(carbu) {
@@ -173,7 +194,6 @@ function buildMassiveBase() {
   var out = FICHES_CURATED.slice();
   var stats = { makes: {}, models: 0, powers: {}, pannes: {} };
 
-  // Niveau MARQUE : toutes les pannes applicables
   MARQUES_COMPLETE.forEach(function (m) {
     var fuels = makeFuels(m);
     PANNES.forEach(function (p) {
@@ -193,7 +213,6 @@ function buildMassiveBase() {
     });
   });
 
-  // Niveau MODÈLE × MOTORISATION × PUISSANCE
   Object.keys(MODELES_CATALOG).forEach(function (nom) {
     var m = null;
     for (var i = 0; i < MARQUES_COMPLETE.length; i++) if (MARQUES_COMPLETE[i].nom === nom) { m = MARQUES_COMPLETE[i]; break; }
@@ -589,13 +608,7 @@ function search(q, origFilter) {
     var s = evalFiche(f, ctx);
     if (s === null) return;
     if (origFilter && origFilter !== 'toutes') {
-      var o = f.veh ? MARQUE_ORIG[f.veh.marques[0]] : (function () {
-        var parts = (f.marqueLibre || '').split(' ');
-        for (var i = 0; i < MARQUES_COMPLETE.length; i++) {
-          if ((f.marqueLibre || '').indexOf(norm(MARQUES_COMPLETE[i].nom)) === 0) return MARQUES_COMPLETE[i].orig;
-        }
-        return null;
-      })();
+      var o = f._orig;
       if (o && o !== origFilter) return;
     }
     out.push({ f: f, s: s });
@@ -792,7 +805,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     } catch (err) { alert('❌ Fichier invalide : ' + err.message); }
   });
 
-  // Boot : seed massif puis recharge éventuelle (fusion distante précédente)
   try {
     await db.open();
     var n = await db.count();
