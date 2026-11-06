@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="diagauto-version" content="5.3.2-massive">
+<meta name="diagauto-version" content="5.4.0-elroq">
 <title>DiagAuto Pro — Mes réponses techniques</title>
 <style>
   :root{
@@ -110,7 +110,7 @@
     <div class="logo">🔧</div>
     <div class="titles">
       <h1>DiagAuto Pro — Mes réponses techniques</h1>
-      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.3.2-massive</p>
+      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.4.0-elroq</p>
     </div>
     <div class="hbtns">
       <span class="netbadge" id="netBadge">En ligne • 4G/5G</span>
@@ -141,7 +141,7 @@
 
     <div class="searchwrap">
       <input type="text" id="searchInput" autocomplete="off"
-             placeholder="Tapez : 3008 1.5 • 1.5 130 • courr • clio 1.5 dci • bmw n47 • p0016 • fap • byd atto 3…">
+             placeholder="Tapez : 3008 1.5 • 1.5 130 • skoda elroq • clio 1.5 dci • bmw n47 • p0016 • fap • byd seal u…">
       <div class="sugg" id="suggBox"></div>
     </div>
 
@@ -151,7 +151,8 @@
       <span class="ex">clio 1.5 dci</span><span class="ex">bmw n47</span>
       <span class="ex">golf 2.0 tdi</span><span class="ex">p0016</span>
       <span class="ex">egr</span><span class="ex">tesla model 3</span>
-      <span class="ex">byd atto 3</span>
+      <span class="ex">byd atto 3</span><span class="ex">skoda elroq</span>
+      <span class="ex">renault 5 e tech</span>
     </div>
 
     <div class="respanel">
@@ -228,7 +229,7 @@
 
     <div class="importbox">
       <h3>📥 Import Base Massive INTÉGRALE</h3>
-      <p>Base embarquée générée : <b>toutes marques · tous modèles · toutes motorisations · 22 puissances · toutes pannes connues</b> — génération signée + auto-reseed si base périmée — puis fusion distante <b>appli-aide-technique</b> (S1/S2/S3).</p>
+      <p>Base embarquée générée : <b>toutes marques · tous modèles (2024-2026 inclus) · toutes motorisations · 22 puissances · toutes pannes connues</b> — puis scan distant <b>appli-aide-technique</b> en parallèle + fusion S1/S2/S3.</p>
       <input type="text" value="https://expertkevin06-cell.github.io/appli-aide-technique/" readonly style="background:#0b1626;color:var(--muted)">
       <div class="barwrap"><div id="importBar" class="barfill"></div></div>
       <button class="btn btn-green" id="btnImportMassive">🚀 Importer TOUTE la base (embarquée + distante)</button>
@@ -249,10 +250,11 @@
     <div class="section">
       <h3>🔄 Mise à jour</h3>
       <div class="grid">
-        <div class="icard"><h4>Version app</h4>5.3.2-massive</div>
+        <div class="icard"><h4>Version app</h4>5.4.0-elroq</div>
         <div class="icard"><h4>Version données</h4><span id="dataVersion">1 (local)</span></div>
         <div class="icard"><h4>Génération base</h4><span id="genVersion">—</span></div>
         <div class="icard"><h4>Fiches en base</h4><span id="ficheCount">—</span></div>
+        <div class="icard"><h4>Modèles en base</h4><span id="modelCount">—</span></div>
         <div class="icard"><h4>Mode</h4>📱 Solo (local)</div>
         <div class="icard"><h4>Stockage</h4>🗄️ IndexedDB</div>
         <div class="icard"><h4>Réseau</h4><span id="netInfo">En ligne</span></div>
@@ -262,17 +264,17 @@
     </div>
   </div>
 
-  <footer>DiagAuto Pro © 2026 — v5.3.2-massive — génération signée + auto-reseed — auto-vérification 22 checks</footer>
+  <footer>DiagAuto Pro © 2026 — v5.4.0-elroq — catalogue modèles 2024-2026 · génération signée · auto-vérification 23 checks</footer>
 </div>
 
-<script src="import-base-massive.js?v=6.2.0"></script>
+<script src="import-base-massive.js?v=7.0.0-elroq"></script>
 <script>
 // ============================================================
-// MODULE AUTO-VÉRIFICATION — v5.3.2 (22 checks)
+// MODULE AUTO-VÉRIFICATION — v5.4.0 (23 checks)
 // ============================================================
 (function () {
 'use strict';
-var VERSION = '5.3.2-massive';
+var VERSION = '5.4.0-elroq';
 var bootErrors = [];
 window.addEventListener('error', function (e) { bootErrors.push(e.message); });
 
@@ -289,11 +291,11 @@ async function typeSearch(q) {
   var i = $('searchInput');
   i.value = q;
   i.dispatchEvent(new Event('input', { bubbles: true }));
-  await sleep(340);
+  await sleep(360);
 }
 
 async function waitBoot() {
-  for (var i = 0; i < 40; i++) {
+  for (var i = 0; i < 60; i++) {
     if (($('ficheCount').textContent || '').trim() !== '—') return true;
     await sleep(100);
   }
@@ -307,7 +309,7 @@ async function run() {
   var ids = ['searchInput','suggBox','resCount','detectBox','resultsBox','pills','examples',
     'netBadge','btnInstall','btnShare','btnLock','backendUrl','ownerCode','btnExport',
     'btnImportFile','fileJson','btnImportMassive','importStatus','importLog','importBar',
-    'pin1','pin2','btnReloadData','dataVersion','genVersion','ficheCount','netInfo','elmTransport',
+    'pin1','pin2','btnReloadData','dataVersion','genVersion','ficheCount','modelCount','netInfo','elmTransport',
     'stTable','stSummary','stRun','stCopy'];
   var missing = ids.filter(function (i) { return !$(i); });
   check('T1 · DOM — ids requis présents', missing.length === 0,
@@ -357,7 +359,7 @@ async function run() {
 
   var ex = document.querySelector('.ex');
   if (ex) ex.click();
-  await sleep(340);
+  await sleep(360);
   check('T12 · UI — chips exemples fonctionnels',
         !!ex && $('searchInput').value === ex.textContent && $('resultsBox').textContent.length > 100);
   await typeSearch('');
@@ -432,11 +434,19 @@ async function run() {
         $('resultsBox').textContent.trim().slice(0, 90));
   await typeSearch('');
 
-  // T22 : pool réellement chargé = génération courante valide
   var pool = window.__ALL_FICHES || (DA && DA.FICHES) || null;
   var poolOk = !!pool && !!DA && typeof DA.validatePool === 'function' && DA.validatePool(pool);
   check('T22 · Chargement — pool actif valide (génération courante)', poolOk,
         pool ? (pool.length + ' fiches chargées · gen ' + (DA.GEN || '?')) : 'pool absent');
+
+  // T23 DÉDIÉ : Škoda Elroq + pannes associées (modèles 2024-2026)
+  await typeSearch('skoda elroq');
+  var t23 = $('resultsBox').textContent;
+  var t23det = $('detectBox').textContent;
+  check('T23 · Modèles 2024-2026 — "skoda elroq" trouvé + détecté',
+        /elroq/i.test(t23) && /Škoda/i.test(t23det || ''),
+        'détection : ' + (t23det || '(vide)') + ' · résultats : ' + t23.trim().slice(0, 100));
+  await typeSearch('');
 
   render(Math.round(performance.now() - t0));
 }
@@ -472,12 +482,12 @@ document.addEventListener('DOMContentLoaded', function () {
       .then(function () { alert('Rapport copié.'); })
       .catch(function () { alert('Copie impossible.'); });
   });
-  setTimeout(function () { run(); }, 900);
+  setTimeout(function () { run(); }, 1200);
   if (new URLSearchParams(location.search).has('check')) {
     setTimeout(function () {
       var t = document.querySelector('.tab[data-tab="admin"]');
       if (t) t.click();
-    }, 1200);
+    }, 1500);
   }
 });
 })();
