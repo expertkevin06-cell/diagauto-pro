@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="diagauto-version" content="5.3.0-massive">
+<meta name="diagauto-version" content="5.3.1-massive">
 <title>DiagAuto Pro — Mes réponses techniques</title>
 <style>
   :root{
@@ -110,7 +110,7 @@
     <div class="logo">🔧</div>
     <div class="titles">
       <h1>DiagAuto Pro — Mes réponses techniques</h1>
-      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.3.0-massive</p>
+      <p>by Kevin — diagnostics, rappels &amp; pannes connues · v5.3.1-massive</p>
     </div>
     <div class="hbtns">
       <span class="netbadge" id="netBadge">En ligne • 4G/5G</span>
@@ -141,16 +141,17 @@
 
     <div class="searchwrap">
       <input type="text" id="searchInput" autocomplete="off"
-             placeholder="Tapez : 3008 1.5 • courr • clio 1.5 dci • bmw n47 • p0016 • fap • byd atto 3…">
+             placeholder="Tapez : 3008 1.5 • 1.5 130 • courr • clio 1.5 dci • bmw n47 • p0016 • fap • byd atto 3…">
       <div class="sugg" id="suggBox"></div>
     </div>
 
     <div class="examples" id="examples">
-      <span class="ex">3008 1.5</span><span class="ex">courr</span>
-      <span class="ex">peugeot fap</span><span class="ex">clio 1.5 dci</span>
-      <span class="ex">bmw n47</span><span class="ex">golf 2.0 tdi</span>
-      <span class="ex">p0016</span><span class="ex">egr</span>
-      <span class="ex">tesla model 3</span><span class="ex">byd atto 3</span>
+      <span class="ex">3008 1.5</span><span class="ex">1.5 130</span>
+      <span class="ex">courr</span><span class="ex">peugeot fap</span>
+      <span class="ex">clio 1.5 dci</span><span class="ex">bmw n47</span>
+      <span class="ex">golf 2.0 tdi</span><span class="ex">p0016</span>
+      <span class="ex">egr</span><span class="ex">tesla model 3</span>
+      <span class="ex">byd atto 3</span>
     </div>
 
     <div class="respanel">
@@ -227,7 +228,7 @@
 
     <div class="importbox">
       <h3>📥 Import Base Massive INTÉGRALE</h3>
-      <p>Base embarquée générée : <b>toutes marques · tous modèles · toutes motorisations · toutes puissances · toutes pannes connues</b> — puis fusion distante depuis <b>https://expertkevin06-cell.github.io/appli-aide-technique/</b> (S1 JSON → S2 analyse HTML/scripts → S3 fallback).</p>
+      <p>Base embarquée générée : <b>toutes marques · tous modèles · toutes motorisations · toutes puissances (22 valeurs) · toutes pannes connues</b> — puis fusion distante depuis <b>https://expertkevin06-cell.github.io/appli-aide-technique/</b> (S1 JSON → S2 analyse HTML/scripts → S3 fallback).</p>
       <input type="text" value="https://expertkevin06-cell.github.io/appli-aide-technique/" readonly style="background:#0b1626;color:var(--muted)">
       <div class="barwrap"><div id="importBar" class="barfill"></div></div>
       <button class="btn btn-green" id="btnImportMassive">🚀 Importer TOUTE la base (embarquée + distante)</button>
@@ -248,7 +249,7 @@
     <div class="section">
       <h3>🔄 Mise à jour</h3>
       <div class="grid">
-        <div class="icard"><h4>Version app</h4>5.3.0-massive</div>
+        <div class="icard"><h4>Version app</h4>5.3.1-massive</div>
         <div class="icard"><h4>Version données</h4><span id="dataVersion">1 (local)</span></div>
         <div class="icard"><h4>Fiches en base</h4><span id="ficheCount">—</span></div>
         <div class="icard"><h4>Mode</h4>📱 Solo (local)</div>
@@ -260,17 +261,17 @@
     </div>
   </div>
 
-  <footer>DiagAuto Pro © 2026 — v5.3.0-massive — base massive embarquée + import distant — IndexedDB — auto-vérification 20 checks</footer>
+  <footer>DiagAuto Pro © 2026 — v5.3.1-massive — base massive embarquée + import distant — IndexedDB — auto-vérification 21 checks</footer>
 </div>
 
 <script src="import-base-massive.js"></script>
 <script>
 // ============================================================
-// MODULE AUTO-VÉRIFICATION — v5.3.0 (20 checks, T17 corrigé)
+// MODULE AUTO-VÉRIFICATION — v5.3.1 (21 checks, T20 corrigé)
 // ============================================================
 (function () {
 'use strict';
-var VERSION = '5.3.0-massive';
+var VERSION = '5.3.1-massive';
 var bootErrors = [];
 window.addEventListener('error', function (e) { bootErrors.push(e.message); });
 
@@ -387,7 +388,6 @@ async function run() {
         !!(window.DiagImporter && typeof window.DiagImporter.importRemote === 'function'),
         window.DiagImporter ? 'importRemote() disponible' : 'module absent');
 
-  // T17 CORRIGÉ : la base est désormais MASSIVE (>= 1000 fiches)
   var DA = window.DiagAuto, integ = false, det17 = '';
   if (DA && Array.isArray(DA.FICHES)) {
     var keys = {}, bad = 0;
@@ -402,7 +402,6 @@ async function run() {
   } else det17 = 'window.DiagAuto absent';
   check('T17 · Intégrité — base MASSIVE cohérente (≥1000 fiches)', integ, det17);
 
-  // T18 : couverture marques (échantillon toutes origines)
   var sample = ['Peugeot','Renault','BMW','Toyota','Ford','BYD','Zeekr','Rivian','Aixam','Maserati','Xiaomi Auto','Tank','Tesla','Hyundai'];
   var missM = [];
   if (DA && DA.FICHES) {
@@ -415,7 +414,6 @@ async function run() {
   check('T18 · Couverture — toutes marques (échantillon 14)', missM.length === 0,
         missM.length ? 'manquantes : ' + missM.join(', ') : sample.length + ' marques couvertes');
 
-  // T19 : couverture pannes (toutes les familles générées)
   var missP = [];
   if (DA && DA.PANNES && DA.stats) {
     DA.PANNES.forEach(function (p) { if (!DA.stats.pannes[p.id]) missP.push(p.id); });
@@ -423,11 +421,17 @@ async function run() {
   check('T19 · Couverture — toutes pannes connues générées', missP.length === 0,
         missP.length ? 'manquantes : ' + missP.join(', ') : DA.PANNES.length + ' familles de pannes');
 
-  // T20 : couverture motorisations / puissances / modèles
+  // T20 CORRIGÉ : catalogue puissances étendu (22 uniques ≥ 15)
   var st = DA && DA.stats ? DA.stats : null;
   check('T20 · Couverture — motorisations × puissances × modèles',
         !!st && st.powersCount >= 15 && st.models >= 100 && st.makesCount >= 100,
         st ? (st.makesCount + ' marques · ' + st.models + ' motorisations-modèles · ' + st.powersCount + ' puissances') : 'stats absentes');
+
+  // T21 : recherche par puissance
+  await typeSearch('1.5 130');
+  check('T21 · Moteur — recherche puissance "1.5 130"', /130 ch/i.test($('resultsBox').textContent),
+        $('resultsBox').textContent.trim().slice(0, 90));
+  await typeSearch('');
 
   render(Math.round(performance.now() - t0));
 }
