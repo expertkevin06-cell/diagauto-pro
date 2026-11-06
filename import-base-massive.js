@@ -1,14 +1,14 @@
 // ============================================================
-// IMPORT-BASE-MASSIVE.JS — v6.1-massive
-// Base MASSIVE : TOUTES marques × TOUS modèles × TOUTES
-// motorisations × 22 PUISSANCES × TOUTES pannes connues
-// + import distant S1/S2/S3 depuis appli-aide-technique
-// + filtre origine optimisé (_orig précalculé)
+// IMPORT-BASE-MASSIVE.JS — v6.2.0-massive
+// ROBUSTE : génération signée (meta.gen), auto-reseed si base
+// périmée, validatePool() au chargement, cache-busting via ?v=
+// Base : TOUTES marques × TOUS modèles × TOUTES motorisations
+// × 22 PUISSANCES × TOUTES pannes + import distant S1/S2/S3
 // ============================================================
 (function () {
 'use strict';
 
-var VERSION = '6.1.0-massive';
+var VERSION = '6.2.0-massive';
 
 var CONFIG = {
   SOURCE_URL: 'https://expertkevin06-cell.github.io/appli-aide-technique/',
@@ -22,7 +22,7 @@ var CONFIG = {
   MAX_REMOTE: 20000,
   MAX_EMBEDDED: 16000,
   LS_IMPORT: 'diagauto_last_import',
-  DB_NAME: 'DiagAutoDB', DB_VERSION: 4, STORE: 'fiches'
+  DB_NAME: 'DiagAutoDB', DB_VERSION: 5, STORE: 'fiches'
 };
 
 function norm(s) {
@@ -31,7 +31,7 @@ function norm(s) {
     .replace(/[^a-z0-9.]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-// ---------- 151 MARQUES COMPLÈTES [nom, origine] ----------
+// ---------- 151 MARQUES COMPLÈTES ----------
 var MARQUES_COMPLETE = [
   ['Aixam','fr'],['Alpine','fr'],['Bolloré','fr'],['Bugatti','fr'],['Citroën','fr'],['DS Automobiles','fr'],['Ligier','fr'],['Microcar','fr'],['Peugeot','fr'],['Renault','fr'],
   ['Alfa Romeo','eu'],['Aston Martin','eu'],['Audi','eu'],['Bentley','eu'],['BMW','eu'],['CUPRA','eu'],['Dacia','eu'],['Ferrari','eu'],['Fiat','eu'],['Ineos','eu'],['Jaguar','eu'],['Lamborghini','eu'],['Lancia','eu'],['Land Rover','eu'],['Lotus','eu'],['Maserati','eu'],['McLaren','eu'],['Mercedes-Benz','eu'],['MINI','eu'],['Opel','eu'],['Polestar','eu'],['Porsche','eu'],['Rolls-Royce','eu'],['Saab','eu'],['SEAT','eu'],['Škoda','eu'],['Smart','eu'],['Volkswagen','eu'],['Volvo','eu'],
@@ -39,9 +39,7 @@ var MARQUES_COMPLETE = [
   ['Buick','us'],['Cadillac','us'],['Chevrolet','us'],['Chrysler','us'],['Dodge','us'],['Fisker','us'],['Ford','us'],['GMC','us'],['Hummer','us'],['Jeep','us'],['Lincoln','us'],['Lucid','us'],['Pontiac','us'],['Ram','us'],['Rivian','us'],['Tesla','us']
 ].map(function (a) { return { nom: a[0], orig: a[1] }; });
 
-var MARQUE_ORIG = {};
-var NORM_ORIG = {};
-var MAKE_FIRST = {};
+var MARQUE_ORIG = {}, NORM_ORIG = {}, MAKE_FIRST = {};
 MARQUES_COMPLETE.forEach(function (m) {
   MARQUE_ORIG[m.nom] = m.orig;
   var nm = norm(m.nom);
@@ -90,41 +88,41 @@ var MODELES_CATALOG = {
   'Great Wall': ['Cannon','Poer','Haval H6','Tank 300']
 };
 
-// ---------- 28 FAMILLES DE PANNES CONNUES ----------
+// ---------- 28 FAMILLES DE PANNES (courts = sous-chaînes des titres) ----------
 var PANNES = [
   { id:'fap', cat:'Échappement', carbu:['diesel'], titre:'FAP colmaté', court:'FAP colmaté', sym:'Voyant FAP, mode dégradé.', dtc:['P2002','P242F'], sol:'Régénération forcée, contrôle pression.', kw:['fap','dpf','particules','colmate'], prio:3 },
   { id:'egr', cat:'Dépollution', carbu:['diesel'], titre:'Vanne EGR encrassée', court:'Vanne EGR encrassée', sym:'Perte puissance, ralenti instable.', dtc:['P0401','P0402'], sol:'Nettoyage/remplacement vanne EGR.', kw:['egr','vanne','ralenti'], prio:2 },
-  { id:'inj', cat:'Injection', carbu:['diesel'], titre:'Injecteurs : retour / fuite', court:'Injecteurs retour/fuite', sym:'Claquement, fumée noire, ratés.', dtc:['P0201','P0204'], sol:'Test retour, remplacement + codage.', kw:['injecteur','fuite','fumee noire'], prio:6 },
-  { id:'hp', cat:'Injection', carbu:['diesel'], titre:'Pompe HP / régulation rail', court:'Pompe HP / rail', sym:'Démarrage difficile, calage.', dtc:['P0087','P0088'], sol:'Contrôle pression rail, pompe HP.', kw:['pompe','hp','rail','pression'], prio:1 },
+  { id:'inj', cat:'Injection', carbu:['diesel'], titre:'Injecteurs : retour / fuite', court:'Injecteurs', sym:'Claquement, fumée noire, ratés.', dtc:['P0201','P0204'], sol:'Test retour, remplacement + codage.', kw:['injecteur','fuite','fumee noire'], prio:6 },
+  { id:'hp', cat:'Injection', carbu:['diesel'], titre:'Pompe HP / régulation rail', court:'Pompe HP', sym:'Démarrage difficile, calage.', dtc:['P0087','P0088'], sol:'Contrôle pression rail, pompe HP.', kw:['pompe','hp','rail','pression'], prio:1 },
   { id:'adblue', cat:'Dépollution', carbu:['diesel'], titre:'Système AdBlue / SCR défaillant', court:'AdBlue / SCR', sym:'Voyant défaut, démarrage interdit après compte à rebours.', dtc:['P20EE','P204F'], sol:'Pompe / capteur AdBlue, MAJ calc.', kw:['adblue','scr','uree'], prio:4 },
-  { id:'td', cat:'Admission', carbu:['diesel'], titre:'Turbo diesel : géométrie / wastegate', court:'Turbo (diesel)', sym:'Sifflement, perte puissance, fumée.', dtc:['P0299','P0234'], sol:'Contrôle turbo, durites, remplacement.', kw:['turbo','sifflement','wastegate'], prio:5 },
-  { id:'chd', cat:'Moteur', carbu:['diesel'], titre:'Chaîne de distribution (diesel)', court:'Chaîne distribution', sym:'Bruit métallique, casse possible.', dtc:['P0016'], sol:'Kit chaîne + tendeur + guides.', kw:['chaine','distribution','bruit'], prio:0 },
-  { id:'cou', cat:'Moteur', carbu:['essence','hybride'], titre:'Courroie de distribution', court:'Courroie distribution', sym:'Usure, risque casse, échéance km.', dtc:[], sol:'Kit courroie + pompe à eau.', kw:['courroie','distribution','usure'], prio:1 },
+  { id:'td', cat:'Admission', carbu:['diesel'], titre:'Turbo diesel : géométrie / wastegate', court:'Turbo diesel', sym:'Sifflement, perte puissance, fumée.', dtc:['P0299','P0234'], sol:'Contrôle turbo, durites, remplacement.', kw:['turbo','sifflement','wastegate'], prio:5 },
+  { id:'chd', cat:'Moteur', carbu:['diesel'], titre:'Chaîne de distribution (diesel)', court:'Chaîne de distribution', sym:'Bruit métallique, casse possible.', dtc:['P0016'], sol:'Kit chaîne + tendeur + guides.', kw:['chaine','distribution','bruit'], prio:0 },
+  { id:'cou', cat:'Moteur', carbu:['essence','hybride'], titre:'Courroie de distribution', court:'Courroie de distribution', sym:'Usure, risque casse, échéance km.', dtc:[], sol:'Kit courroie + pompe à eau.', kw:['courroie','distribution','usure'], prio:1 },
   { id:'bob', cat:'Moteur', carbu:['essence','hybride'], titre:'Bobines / bougies (ratés)', court:'Bobines / bougies', sym:'Ratés, voyant moteur, à-coups.', dtc:['P0300','P0301'], sol:'Bobines + bougies.', kw:['bobine','bougie','rate','allumage'], prio:7 },
-  { id:'te', cat:'Admission', carbu:['essence','hybride'], titre:'Turbo essence / wastegate', court:'Turbo (essence)', sym:'Perte puissance, sifflement.', dtc:['P0299'], sol:'Contrôle turbo + durites.', kw:['turbo','wastegate','puissance'], prio:5 },
-  { id:'che', cat:'Moteur', carbu:['essence'], titre:'Chaîne de distribution (essence)', court:'Chaîne distribution', sym:'Bruit chaîne à froid, tendeur fatigué.', dtc:['P0016'], sol:'Kit chaîne + tendeur.', kw:['chaine','distribution','tendeur'], prio:0 },
-  { id:'bht', cat:'Électrique', carbu:['ev'], titre:'Batterie HT / BMS véhicule électrique', court:'Batterie HT / BMS', sym:'Perte autonomie, voyant HV, recharge lente.', dtc:['P0A80'], sol:'Diagnostic modules HT, équilibrage.', kw:['batterie','ht','bms','electrique'], prio:2 },
+  { id:'te', cat:'Admission', carbu:['essence','hybride'], titre:'Turbo essence / wastegate', court:'Turbo essence', sym:'Perte puissance, sifflement.', dtc:['P0299'], sol:'Contrôle turbo + durites.', kw:['turbo','wastegate','puissance'], prio:5 },
+  { id:'che', cat:'Moteur', carbu:['essence'], titre:'Chaîne de distribution (essence)', court:'Chaîne de distribution', sym:'Bruit chaîne à froid, tendeur fatigué.', dtc:['P0016'], sol:'Kit chaîne + tendeur.', kw:['chaine','distribution','tendeur'], prio:0 },
+  { id:'bht', cat:'Électrique', carbu:['ev'], titre:'Batterie HT / BMS véhicule électrique', court:'Batterie HT', sym:'Perte autonomie, voyant HV, recharge lente.', dtc:['P0A80'], sol:'Diagnostic modules HT, équilibrage.', kw:['batterie','ht','bms','electrique'], prio:2 },
   { id:'rec', cat:'Électrique', carbu:['ev'], titre:'Recharge / chargeur embarqué', court:'Recharge / chargeur', sym:'Recharge impossible, coupures.', dtc:[], sol:'Contrôle chargeur, câble, borne.', kw:['recharge','chargeur','borne'], prio:3 },
   { id:'bhv', cat:'Électrique', carbu:['hybride'], titre:'Batterie hybride / ventilation', court:'Batterie hybride', sym:'Voyant HV, perte mode EV.', dtc:['P0A80','P0C00'], sol:'Modules HV, ventilation batterie.', kw:['batterie','hybride','ventilation'], prio:2 },
-  { id:'alt', cat:'Électrique', carbu:['all'], titre:'Alternateur / circuit de charge', court:'Alternateur / charge', sym:'Voyant batterie, décharge, phares faibles.', dtc:['P0562'], sol:'Alternateur + courroie accessoire.', kw:['alternateur','charge','voyant'], prio:8 },
+  { id:'alt', cat:'Électrique', carbu:['all'], titre:'Alternateur / circuit de charge', court:'Alternateur', sym:'Voyant batterie, décharge, phares faibles.', dtc:['P0562'], sol:'Alternateur + courroie accessoire.', kw:['alternateur','charge','voyant'], prio:8 },
   { id:'dem', cat:'Électrique', carbu:['all'], titre:'Démarreur / solénoïde', court:'Démarreur', sym:'Clic, ne démarre pas.', dtc:['P0615'], sol:'Démarreur / solénoïde.', kw:['demarreur','clic','demarre'], prio:8 },
   { id:'bat', cat:'Électrique', carbu:['all'], titre:'Batterie 12V / codage BMS', court:'Batterie 12V', sym:'Démarrage difficile, voyant.', dtc:[], sol:'Batterie + codage BMS.', kw:['batterie','bms','demarrage'], prio:9 },
   { id:'pea', cat:'Refroidissement', carbu:['all'], titre:'Pompe à eau / fuite LDR', court:'Pompe à eau', sym:'Fuite, surchauffe, voyant température.', dtc:['P0217'], sol:'Pompe à eau + LDR.', kw:['pompe a eau','fuite','surchauffe'], prio:8 },
   { id:'rad', cat:'Refroidissement', carbu:['all'], titre:'Radiateur / thermostat', court:'Radiateur / thermostat', sym:'Surchauffe, ventilateur permanent.', dtc:['P0217'], sol:'Radiateur, thermostat, LDR.', kw:['radiateur','thermostat','surchauffe'], prio:8 },
   { id:'plq', cat:'Freinage', carbu:['all'], titre:'Plaquettes / disques usés', court:'Plaquettes / disques', sym:'Grincement, voyant frein, pédale longue.', dtc:[], sol:'Remplacement plaquettes/disques.', kw:['frein','plaquette','disque'], prio:9 },
-  { id:'abs', cat:'Freinage', carbu:['all'], titre:'ABS / capteur de roue', court:'ABS / capteur roue', sym:'Voyant ABS/ESP, perte assistance.', dtc:['C0035','C0040'], sol:'Capteur ABS / bague.', kw:['abs','esp','capteur'], prio:9 },
+  { id:'abs', cat:'Freinage', carbu:['all'], titre:'ABS / capteur de roue', court:'ABS / capteur', sym:'Voyant ABS/ESP, perte assistance.', dtc:['C0035','C0040'], sol:'Capteur ABS / bague.', kw:['abs','esp','capteur'], prio:9 },
   { id:'emb', cat:'Transmission', carbu:['all'], titre:'Embrayage / volant moteur', court:'Embrayage / volant', sym:'Patine, pédale dure, bruits.', dtc:[], sol:'Kit embrayage + volant bi-masse.', kw:['embrayage','volant moteur','patine'], prio:9 },
-  { id:'bot', cat:'Transmission', carbu:['all'], titre:'Boîte : à-coups / mécatronique', court:'Boîte / mécatronique', sym:'À-coups, voyant boîte, mode dégradé.', dtc:['P17BF','P0730'], sol:'Huile boîte, mécatronique, MAJ.', kw:['boite','mecatronique','a coups'], prio:9 },
-  { id:'dir', cat:'Direction', carbu:['all'], titre:'Direction assistée / crémaillère', court:'Direction / crémaillère', sym:'Dureté, bruit, jeu.', dtc:[], sol:'Crémaillère / pompe DA.', kw:['direction','cremaillere','durete'], prio:9 },
-  { id:'cli', cat:'Entretien', carbu:['all'], titre:'Climatisation : compresseur / gaz', court:'Clim / compresseur', sym:'Froid insuffisant, bruit compresseur.', dtc:[], sol:'Recharge / compresseur.', kw:['clim','compresseur','froid'], prio:9 },
-  { id:'lam', cat:'Échappement', carbu:['all'], titre:'Sonde lambda / catalyseur', court:'Sonde lambda / cata', sym:'Voyant, conso, échec contrôle technique.', dtc:['P0420','P0130'], sol:'Sonde lambda / catalyseur.', kw:['sonde lambda','catalyseur','p0420'], prio:8 },
-  { id:'dbm', cat:'Admission', carbu:['all'], titre:'Débitmètre / prise d\'air', court:'Débitmètre / admission', sym:'Ralenti instable, trou à l\'accélération.', dtc:['P0101','P0171'], sol:'Débitmètre, durites admission.', kw:['debitmetre','prise air','ralenti'], prio:8 },
+  { id:'bot', cat:'Transmission', carbu:['all'], titre:'Boîte : à-coups / mécatronique', court:'Boîte :', sym:'À-coups, voyant boîte, mode dégradé.', dtc:['P17BF','P0730'], sol:'Huile boîte, mécatronique, MAJ.', kw:['boite','mecatronique','a coups'], prio:9 },
+  { id:'dir', cat:'Direction', carbu:['all'], titre:'Direction assistée / crémaillère', court:'Direction assistée', sym:'Dureté, bruit, jeu.', dtc:[], sol:'Crémaillère / pompe DA.', kw:['direction','cremaillere','durete'], prio:9 },
+  { id:'cli', cat:'Entretien', carbu:['all'], titre:'Climatisation : compresseur / gaz', court:'Climatisation', sym:'Froid insuffisant, bruit compresseur.', dtc:[], sol:'Recharge / compresseur.', kw:['clim','compresseur','froid'], prio:9 },
+  { id:'lam', cat:'Échappement', carbu:['all'], titre:'Sonde lambda / catalyseur', court:'Sonde lambda', sym:'Voyant, conso, échec contrôle technique.', dtc:['P0420','P0130'], sol:'Sonde lambda / catalyseur.', kw:['sonde lambda','catalyseur','p0420'], prio:8 },
+  { id:'dbm', cat:'Admission', carbu:['all'], titre:'Débitmètre / prise d\'air', court:'Débitmètre', sym:'Ralenti instable, trou à l\'accélération.', dtc:['P0101','P0171'], sol:'Débitmètre, durites admission.', kw:['debitmetre','prise air','ralenti'], prio:8 },
   { id:'sus', cat:'Suspension', carbu:['all'], titre:'Amortisseurs / rotules / silentblocs', court:'Amortisseurs / rotules', sym:'Bruit, jeu, tenue de route.', dtc:[], sol:'Remplacement + géométrie.', kw:['amortisseur','rotule','silentbloc'], prio:9 }
 ];
 var PANNE_BY_ID = {};
 PANNES.forEach(function (p) { PANNE_BY_ID[p.id] = p; });
 
-// ---------- Préparation fiche (+ _orig précalculé) ----------
+// ---------- Préparation fiche ----------
 function computeOrig(f) {
   if (f.veh) return MARQUE_ORIG[f.veh.marques[0]] || null;
   var ml = f.marqueLibre || '';
@@ -167,7 +165,7 @@ var FICHES_CURATED = [
 ];
 FICHES_CURATED.forEach(function (f) { prepFiche(f, false); });
 
-// ---------- GÉNÉRATEUR BASE MASSIVE (22 puissances uniques) ----------
+// ---------- GÉNÉRATEUR MASSIF (22 puissances uniques) ----------
 function enginesFor(m) {
   var out = [];
   if (m.orig !== 'us') {
@@ -253,8 +251,33 @@ function buildMassiveBase() {
 var MASSIVE = buildMassiveBase();
 var FICHES = MASSIVE.fiches;
 var STATS = MASSIVE.stats;
+var GENERATION_ID = 'gen-6.2-p' + STATS.powersCount + '-m' + STATS.makesCount + '-f' + FICHES.length;
 
-// ---------- IndexedDB ----------
+// ---------- VALIDATION DU POOL CHARGÉ ----------
+var SAMPLE_MAKES = ['peugeot','renault','bmw','toyota','ford','byd','zeekr','rivian','aixam','maserati','xiaomi','tank','tesla','hyundai'];
+function validatePool(pool) {
+  if (!pool || !pool.length || pool.length < 1000) return false;
+  var powers = {}, makes = {}, i, m;
+  for (i = 0; i < pool.length; i++) {
+    var t = pool[i].titre || '';
+    m = t.match(/(\d{2,3}) ch /);
+    if (m) powers[m[1]] = 1;
+    var ml = pool[i].marqueLibre || '';
+    if (ml) makes[ml.split(' ')[0]] = 1;
+  }
+  if (Object.keys(powers).length < 15) return false;
+  for (i = 0; i < SAMPLE_MAKES.length; i++) if (!makes[SAMPLE_MAKES[i]]) return false;
+  for (i = 0; i < PANNES.length; i++) {
+    var needle = PANNES[i].court, found = false;
+    for (var j = 0; j < pool.length; j++) {
+      if ((pool[j].titre || '').indexOf(needle) >= 0) { found = true; break; }
+    }
+    if (!found) return false;
+  }
+  return true;
+}
+
+// ---------- IndexedDB (+ store meta) ----------
 function DB() {}
 DB.prototype.open = function () {
   var self = this;
@@ -265,6 +288,7 @@ DB.prototype.open = function () {
     r.onupgradeneeded = function (e) {
       var d = e.target.result;
       if (!d.objectStoreNames.contains(CONFIG.STORE)) d.createObjectStore(CONFIG.STORE, { keyPath: 'id', autoIncrement: true });
+      if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta', { keyPath: 'k' });
     };
   });
 };
@@ -301,7 +325,50 @@ DB.prototype.getAll = function () {
     } catch (e) { res([]); }
   });
 };
+DB.prototype.getMeta = function () {
+  var self = this;
+  return new Promise(function (res) {
+    try {
+      var q = self.db.transaction('meta', 'readonly').objectStore('meta').get('gen');
+      q.onsuccess = function () { res(q.result || null); }; q.onerror = function () { res(null); };
+    } catch (e) { res(null); }
+  });
+};
+DB.prototype.setMeta = function (v) {
+  var self = this;
+  return new Promise(function (res) {
+    try {
+      var t = self.db.transaction('meta', 'readwrite');
+      var rec = { k: 'gen' };
+      Object.keys(v).forEach(function (k) { rec[k] = v[k]; });
+      t.objectStore('meta').put(rec);
+      t.oncomplete = function () { res(true); }; t.onerror = function () { res(false); };
+    } catch (e) { res(false); }
+  });
+};
 var db = new DB();
+
+// ---------- CHARGEMENT ROBUSTE (génération + validation) ----------
+async function loadOrSeed() {
+  await db.open();
+  var meta = await db.getMeta();
+  var n = await db.count();
+  var pool = null;
+  if (meta && meta.gen === GENERATION_ID && n >= 1000) {
+    var stored = await db.getAll();
+    if (stored.length >= 1000) {
+      stored.forEach(function (f) { prepFiche(f, !!f._remote); });
+      if (validatePool(stored)) pool = stored;
+    }
+  }
+  if (!pool) {
+    await db.seed(FICHES);
+    await db.setMeta({ gen: GENERATION_ID, date: Date.now() });
+    pool = FICHES;
+  }
+  window.__ALL_FICHES = pool;
+  return pool.length;
+}
 
 // ---------- IMPORT DISTANT S1/S2/S3 ----------
 function fetchText(url, timeout) {
@@ -418,7 +485,7 @@ async function importRemote(onLog, onProg) {
   var log = onLog || function () {};
   var prog = onProg || function () {};
   var report = { date: new Date().toISOString(), source: CONFIG.SOURCE_URL, strategy: null, remoteCount: 0, totalCount: 0, errors: [] };
-  log('📦 Base embarquée massive : ' + FICHES.length + ' fiches (' + STATS.makesCount + ' marques · ' + STATS.models + ' motorisations-modèles · ' + STATS.powersCount + ' puissances · ' + STATS.pannesCount + ' familles de pannes)');
+  log('📦 Base embarquée massive : ' + FICHES.length + ' fiches (' + STATS.makesCount + ' marques · ' + STATS.models + ' motorisations-modèles · ' + STATS.powersCount + ' puissances · ' + STATS.pannesCount + ' familles de pannes) · gen ' + GENERATION_ID);
   var remote = [];
 
   log('S1 · Endpoints JSON directs…'); prog(10);
@@ -474,6 +541,7 @@ async function importRemote(onLog, onProg) {
   var all = FICHES.concat(mergedExtra);
   await db.open();
   var n = await db.seed(all);
+  await db.setMeta({ gen: GENERATION_ID, date: Date.now(), remote: report.remoteCount });
   window.__ALL_FICHES = all;
   report.totalCount = n;
   prog(100);
@@ -718,6 +786,7 @@ async function importMassiveUI() {
     st.innerHTML = '✅ <b>Import terminé</b> · stratégie ' + rep.strategy + ' · ' + rep.remoteCount +
       ' fiches distantes · base totale ' + rep.totalCount + ' · ' + new Date(rep.date).toLocaleString('fr-FR');
     $('ficheCount').textContent = rep.totalCount + ' fiches';
+    $('genVersion').textContent = GENERATION_ID;
     $('dataVersion').textContent = (rep.remoteCount ? '3 (import distant ' : '2 (massive local ') + new Date(rep.date).toLocaleDateString('fr-FR') + ')';
     setTimeout(function () { if (confirm('Import terminé (' + rep.totalCount + ' fiches). Recharger la page ?')) location.reload(); }, 800);
   } catch (e) {
@@ -800,24 +869,17 @@ document.addEventListener('DOMContentLoaded', async function () {
       if (!Array.isArray(arr)) throw new Error('format invalide');
       arr.forEach(function (f) { prepFiche(f, true); });
       await db.open(); await db.seed(arr);
+      await db.setMeta({ gen: GENERATION_ID, date: Date.now(), custom: arr.length });
       alert('✅ ' + arr.length + ' fiches importées depuis le fichier.');
       location.reload();
     } catch (err) { alert('❌ Fichier invalide : ' + err.message); }
   });
 
+  // Boot ROBUSTE : génération signée + validation du pool + auto-reseed
   try {
-    await db.open();
-    var n = await db.count();
-    if (n < 1000) { await db.seed(FICHES); n = FICHES.length; window.__ALL_FICHES = FICHES; }
-    else {
-      var stored = await db.getAll();
-      if (stored.length) {
-        stored.forEach(function (f) { prepFiche(f, !!f._remote); });
-        window.__ALL_FICHES = stored;
-        n = stored.length;
-      }
-    }
-    $('ficheCount').textContent = n + ' fiches';
+    var loaded = await loadOrSeed();
+    $('ficheCount').textContent = loaded + ' fiches';
+    $('genVersion').textContent = GENERATION_ID;
     var rep = null;
     try { rep = JSON.parse(localStorage.getItem(CONFIG.LS_IMPORT) || 'null'); } catch (e) {}
     if (rep && rep.remoteCount) $('dataVersion').textContent = '3 (import distant ' + new Date(rep.date).toLocaleDateString('fr-FR') + ')';
@@ -826,10 +888,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     console.warn('IndexedDB indisponible, mode mémoire.', e);
     window.__ALL_FICHES = FICHES;
     $('ficheCount').textContent = FICHES.length + ' fiches (mémoire)';
+    $('genVersion').textContent = GENERATION_ID + ' (mémoire)';
   }
 });
 
-window.DiagAuto = { FICHES: FICHES, PANNES: PANNES, MARQUES: MARQUES_COMPLETE, stats: STATS, search: search, buildCtx: buildCtx, CONFIG: CONFIG, VERSION: VERSION };
+window.DiagAuto = { FICHES: FICHES, PANNES: PANNES, MARQUES: MARQUES_COMPLETE, stats: STATS, search: search, buildCtx: buildCtx, validatePool: validatePool, GEN: GENERATION_ID, CONFIG: CONFIG, VERSION: VERSION };
 window.DiagImporter = {
   importRemote: importRemote,
   lastReport: function () { try { return JSON.parse(localStorage.getItem(CONFIG.LS_IMPORT)); } catch (e) { return null; } }
