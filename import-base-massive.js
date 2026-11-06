@@ -1,14 +1,14 @@
 // ============================================================
-// IMPORT-BASE-MASSIVE.JS — v6.2.0-massive
-// ROBUSTE : génération signée (meta.gen), auto-reseed si base
-// périmée, validatePool() au chargement, cache-busting via ?v=
-// Base : TOUTES marques × TOUS modèles × TOUTES motorisations
-// × 22 PUISSANCES × TOUTES pannes + import distant S1/S2/S3
+// IMPORT-BASE-MASSIVE.JS — v7.0.0-elroq
+// ROBUSTE : catalogue modèles étendu 2024-2026 (Elroq, R5 E-Tech,
+// Rafale, e-3008/e-5008, Seal U, Atto 2, EV5/EV9, Inster, Ioniq 9,
+// Smart #1/#3/#5, Juniper, Highland…), scan distant source en //,
+// auto-reseed si pool invalide, 23 checks, MAX_EMBEDDED 22000
 // ============================================================
 (function () {
 'use strict';
 
-var VERSION = '6.2.0-massive';
+var VERSION = '7.0.0-elroq';
 
 var CONFIG = {
   SOURCE_URL: 'https://expertkevin06-cell.github.io/appli-aide-technique/',
@@ -20,9 +20,9 @@ var CONFIG = {
     'https://expertkevin06-cell.github.io/appli-aide-technique/pannes.json'
   ],
   MAX_REMOTE: 20000,
-  MAX_EMBEDDED: 16000,
+  MAX_EMBEDDED: 22000,
   LS_IMPORT: 'diagauto_last_import',
-  DB_NAME: 'DiagAutoDB', DB_VERSION: 5, STORE: 'fiches'
+  DB_NAME: 'DiagAutoDB', DB_VERSION: 6, STORE: 'fiches'
 };
 
 function norm(s) {
@@ -48,47 +48,55 @@ MARQUES_COMPLETE.forEach(function (m) {
   (MAKE_FIRST[w] = MAKE_FIRST[w] || []).push(nm);
 });
 
-// ---------- CATALOGUE MODÈLES ----------
+// ---------- CATALOGUE MODÈLES ÉTENDU 2024-2026 ----------
 var MODELES_CATALOG = {
-  'Peugeot': ['208','2008','308','3008','408','508','5008','Partner','Rifter','Expert','Boxer'],
-  'Citroën': ['C3','C3 Aircross','C4','C4 X','C5 Aircross','C5 X','Berlingo','Jumpy','SpaceTourer'],
-  'DS Automobiles': ['DS 3','DS 4','DS 7','DS 9'],
-  'Renault': ['Clio','Megane','Scenic','Captur','Kadjar','Austral','Espace','Zoe','Twingo','Kangoo','Trafic','Master','4','5'],
-  'Dacia': ['Sandero','Duster','Logan','Jogger','Spring'],
-  'Volkswagen': ['Polo','Golf','Passat','Tiguan','Touareg','T-Roc','Caddy','Transporter','ID.3','ID.4','ID.5'],
-  'Audi': ['A1','A3','A4','A5','A6','Q2','Q3','Q5','Q7','Q8','e-tron'],
-  'BMW': ['Serie 1','Serie 3','Serie 5','Serie 7','X1','X3','X5','X7','i4','iX','M3','M5'],
-  'Mercedes-Benz': ['Classe A','Classe C','Classe E','Classe S','GLA','GLC','GLE','GLS','EQA','EQE','EQS','Sprinter'],
-  'Opel': ['Corsa','Astra','Mokka','Grandland','Insignia','Vivaro'],
-  'SEAT': ['Ibiza','Leon','Arona','Ateca','Tarraco'],
-  'CUPRA': ['Born','Formentor','Leon','Tavascan'],
-  'Škoda': ['Fabia','Octavia','Superb','Kamiq','Karoq','Kodiaq','Enyaq'],
-  'Porsche': ['911','718 Cayman','Macan','Cayenne','Panamera','Taycan'],
-  'Volvo': ['XC40','XC60','XC90','C40','S60','S90','V60','V90','EX30','EX90'],
-  'Polestar': ['Polestar 2','Polestar 3','Polestar 4'],
-  'Fiat': ['500','Panda','Tipo','500X','500L','Ducato'],
-  'Toyota': ['Yaris','Corolla','Camry','C-HR','RAV4','Hilux','Land Cruiser','Prius','bZ4X','Aygo'],
-  'Lexus': ['IS','ES','LS','NX','RX','RZ','UX'],
-  'Honda': ['Civic','Accord','CR-V','HR-V','Jazz','Pilot'],
-  'Nissan': ['Micra','Juke','Qashqai','X-Trail','Leaf','Ariya','Navara'],
-  'Mazda': ['Mazda2','Mazda3','Mazda6','CX-3','CX-30','CX-5','MX-5'],
-  'Mitsubishi': ['Space Star','ASX','Eclipse Cross','Outlander','L200'],
-  'Subaru': ['Impreza','WRX','Crosstrek','Forester','Outback','Legacy'],
-  'Suzuki': ['Swift','Ignis','Baleno','S-Cross','Vitara','Jimny'],
-  'Hyundai': ['i10','i20','i30','Kona','Tucson','Santa Fe','Ioniq 5','Ioniq 6'],
-  'Kia': ['Picanto','Rio','Ceed','Stonic','Sportage','Sorento','Niro','EV6','EV9'],
-  'Ford': ['Fiesta','Focus','Puma','Kuga','Mustang Mach-E','Ranger','Transit'],
-  'Chevrolet': ['Spark','Cruze','Bolt EV','Equinox','Traverse','Tahoe','Silverado 1500'],
-  'Jeep': ['Renegade','Compass','Cherokee','Wrangler','Gladiator','Grand Cherokee'],
-  'Tesla': ['Model 3','Model Y','Model S','Model X','Cybertruck'],
-  'BYD': ['Atto 3','Dolphin','Seal','Seagull','Han','Tang'],
-  'MG': ['MG3','MG4','MG5','MG HS','MG ZS','Cyberster'],
-  'Chery': ['Tiggo 4','Tiggo 7','Tiggo 8','Arrizo 8','Omoda 5'],
-  'Geely': ['Coolray','Emgrand','Monjaro','Galaxy L7'],
-  'Great Wall': ['Cannon','Poer','Haval H6','Tank 300']
+  'Peugeot': ['208','2008','308','3008','408','508','5008','Partner','Rifter','Expert','Boxer','e-208','e-2008','e-3008','e-308','e-5008','e-Rifter'],
+  'Citroën': ['C3','C3 Aircross','C4','C4 X','C5 Aircross','C5 X','Berlingo','Jumpy','SpaceTourer','ë-C3','ë-C3 Aircross','ë-C4','ë-Berlingo'],
+  'DS Automobiles': ['DS 3','DS 4','DS 7','DS 9','DS N°4','DS N°8','DS 3 Crossback E-Tense','DS 4 E-Tense','DS 7 E-Tense'],
+  'Renault': ['Clio','Megane','Scenic','Captur','Kadjar','Austral','Espace','Zoe','Twingo','Kangoo','Trafic','Master','4','5','Rafale','Symbioz','Renault 5 E-Tech','Megane E-Tech','Scenic E-Tech','Austral E-Tech','Kangoo E-Tech'],
+  'Dacia': ['Sandero','Duster','Logan','Jogger','Spring','Bigster'],
+  'Volkswagen': ['Polo','Golf','Passat','Tiguan','Touareg','T-Roc','Caddy','Transporter','ID.3','ID.4','ID.5','ID.7','ID.Buzz','Taigo','T-Cross','ID.2all'],
+  'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q4 e-tron','Q5','Q6 e-tron','Q7','Q8','Q8 e-tron','e-tron','e-tron GT','RS e-tron GT'],
+  'BMW': ['Serie 1','Serie 2','Serie 3','Serie 4','Serie 5','Serie 7','X1','X2','X3','X4','X5','X6','X7','iX1','iX2','iX3','i4','i5','i7','iX','M3','M5','XM'],
+  'Mercedes-Benz': ['Classe A','Classe B','Classe C','Classe E','Classe S','GLA','GLB','GLC','GLE','GLS','CLA','EQE','EQS','EQA','EQB','EQC','G-Class','V-Class','Citan'],
+  'Opel': ['Corsa','Astra','Mokka','Grandland','Insignia','Vivaro','Combo','Zafira','Corsa-e','Mokka-e','Astra GSe','Rocks Electric'],
+  'SEAT': ['Ibiza','Leon','Arona','Ateca','Tarraco','Alhambra'],
+  'CUPRA': ['Born','Formentor','Leon','Tavascan','Terramar'],
+  'Škoda': ['Fabia','Octavia','Superb','Kamiq','Karoq','Kodiaq','Enyaq','Enyaq Coupé','Elroq','Scala'],
+  'Porsche': ['911','718 Cayman','718 Boxster','Macan','Cayenne','Panamera','Taycan','Taycan Cross Turismo'],
+  'Volvo': ['XC40','XC60','XC90','C40','EX30','EX90','EM90','S60','S90','V60','V90'],
+  'Polestar': ['Polestar 2','Polestar 3','Polestar 4','Polestar 5'],
+  'Fiat': ['500','Panda','Tipo','500X','500L','600','Topolino','Ducato','500e'],
+  'Toyota': ['Yaris','Corolla','Camry','C-HR','RAV4','Hilux','Land Cruiser','Prius','bZ4X','bZ3','Aygo','Highlander','Proace','GR Yaris','GR86','Supra','Crown'],
+  'Lexus': ['IS','ES','LS','NX','RX','RZ','UX','LBX','LC','LM'],
+  'Honda': ['Civic','Accord','CR-V','HR-V','Jazz','Pilot','e:Ny1','ZR-V'],
+  'Nissan': ['Micra','Juke','Qashqai','X-Trail','Leaf','Ariya','Navara','Townstar','Townstar EV'],
+  'Mazda': ['Mazda2','Mazda3','Mazda6','CX-3','CX-30','CX-5','CX-60','CX-80','MX-5','MX-30'],
+  'Mitsubishi': ['Space Star','ASX','Eclipse Cross','Outlander','L200','Colt'],
+  'Subaru': ['Impreza','WRX','Crosstrek','Forester','Outback','Legacy','Solterra'],
+  'Suzuki': ['Swift','Ignis','Baleno','S-Cross','Vitara','Jimny','Fronx','e Vitara'],
+  'Hyundai': ['i10','i20','i30','Kona','Tucson','Santa Fe','Ioniq 5','Ioniq 6','Ioniq 9','Inster','Casper','Bayon','Staria','Nexo'],
+  'Kia': ['Picanto','Rio','Ceed','Stonic','Sportage','Sorento','Niro','EV6','EV9','EV5','Carnival','Telluride','K4','K5'],
+  'Ford': ['Fiesta','Focus','Puma','Kuga','Mustang Mach-E','Ranger','Transit','Explorer EV','Capri EV','Bronco','F-150 Lightning','E-Transit'],
+  'Chevrolet': ['Spark','Cruze','Bolt EV','Bolt EUV','Equinox EV','Blazer EV','Traverse','Tahoe','Silverado EV','Silverado 1500','Corvette','Camaro'],
+  'Jeep': ['Renegade','Compass','Cherokee','Wrangler','Gladiator','Grand Cherokee','Avenger','Avenger EV','Wagoneer'],
+  'Tesla': ['Model 3','Model 3 Highland','Model Y','Model Y Juniper','Model S','Model X','Cybertruck','Roadster'],
+  'BYD': ['Atto 3','Atto 2','Dolphin','Dolphin U','Seal','Seal U','Seal 07','Seagull','Han','Tang','Song Plus','Yuan','Yangwang U8'],
+  'MG': ['MG3','MG4','MG4 XPOWER','MG5','MG HS','MG ZS','MG S5','MG7','Cyberster','MG5 EV','Marvel R'],
+  'Chery': ['Tiggo 4','Tiggo 7','Tiggo 8','Arrizo 8','Omoda 5','Omoda E5','Jaecoo 7','Jaecoo J8'],
+  'Geely': ['Coolray','Emgrand','Monjaro','Galaxy L7','Galaxy E8','Zeekr 001','Zeekr X','Zeekr 007'],
+  'Great Wall': ['Cannon','Poer','Haval H6','Haval Jolion','Tank 300','Tank 500','Ora 03','Ora 07'],
+  'Xiaomi Auto': ['SU7','SU7 Ultra','YU7'],
+  'NIO': ['ET7','ET5','ES6','ES8','EL7','EC7','Firefly'],
+  'XPeng': ['G3','G6','G9','P7','P7+','MONA M03'],
+  'Zeekr': ['Zeekr 001','Zeekr 007','Zeekr 009','Zeekr X','Zeekr Mix'],
+  'Li Auto': ['L6','L7','L8','L9','Mega'],
+  'Leapmotor': ['C01','C10','C11','C16','T03','B10'],
+  'VinFast': ['VF 5','VF 6','VF 7','VF 8','VF 9'],
+  'Smart': ['Smart #1','Smart #3','Smart #5']
 };
 
-// ---------- 28 FAMILLES DE PANNES (courts = sous-chaînes des titres) ----------
+// ---------- 28 FAMILLES DE PANNES ----------
 var PANNES = [
   { id:'fap', cat:'Échappement', carbu:['diesel'], titre:'FAP colmaté', court:'FAP colmaté', sym:'Voyant FAP, mode dégradé.', dtc:['P2002','P242F'], sol:'Régénération forcée, contrôle pression.', kw:['fap','dpf','particules','colmate'], prio:3 },
   { id:'egr', cat:'Dépollution', carbu:['diesel'], titre:'Vanne EGR encrassée', court:'Vanne EGR encrassée', sym:'Perte puissance, ralenti instable.', dtc:['P0401','P0402'], sol:'Nettoyage/remplacement vanne EGR.', kw:['egr','vanne','ralenti'], prio:2 },
@@ -154,18 +162,24 @@ var FICHES_CURATED = [
   { cat:'Injection', titre:'1.5 dCi (K9K) : injecteurs', src:'Campagnes Renault', sym:'Claquement diesel, fumée, ratés.', dtc:['P0201','P0203'], sol:'Injecteurs neufs + codage.', veh:{marques:['Renault','Dacia'], modeles:['Clio','Megane','Scenic','Captur','Kadjar','Kangoo','Trafic','Duster','Sandero','Logan','Jogger'], mot:['1.5','dci','k9k']}, carbu:'diesel', kw:['injecteur','k9k','claquement','fumee','rate'], prio:1 },
   { cat:'Moteur', titre:'1.2 TCe (H5F) : chaîne de distribution', src:'Campagnes Renault', sym:'Bruit de chaîne, voyant, risque casse.', dtc:['P0016'], sol:'Kit chaîne + crépine.', veh:{marques:['Renault','Dacia'], modeles:['Clio','Megane','Captur','Kadjar','Jogger','Duster'], mot:['1.2','tce','h5f']}, carbu:'essence', kw:['chaine','distribution','tce','h5f','bruit'], prio:1 },
   { cat:'Moteur', titre:'1.5 dCi : coussinets de bielle', src:'Problème connu K9K', sym:'Claquement bas moteur, casse.', dtc:[], sol:'Contrôle pression huile, coussinets.', veh:{marques:['Renault','Dacia'], modeles:['Clio','Megane','Scenic','Captur','Kangoo','Duster','Sandero','Logan'], mot:['1.5','dci','k9k']}, carbu:'diesel', kw:['coussinet','bielle','claquement','casse','pression huile'], prio:2 },
-  { cat:'Moteur', titre:'TSI (EA888) : tendeur de chaîne', src:'Campagne VAG', sym:'Claquement à froid, voyant.', dtc:['P0016'], sol:'Tendeur revisité + chaîne.', veh:{marques:['Volkswagen','Audi','SEAT','Škoda'], modeles:['Golf','Passat','Tiguan','A3','A4','A5','Q3','Q5','Leon','Ateca','Octavia','Superb'], mot:['1.8','2.0','tsi','ea888']}, carbu:'essence', kw:['chaine','tendeur','tsi','ea888','claquement'], prio:1 },
-  { cat:'Dépollution', titre:'2.0 TDI (EA189) : campagne NOx', src:'Campagne VAG', sym:'Voyant, conso, rappel constructeur.', dtc:[], sol:'Mise à jour calculateur (rappel).', veh:{marques:['Volkswagen','Audi','SEAT','Škoda'], modeles:['Golf','Passat','Tiguan','A3','A4','Q3','Q5','Leon','Octavia'], mot:['2.0','tdi','ea189']}, carbu:'diesel', kw:['tdi','ea189','nox','rappel','campagne'], prio:2 },
+  { cat:'Moteur', titre:'TSI (EA888) : tendeur de chaîne', src:'Campagne VAG', sym:'Claquement à froid, voyant.', dtc:['P0016'], sol:'Tendeur revisité + chaîne.', veh:{marques:['Volkswagen','Audi','SEAT','Škoda'], modeles:['Golf','Passat','Tiguan','A3','A4','A5','Q3','Q5','Leon','Ateca','Octavia','Superb','Enyaq','Elroq','Fabia'], mot:['1.8','2.0','tsi','ea888']}, carbu:'essence', kw:['chaine','tendeur','tsi','ea888','claquement'], prio:1 },
+  { cat:'Dépollution', titre:'2.0 TDI (EA189) : campagne NOx', src:'Campagne VAG', sym:'Voyant, conso, rappel constructeur.', dtc:[], sol:'Mise à jour calculateur (rappel).', veh:{marques:['Volkswagen','Audi','SEAT','Škoda'], modeles:['Golf','Passat','Tiguan','A3','A4','Q3','Q5','Leon','Octavia','Elroq','Enyaq'], mot:['2.0','tdi','ea189']}, carbu:'diesel', kw:['tdi','ea189','nox','rappel','campagne'], prio:2 },
   { cat:'Moteur', titre:'N47 / B47 : chaîne de distribution', src:'Problème connu BMW', sym:'Bruit métallique arrière moteur, casse.', dtc:['P0016'], sol:'Remplacement préventif chaîne complet.', veh:{marques:['BMW','MINI'], modeles:['Serie 1','Serie 3','Serie 5','X1','X3','X5','Cooper','Countryman'], mot:['n47','b47','2.0']}, carbu:'diesel', kw:['chaine','distribution','n47','b47','bruit metallique','casse'], prio:0 },
   { cat:'Dépollution', titre:'N47 : refroidisseur EGR fissuré', src:'Rappel BMW', sym:'Fuite LDR, fumée blanche, risque incendie.', dtc:['P0401'], sol:'Remplacement refroidisseur EGR (rappel).', veh:{marques:['BMW','MINI'], modeles:['Serie 1','Serie 3','Serie 5','X1','X3','Cooper','Countryman'], mot:['n47','2.0']}, carbu:'diesel', kw:['egr','refroidisseur','fuite','fumee blanche','rappel'], prio:1 },
   { cat:'Injection', titre:'OM651 : injecteurs Delphi', src:'Problème connu Mercedes', sym:'Fumée, claquement, retour gasoil.', dtc:['P0201'], sol:'Injecteurs + rondelles pare-feu.', veh:{marques:['Mercedes-Benz'], modeles:['Classe A','Classe C','Classe E','GLA','GLC'], mot:['om651','2.1','2.2','cdi']}, carbu:'diesel', kw:['injecteur','om651','delphi','fumee','claquement'], prio:1 },
   { cat:'Moteur', titre:'2.2 D-4D (136) : joint de culasse', src:'Problème connu Toyota', sym:'Surchauffe, bulles dans LDR, conso LDR.', dtc:[], sol:'Joint culasse / bloc (campagne).', veh:{marques:['Toyota'], modeles:['RAV4','Corolla','Hilux'], mot:['2.2','d 4d','d4d']}, carbu:'diesel', kw:['joint culasse','surchauffe','ldr','d 4d'], prio:1 },
   { cat:'Moteur', titre:'1.0 EcoBoost : courroie immergée', src:'Campagne Ford', sym:'Usure courroie, débris, pompe à vide HS.', dtc:[], sol:'Kit courroie + huile spécifiée.', veh:{marques:['Ford'], modeles:['Fiesta','Focus','Puma','Kuga'], mot:['1.0','ecoboost']}, carbu:'essence', kw:['courroie','distribution','ecoboost','immergee','usure'], prio:1 },
-  { cat:'Moteur', titre:'Theta II : coussinets / casse moteur', src:'Rappel Hyundai-Kia', sym:'Claquement, casse moteur, voyant huile.', dtc:['P0520'], sol:'Campagne moteur long block.', veh:{marques:['Hyundai','Kia'], modeles:['Tucson','Santa Fe','Sportage','Sorento'], mot:['2.0','2.4','theta']}, carbu:'essence', kw:['coussinet','casse','theta','claquement','huile'], prio:1 }
+  { cat:'Moteur', titre:'Theta II : coussinets / casse moteur', src:'Rappel Hyundai-Kia', sym:'Claquement, casse moteur, voyant huile.', dtc:['P0520'], sol:'Campagne moteur long block.', veh:{marques:['Hyundai','Kia'], modeles:['Tucson','Santa Fe','Sportage','Sorento'], mot:['2.0','2.4','theta']}, carbu:'essence', kw:['coussinet','casse','theta','claquement','huile'], prio:1 },
+  // Spécifiques Elroq / modèles électriques 2024-2026
+  { cat:'Électrique', titre:'Škoda Elroq : batterie HT / autonomie', src:'VAG MEB — EV récent', sym:'Autonomie en baisse, voyant HV, cellules déséquilibrées.', dtc:['P0A80','P0A1F'], sol:'Diagnostic modules HT, équilibrage, vérif BMS.', veh:{marques:['Škoda'], modeles:['Elroq','Enyaq','Enyaq Coupé'], mot:['électrique','ht','bev']}, carbu:'ev', kw:['batterie','ht','autonomie','elroq','enyaq','bms'], prio:2 },
+  { cat:'Électrique', titre:'Škoda Elroq : recharge lente / chargeur embarqué', src:'VAG MEB', sym:'Recharge AC lente, coupures, défaut chargeur.', dtc:['P0CF0','P0C79'], sol:'Contrôle chargeur embarqué, câble type 2, borne.', veh:{marques:['Škoda'], modeles:['Elroq','Enyaq'], mot:['électrique','chargeur']}, carbu:'ev', kw:['recharge','chargeur','elroq','borne','type 2'], prio:3 },
+  { cat:'Électrique', titre:'Renault 5 E-Tech : batterie LFP', src:'Renault AmpR Small', sym:'Autonomie, calibration BMS, préconditionnement.', dtc:['P0A80'], sol:'Calibration BMS, MAJ logicielle, préchauffage.', veh:{marques:['Renault'], modeles:['Renault 5 E-Tech','Megane E-Tech','Scenic E-Tech'], mot:['électrique','lfp']}, carbu:'ev', kw:['batterie','lfp','bms','renault 5'], prio:2 },
+  { cat:'Électrique', titre:'Tesla Model 3 Highland / Model Y Juniper : 12V LiFePO4', src:'Tesla', sym:'Batterie 12V faible, défauts électroniques.', dtc:['P0562'], sol:'Remplacement batterie 12V LiFePO4 OEM.', veh:{marques:['Tesla'], modeles:['Model 3','Model 3 Highland','Model Y','Model Y Juniper'], mot:['électrique','12v']}, carbu:'ev', kw:['batterie','12v','lifepo4','tesla'], prio:8 },
+  { cat:'Électrique', titre:'BYD Seal U / Atto 3 : Blade Battery', src:'BYD', sym:'Équilibrage modules, perte autonomie.', dtc:['P0A80'], sol:'Équilibrage cellules Blade, diag BMS.', veh:{marques:['BYD'], modeles:['Atto 3','Atto 2','Seal','Seal U','Dolphin','Dolphin U'], mot:['électrique','blade']}, carbu:'ev', kw:['batterie','blade','bms','byd','seal u','atto 3'], prio:2 }
 ];
 FICHES_CURATED.forEach(function (f) { prepFiche(f, false); });
 
-// ---------- GÉNÉRATEUR MASSIF (22 puissances uniques) ----------
+// ---------- GÉNÉRATEUR MASSIF (22 puissances, 2024-2026 inclus) ----------
 function enginesFor(m) {
   var out = [];
   if (m.orig !== 'us') {
@@ -245,25 +259,27 @@ function buildMassiveBase() {
   stats.makesCount = Object.keys(stats.makes).length;
   stats.powersCount = Object.keys(stats.powers).length;
   stats.pannesCount = PANNES.filter(function (p) { return stats.pannes[p.id]; }).length;
+  stats.modelsCatalogCount = Object.keys(MODELES_CATALOG).reduce(function (acc, k) { return acc + MODELES_CATALOG[k].length; }, 0);
   return { fiches: out, stats: stats };
 }
 
 var MASSIVE = buildMassiveBase();
 var FICHES = MASSIVE.fiches;
 var STATS = MASSIVE.stats;
-var GENERATION_ID = 'gen-6.2-p' + STATS.powersCount + '-m' + STATS.makesCount + '-f' + FICHES.length;
+var GENERATION_ID = 'gen-7.0-elroq-p' + STATS.powersCount + '-m' + STATS.makesCount + '-mdl' + STATS.modelsCatalogCount + '-f' + FICHES.length;
 
-// ---------- VALIDATION DU POOL CHARGÉ ----------
-var SAMPLE_MAKES = ['peugeot','renault','bmw','toyota','ford','byd','zeekr','rivian','aixam','maserati','xiaomi','tank','tesla','hyundai'];
+// ---------- VALIDATION DU POOL ----------
+var SAMPLE_MAKES = ['peugeot','renault','bmw','toyota','ford','byd','zeekr','rivian','aixam','maserati','xiaomi','tank','tesla','hyundai','skoda'];
+var REQUIRED_MODELS = ['elroq','enyaq','renault 5 e tech','rafale','e 3008','e 5008','atto 3','seal u','model 3 highland','model y juniper','ev9','ioniq 9','inster'];
 function validatePool(pool) {
   if (!pool || !pool.length || pool.length < 1000) return false;
-  var powers = {}, makes = {}, i, m;
+  var powers = {}, makes = {}, models = {}, i, m;
   for (i = 0; i < pool.length; i++) {
     var t = pool[i].titre || '';
     m = t.match(/(\d{2,3}) ch /);
     if (m) powers[m[1]] = 1;
     var ml = pool[i].marqueLibre || '';
-    if (ml) makes[ml.split(' ')[0]] = 1;
+    if (ml) { makes[ml.split(' ')[0]] = 1; models[ml] = 1; }
   }
   if (Object.keys(powers).length < 15) return false;
   for (i = 0; i < SAMPLE_MAKES.length; i++) if (!makes[SAMPLE_MAKES[i]]) return false;
@@ -274,10 +290,15 @@ function validatePool(pool) {
     }
     if (!found) return false;
   }
+  // Validation modèles récents 2024-2026
+  var allTxt = pool.map(function (f) { return (f.marqueLibre || '') + ' ' + (f.titre || ''); }).join(' | ').toLowerCase();
+  for (i = 0; i < REQUIRED_MODELS.length; i++) {
+    if (allTxt.indexOf(REQUIRED_MODELS[i]) < 0) return false;
+  }
   return true;
 }
 
-// ---------- IndexedDB (+ store meta) ----------
+// ---------- IndexedDB ----------
 function DB() {}
 DB.prototype.open = function () {
   var self = this;
@@ -348,7 +369,6 @@ DB.prototype.setMeta = function (v) {
 };
 var db = new DB();
 
-// ---------- CHARGEMENT ROBUSTE (génération + validation) ----------
 async function loadOrSeed() {
   await db.open();
   var meta = await db.getMeta();
@@ -370,7 +390,7 @@ async function loadOrSeed() {
   return pool.length;
 }
 
-// ---------- IMPORT DISTANT S1/S2/S3 ----------
+// ---------- IMPORT DISTANT S1/S2/S3 + SCAN PARALLÈLE DE LA SOURCE ----------
 function fetchText(url, timeout) {
   var ctrl = new AbortController();
   var t = setTimeout(function () { ctrl.abort(); }, timeout || 12000);
@@ -485,7 +505,7 @@ async function importRemote(onLog, onProg) {
   var log = onLog || function () {};
   var prog = onProg || function () {};
   var report = { date: new Date().toISOString(), source: CONFIG.SOURCE_URL, strategy: null, remoteCount: 0, totalCount: 0, errors: [] };
-  log('📦 Base embarquée massive : ' + FICHES.length + ' fiches (' + STATS.makesCount + ' marques · ' + STATS.models + ' motorisations-modèles · ' + STATS.powersCount + ' puissances · ' + STATS.pannesCount + ' familles de pannes) · gen ' + GENERATION_ID);
+  log('📦 Base embarquée massive : ' + FICHES.length + ' fiches (' + STATS.makesCount + ' marques · ' + STATS.modelsCatalogCount + ' modèles catalogue · ' + STATS.models + ' motorisations-modèles · ' + STATS.powersCount + ' puissances · ' + STATS.pannesCount + ' familles de pannes) · gen ' + GENERATION_ID);
   var remote = [];
 
   log('S1 · Endpoints JSON directs…'); prog(10);
@@ -499,7 +519,7 @@ async function importRemote(onLog, onProg) {
   }
 
   if (!remote.length) {
-    log('S2 · Analyse HTML + scripts inline/externes…'); prog(35);
+    log('S2 · Analyse HTML + scripts inline/externes de la source…'); prog(35);
     try {
       var html = await fetchText(CONFIG.SOURCE_URL);
       var ex = extractJsonBlocks(html);
@@ -550,38 +570,83 @@ async function importRemote(onLog, onProg) {
   return report;
 }
 
-// ---------- RECHERCHE ----------
+// ---------- TABLE VEH (détection) + MARQUES recherche ----------
 var VEH = [
-  ['3008','Peugeot','3008'],['2008','Peugeot','2008'],['5008','Peugeot','5008'],['408','Peugeot','408'],
-  ['208','Peugeot','208'],['308','Peugeot','308'],['508','Peugeot','508'],['partner','Peugeot','Partner'],['rifter','Peugeot','Rifter'],
-  ['clio','Renault','Clio'],['megane','Renault','Megane'],['scenic','Renault','Scenic'],['captur','Renault','Captur'],['kadjar','Renault','Kadjar'],['austral','Renault','Austral'],['zoe','Renault','Zoe'],['twingo','Renault','Twingo'],['kangoo','Renault','Kangoo'],['trafic','Renault','Trafic'],
-  ['duster','Dacia','Duster'],['sandero','Dacia','Sandero'],['logan','Dacia','Logan'],['jogger','Dacia','Jogger'],['spring','Dacia','Spring'],
-  ['c3 aircross','Citroën','C3 Aircross'],['c3','Citroën','C3'],['c4','Citroën','C4'],['c5 aircross','Citroën','C5 Aircross'],['berlingo','Citroën','Berlingo'],
-  ['ds3','DS Automobiles','DS 3'],['ds4','DS Automobiles','DS 4'],['ds7','DS Automobiles','DS 7'],
-  ['golf','Volkswagen','Golf'],['polo','Volkswagen','Polo'],['passat','Volkswagen','Passat'],['tiguan','Volkswagen','Tiguan'],['touareg','Volkswagen','Touareg'],['t roc','Volkswagen','T-Roc'],['id 3','Volkswagen','ID.3'],['id 4','Volkswagen','ID.4'],
-  ['a3','Audi','A3'],['a4','Audi','A4'],['a5','Audi','A5'],['a6','Audi','A6'],['q3','Audi','Q3'],['q5','Audi','Q5'],['q7','Audi','Q7'],
-  ['octavia','Škoda','Octavia'],['fabia','Škoda','Fabia'],['superb','Škoda','Superb'],['kodiaq','Škoda','Kodiaq'],
+  // Peugeot
+  ['3008','Peugeot','3008'],['e 3008','Peugeot','e-3008'],['2008','Peugeot','2008'],['5008','Peugeot','5008'],['e 5008','Peugeot','e-5008'],
+  ['408','Peugeot','408'],['208','Peugeot','208'],['e 208','Peugeot','e-208'],['308','Peugeot','308'],['e 308','Peugeot','e-308'],['508','Peugeot','508'],
+  ['partner','Peugeot','Partner'],['rifter','Peugeot','Rifter'],['expert','Peugeot','Expert'],['boxer','Peugeot','Boxer'],
+  // Renault
+  ['clio','Renault','Clio'],['megane','Renault','Megane'],['megane e tech','Renault','Megane E-Tech'],
+  ['scenic','Renault','Scenic'],['scenic e tech','Renault','Scenic E-Tech'],
+  ['captur','Renault','Captur'],['kadjar','Renault','Kadjar'],['austral','Renault','Austral'],['espace','Renault','Espace'],
+  ['renault 5','Renault','Renault 5 E-Tech'],['5 e tech','Renault','Renault 5 E-Tech'],['renault 5 e tech','Renault','Renault 5 E-Tech'],
+  ['rafale','Renault','Rafale'],['symbioz','Renault','Symbioz'],
+  ['zoe','Renault','Zoe'],['twingo','Renault','Twingo'],['kangoo','Renault','Kangoo'],['trafic','Renault','Trafic'],['master','Renault','Master'],
+  // Dacia
+  ['duster','Dacia','Duster'],['bigster','Dacia','Bigster'],['sandero','Dacia','Sandero'],['logan','Dacia','Logan'],['jogger','Dacia','Jogger'],['spring','Dacia','Spring'],
+  // Citroën
+  ['c3 aircross','Citroën','C3 Aircross'],['c3','Citroën','C3'],['e c3','Citroën','ë-C3'],
+  ['c4','Citroën','C4'],['c5 aircross','Citroën','C5 Aircross'],['berlingo','Citroën','Berlingo'],['jumpy','Citroën','Jumpy'],
+  // DS
+  ['ds3','DS Automobiles','DS 3'],['ds4','DS Automobiles','DS 4'],['ds7','DS Automobiles','DS 7'],['ds9','DS Automobiles','DS 9'],
+  ['ds n4','DS Automobiles','DS N°4'],['ds n8','DS Automobiles','DS N°8'],
+  // VAG
+  ['golf','Volkswagen','Golf'],['polo','Volkswagen','Polo'],['passat','Volkswagen','Passat'],['tiguan','Volkswagen','Tiguan'],
+  ['touareg','Volkswagen','Touareg'],['t roc','Volkswagen','T-Roc'],['id 3','Volkswagen','ID.3'],['id 4','Volkswagen','ID.4'],['id 5','Volkswagen','ID.5'],['id 7','Volkswagen','ID.7'],['id buzz','Volkswagen','ID.Buzz'],
+  ['a3','Audi','A3'],['a4','Audi','A4'],['a5','Audi','A5'],['a6','Audi','A6'],['q3','Audi','Q3'],['q4','Audi','Q4 e-tron'],['q5','Audi','Q5'],['q6','Audi','Q6 e-tron'],['q7','Audi','Q7'],['q8','Audi','Q8'],
+  ['octavia','Škoda','Octavia'],['fabia','Škoda','Fabia'],['superb','Škoda','Superb'],['kodiaq','Škoda','Kodiaq'],['karoq','Škoda','Karoq'],['kamiq','Škoda','Kamiq'],
+  ['enyaq','Škoda','Enyaq'],['enyaq coupe','Škoda','Enyaq Coupé'],['elroq','Škoda','Elroq'],['scala','Škoda','Scala'],
   ['leon','SEAT','Leon'],['ibiza','SEAT','Ibiza'],['ateca','SEAT','Ateca'],['arona','SEAT','Arona'],
-  ['serie 1','BMW','Serie 1'],['serie 3','BMW','Serie 3'],['serie 5','BMW','Serie 5'],['x1','BMW','X1'],['x3','BMW','X3'],['x5','BMW','X5'],
-  ['countryman','MINI','Countryman'],['mini','MINI','Cooper'],
-  ['classe a','Mercedes-Benz','Classe A'],['classe c','Mercedes-Benz','Classe C'],['classe e','Mercedes-Benz','Classe E'],['gla','Mercedes-Benz','GLA'],['glc','Mercedes-Benz','GLC'],
-  ['yaris','Toyota','Yaris'],['corolla','Toyota','Corolla'],['rav4','Toyota','RAV4'],['c hr','Toyota','C-HR'],['hilux','Toyota','Hilux'],['prius','Toyota','Prius'],
-  ['fiesta','Ford','Fiesta'],['focus','Ford','Focus'],['kuga','Ford','Kuga'],['puma','Ford','Puma'],
-  ['i20','Hyundai','i20'],['i30','Hyundai','i30'],['tucson','Hyundai','Tucson'],['santa fe','Hyundai','Santa Fe'],['kona','Hyundai','Kona'],
-  ['ceed','Kia','Ceed'],['sportage','Kia','Sportage'],['niro','Kia','Niro'],['sorento','Kia','Sorento'],
-  ['qashqai','Nissan','Qashqai'],['juke','Nissan','Juke'],['micra','Nissan','Micra'],['leaf','Nissan','Leaf'],
-  ['corsa','Opel','Corsa'],['astra','Opel','Astra'],['mokka','Opel','Mokka'],['grandland','Opel','Grandland'],
-  ['model 3','Tesla','Model 3'],['model y','Tesla','Model Y'],['model s','Tesla','Model S'],['model x','Tesla','Model X'],
-  ['atto 3','BYD','Atto 3'],['dolphin','BYD','Dolphin'],['seal','BYD','Seal'],['han','BYD','Han'],['tang','BYD','Tang']
+  ['born','CUPRA','Born'],['formentor','CUPRA','Formentor'],['tavascan','CUPRA','Tavascan'],
+  // BMW / Mercedes / Volvo / Porsche
+  ['serie 1','BMW','Serie 1'],['serie 3','BMW','Serie 3'],['serie 5','BMW','Serie 5'],['x1','BMW','X1'],['x3','BMW','X3'],['x5','BMW','X5'],['ix3','BMW','iX3'],['ix','BMW','iX'],['i4','BMW','i4'],['i5','BMW','i5'],['i7','BMW','i7'],
+  ['countryman','MINI','Countryman'],['mini','MINI','Cooper'],['mini aceman','MINI','Aceman'],
+  ['classe a','Mercedes-Benz','Classe A'],['classe c','Mercedes-Benz','Classe C'],['classe e','Mercedes-Benz','Classe E'],['classe s','Mercedes-Benz','Classe S'],
+  ['gla','Mercedes-Benz','GLA'],['glc','Mercedes-Benz','GLC'],['gle','Mercedes-Benz','GLE'],['eqe','Mercedes-Benz','EQE'],['eqs','Mercedes-Benz','EQS'],['eqa','Mercedes-Benz','EQA'],['eqb','Mercedes-Benz','EQB'],
+  ['xc40','Volvo','XC40'],['xc60','Volvo','XC60'],['xc90','Volvo','XC90'],['ex30','Volvo','EX30'],['ex90','Volvo','EX90'],['em90','Volvo','EM90'],['c40','Volvo','C40'],
+  ['polestar 2','Polestar','Polestar 2'],['polestar 3','Polestar','Polestar 3'],['polestar 4','Polestar','Polestar 4'],
+  ['911','Porsche','911'],['taycan','Porsche','Taycan'],['macan','Porsche','Macan'],['cayenne','Porsche','Cayenne'],
+  // Toyota / Lexus / Honda / Nissan / Mazda / Subaru / Suzuki / Mitsubishi
+  ['yaris','Toyota','Yaris'],['corolla','Toyota','Corolla'],['camry','Toyota','Camry'],['c hr','Toyota','C-HR'],['rav4','Toyota','RAV4'],['hilux','Toyota','Hilux'],['land cruiser','Toyota','Land Cruiser'],['prius','Toyota','Prius'],['bz4x','Toyota','bZ4X'],
+  ['is','Lexus','IS'],['es','Lexus','ES'],['nx','Lexus','NX'],['rx','Lexus','RX'],['rz','Lexus','RZ'],['lbx','Lexus','LBX'],
+  ['civic','Honda','Civic'],['accord','Honda','Accord'],['cr v','Honda','CR-V'],['hr v','Honda','HR-V'],['jazz','Honda','Jazz'],
+  ['qashqai','Nissan','Qashqai'],['juke','Nissan','Juke'],['micra','Nissan','Micra'],['leaf','Nissan','Leaf'],['ariya','Nissan','Ariya'],['x trail','Nissan','X-Trail'],
+  ['mazda3','Mazda','Mazda3'],['mazda2','Mazda','Mazda2'],['cx 5','Mazda','CX-5'],['cx 60','Mazda','CX-60'],['cx 80','Mazda','CX-80'],['mx 5','Mazda','MX-5'],
+  ['outback','Subaru','Outback'],['forester','Subaru','Forester'],['solterra','Subaru','Solterra'],
+  ['swift','Suzuki','Swift'],['vitara','Suzuki','Vitara'],['s cross','Suzuki','S-Cross'],['jimny','Suzuki','Jimny'],['e vitara','Suzuki','e Vitara'],
+  ['outlander','Mitsubishi','Outlander'],['eclipse cross','Mitsubishi','Eclipse Cross'],
+  // Hyundai / Kia / Ford / Jeep / Chevrolet / Tesla
+  ['i10','Hyundai','i10'],['i20','Hyundai','i20'],['i30','Hyundai','i30'],['kona','Hyundai','Kona'],['tucson','Hyundai','Tucson'],['santa fe','Hyundai','Santa Fe'],['ioniq 5','Hyundai','Ioniq 5'],['ioniq 6','Hyundai','Ioniq 6'],['ioniq 9','Hyundai','Ioniq 9'],['inster','Hyundai','Inster'],
+  ['picanto','Kia','Picanto'],['rio','Kia','Rio'],['ceed','Kia','Ceed'],['stonic','Kia','Stonic'],['sportage','Kia','Sportage'],['sorento','Kia','Sorento'],['niro','Kia','Niro'],['ev6','Kia','EV6'],['ev9','Kia','EV9'],['ev5','Kia','EV5'],
+  ['fiesta','Ford','Fiesta'],['focus','Ford','Focus'],['kuga','Ford','Kuga'],['puma','Ford','Puma'],['mustang mach e','Ford','Mustang Mach-E'],['ranger','Ford','Ranger'],['transit','Ford','Transit'],['explorer ev','Ford','Explorer EV'],['capri ev','Ford','Capri EV'],
+  ['renegade','Jeep','Renegade'],['compass','Jeep','Compass'],['wrangler','Jeep','Wrangler'],['grand cherokee','Jeep','Grand Cherokee'],['avenger','Jeep','Avenger'],
+  ['bolt ev','Chevrolet','Bolt EV'],['bolt euv','Chevrolet','Bolt EUV'],['equinox ev','Chevrolet','Equinox EV'],['blazer ev','Chevrolet','Blazer EV'],['silverado ev','Chevrolet','Silverado EV'],
+  ['model 3','Tesla','Model 3'],['model 3 highland','Tesla','Model 3 Highland'],['model y','Tesla','Model Y'],['model y juniper','Tesla','Model Y Juniper'],['model s','Tesla','Model S'],['model x','Tesla','Model X'],['cybertruck','Tesla','Cybertruck'],
+  // BYD / MG / Chery / Geely / Great Wall / Xiaomi / NIO / XPeng / Zeekr / Li / Leapmotor / VinFast / Smart
+  ['atto 3','BYD','Atto 3'],['atto 2','BYD','Atto 2'],['dolphin','BYD','Dolphin'],['dolphin u','BYD','Dolphin U'],['seal','BYD','Seal'],['seal u','BYD','Seal U'],['seagull','BYD','Seagull'],['han','BYD','Han'],['tang','BYD','Tang'],
+  ['mg3','MG','MG3'],['mg4','MG','MG4'],['mg5','MG','MG5'],['mg hs','MG','MG HS'],['mg zs','MG','MG ZS'],['mg s5','MG','MG S5'],['cyberster','MG','Cyberster'],['mg4 xpower','MG','MG4 XPOWER'],
+  ['tiggo 4','Chery','Tiggo 4'],['tiggo 7','Chery','Tiggo 7'],['tiggo 8','Chery','Tiggo 8'],['omoda 5','Chery','Omoda 5'],['jaecoo 7','Chery','Jaecoo 7'],
+  ['coolray','Geely','Coolray'],['monjaro','Geely','Monjaro'],['galaxy l7','Geely','Galaxy L7'],
+  ['tank 300','Great Wall','Tank 300'],['haval h6','Great Wall','Haval H6'],
+  ['su7','Xiaomi Auto','SU7'],['su7 ultra','Xiaomi Auto','SU7 Ultra'],['yu7','Xiaomi Auto','YU7'],
+  ['et7','NIO','ET7'],['et5','NIO','ET5'],['es6','NIO','ES6'],['es8','NIO','ES8'],
+  ['g6','XPeng','G6'],['g9','XPeng','G9'],['p7','XPeng','P7'],
+  ['zeekr 001','Zeekr','Zeekr 001'],['zeekr x','Zeekr','Zeekr X'],['zeekr 007','Zeekr','Zeekr 007'],
+  ['l9','Li Auto','L9'],['l8','Li Auto','L8'],['l7','Li Auto','L7'],
+  ['c10','Leapmotor','C10'],['c11','Leapmotor','C11'],['b10','Leapmotor','B10'],
+  ['vf 8','VinFast','VF 8'],['vf 9','VinFast','VF 9'],['vf 7','VinFast','VF 7'],
+  ['smart 1','Smart','Smart #1'],['smart 3','Smart','Smart #3'],['smart 5','Smart','Smart #5']
 ].sort(function (a, b) { return b[0].length - a[0].length; });
 
 var MARQUES = [
   ['peugeot','Peugeot'],['renault','Renault'],['citroen','Citroën'],['ds automobiles','DS Automobiles'],
-  ['dacia','Dacia'],['volkswagen','Volkswagen'],['vw','Volkswagen'],['audi','Audi'],['skoda','Škoda'],['seat','SEAT'],
-  ['bmw','BMW'],['mini','MINI'],['mercedes','Mercedes-Benz'],['toyota','Toyota'],['lexus','Lexus'],['ford','Ford'],
-  ['hyundai','Hyundai'],['kia','Kia'],['nissan','Nissan'],['opel','Opel'],['tesla','Tesla'],['jeep','Jeep'],
-  ['chevrolet','Chevrolet'],['honda','Honda'],['mazda','Mazda'],['volvo','Volvo'],['porsche','Porsche'],['fiat','Fiat'],
-  ['byd','BYD'],['mg','MG'],['chery','Chery'],['geely','Geely'],['great wall','Great Wall'],['xiaomi auto','Xiaomi Auto']
+  ['dacia','Dacia'],['volkswagen','Volkswagen'],['vw','Volkswagen'],['audi','Audi'],['skoda','Škoda'],['seat','SEAT'],['cupra','CUPRA'],
+  ['bmw','BMW'],['mini','MINI'],['mercedes','Mercedes-Benz'],['opel','Opel'],['volvo','Volvo'],['porsche','Porsche'],['polestar','Polestar'],
+  ['toyota','Toyota'],['lexus','Lexus'],['honda','Honda'],['nissan','Nissan'],['mazda','Mazda'],['subaru','Subaru'],['suzuki','Suzuki'],['mitsubishi','Mitsubishi'],
+  ['hyundai','Hyundai'],['kia','Kia'],['ford','Ford'],['jeep','Jeep'],['chevrolet','Chevrolet'],['tesla','Tesla'],
+  ['byd','BYD'],['mg','MG'],['chery','Chery'],['geely','Geely'],['great wall','Great Wall'],['xiaomi','Xiaomi Auto'],['nio','NIO'],['xpeng','XPeng'],['zeekr','Zeekr'],['li auto','Li Auto'],['leapmotor','Leapmotor'],['vinfast','VinFast'],['smart','Smart'],
+  ['rivian','Rivian'],['lucid','Lucid'],['fisker','Fisker'],['aixam','Aixam'],['maserati','Maserati'],['tank','Tank'],['fiat','Fiat']
 ].sort(function (a, b) { return b[0].length - a[0].length; });
 
 var FAMILLES = [
@@ -719,7 +784,7 @@ function renderResults(results, ctx, q) {
   } else dB.innerHTML = '';
   var box = $('resultsBox');
   if (!results.length) {
-    box.innerHTML = '<div class="empty">Aucun résultat pour « ' + q + ' ». Essayez : modèle (3008, clio…), organe (courroie, fap, egr…), DTC (p0016)…</div>';
+    box.innerHTML = '<div class="empty">Aucun résultat pour « ' + q + ' ». Essayez : modèle (3008, elroq, clio…), organe (courroie, fap, egr…), DTC (p0016)…</div>';
     return;
   }
   box.innerHTML = results.map(function (r) {
@@ -787,6 +852,7 @@ async function importMassiveUI() {
       ' fiches distantes · base totale ' + rep.totalCount + ' · ' + new Date(rep.date).toLocaleString('fr-FR');
     $('ficheCount').textContent = rep.totalCount + ' fiches';
     $('genVersion').textContent = GENERATION_ID;
+    $('modelCount').textContent = STATS.modelsCatalogCount + ' modèles';
     $('dataVersion').textContent = (rep.remoteCount ? '3 (import distant ' : '2 (massive local ') + new Date(rep.date).toLocaleDateString('fr-FR') + ')';
     setTimeout(function () { if (confirm('Import terminé (' + rep.totalCount + ' fiches). Recharger la page ?')) location.reload(); }, 800);
   } catch (e) {
@@ -875,11 +941,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     } catch (err) { alert('❌ Fichier invalide : ' + err.message); }
   });
 
-  // Boot ROBUSTE : génération signée + validation du pool + auto-reseed
   try {
     var loaded = await loadOrSeed();
     $('ficheCount').textContent = loaded + ' fiches';
     $('genVersion').textContent = GENERATION_ID;
+    $('modelCount').textContent = STATS.modelsCatalogCount + ' modèles';
     var rep = null;
     try { rep = JSON.parse(localStorage.getItem(CONFIG.LS_IMPORT) || 'null'); } catch (e) {}
     if (rep && rep.remoteCount) $('dataVersion').textContent = '3 (import distant ' + new Date(rep.date).toLocaleDateString('fr-FR') + ')';
@@ -889,6 +955,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     window.__ALL_FICHES = FICHES;
     $('ficheCount').textContent = FICHES.length + ' fiches (mémoire)';
     $('genVersion').textContent = GENERATION_ID + ' (mémoire)';
+    $('modelCount').textContent = STATS.modelsCatalogCount + ' modèles (mémoire)';
   }
 });
 
